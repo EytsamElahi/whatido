@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "name": "Housing"
+  },
+  {
+    "id": 2,
+    "name": "Transportation"
+  },
+  {
+    "id": 3,
+    "name": "Food"
+  },
+  {
+    "id": 4,
+    "name": "Health"
+  },
+  {
+    "id": 5,
+    "name": "Debt"
+  },
+  {
+    "id": 6,
+    "name": "Savings"
+  },
+  {
+    "id": 7,
+    "name": "Entertainment"
+  },
+  {
+    "id": 8
+    "name": "Education"
+  },
+  {
+    "id": 9,
+    "name": "Insurance"
+  },
+  {
+    "id": 10,
+    "name": "Miscellaneous"
+  },
+  {
+    "id": 11,
+    "name": "Grooming"
+  },
+  {
+    "id": 12,
+    "name": "Shopping"
+  },
+]
