@@ -9,6 +9,8 @@ import SwiftUI
 
 struct SpendsListingView: View {
     @State var showSheet: Bool = false
+    @EnvironmentObject var navigation: NavigationManager
+    
     var body: some View {
         VStack(alignment: .leading) {
             VStack(alignment: .leading) {

@@ -20,13 +20,13 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 
 @main
 struct WhatIdoApp: App {
-    let persistenceController = PersistenceController.shared
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    @StateObject private var navManager = NavigationManager()
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            SpendsListingView()
+                .environmentObject(navManager)
         }
     }
 }
