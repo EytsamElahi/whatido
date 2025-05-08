@@ -32,12 +32,13 @@ struct CalendarFieldView: View {
     var body: some View {
         ZStack {
             Rectangle()
+                .stroke(Color.gray, lineWidth: 1)
                 .frame(height: 50)
               //  .foregroundColor(Color.fieldbg)
-                .clipShape(RoundedRectangle(cornerRadius: 25)) // Apply rounded corners
+                .clipShape(RoundedRectangle(cornerRadius: 10)) // Apply rounded corners
                 .overlay(
                     ZStack {
-                        RoundedRectangle(cornerRadius: 25)
+                        RoundedRectangle(cornerRadius: 10)
                             .stroke(Color.gray, lineWidth: 1)
                         HStack {
                             if datePickerPosition == .start {

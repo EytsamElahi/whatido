@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct SpendsListingView: View {
+    @State var showSheet: Bool = false
     var body: some View {
         VStack(alignment: .leading) {
             VStack(alignment: .leading) {
@@ -20,7 +21,7 @@ struct SpendsListingView: View {
                     }
                     Spacer()
                     Button {
-
+                        showSheet.toggle()
                     } label: {
                         Image(systemName: "plus")
                     }
@@ -37,6 +38,9 @@ struct SpendsListingView: View {
                 }
                 Spacer()
             }.padding()
+        }.sheet(isPresented: $showSheet) {
+            AddSpendingView()
+                .presentationDetents([.medium])
         }
     }
 }
