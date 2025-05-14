@@ -8,31 +8,32 @@
 import SwiftUI
 
 struct AddSpendingView: View {
-    @State var textfieldInput: String = ""
-    @State var amountTextfieldInput: String = ""
-    @State var dateTextfieldInput: String = ""
+    @EnvironmentObject var viewModel: SpendingsViewModel
 
     var body: some View {
         VStack(alignment: .leading, spacing: 15){
             Text("Add Spending")
                 .foregroundStyle(Color.black)
                 .font(.customFont(name: .bold, size: .x20))
-            AppTextfield(inputText: $textfieldInput, placeHolder: "Jot down spending")
+            AppTextfield(inputText: $viewModel.spendingItemTf, placeHolder: "Jot down spending")
                 .frame(height: 50)
             HStack {
-                AppTextfield(inputText: $amountTextfieldInput, placeHolder: "Amount")
+                AppTextfield(inputText: $viewModel.amountTf, placeHolder: "Amount")
                     .frame(height: 50)
-                CalendarFieldView(fieldInputText: $dateTextfieldInput, placeHolder: "Date", datePickerPosition: .start, datePickerRange: .future)
+                CalendarFieldView(fieldInputText: $viewModel.dateTf, placeHolder: "Date", datePickerPosition: .start, datePickerRange: .past)
                     .frame(height: 50)
             }
-            AppPickerView()
+            AppPickerView(listing: viewModel.spendingTypes.compactMap {$0.name ?? ""}, pickedItem: $viewModel.spendingTypeName)
                 .frame(height: 50)
             Spacer()
-            AppPrimaryButton(title: "Add", cornerPadding: 0, disable: .constant(false), action: {})
+            AppPrimaryButton(title: "Add", cornerPadding: 0, disable: .constant(false), action: {
+                viewModel.addSpending()
+            })
         }.padding()
     }
 }
 
 #Preview {
     AddSpendingView()
+        .environmentObject(SpendingsViewModel())
 }

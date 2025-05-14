@@ -10,7 +10,8 @@ import SwiftUI
 struct SpendsListingView: View {
     @State var showSheet: Bool = false
     @EnvironmentObject var navigation: NavigationManager
-    
+    @StateObject var viewModel = SpendingsViewModel()
+
     var body: some View {
         VStack(alignment: .leading) {
             VStack(alignment: .leading) {
@@ -32,16 +33,19 @@ struct SpendsListingView: View {
                         RoundedRectangle(cornerRadius: 10.0)
                             .fill(Color.white)
                             .shadow(color: .black.opacity(0.2) , radius: 2, x: 0, y: 0.5)
-                    }
+                    }.padding()
                 ScrollView {
                     ForEach(0..<5) { _ in
                         SpendingRow()
+                            .padding(.horizontal)
+                            .padding(.vertical, 5)
                     }
                 }
                 Spacer()
-            }.padding()
+            }
         }.sheet(isPresented: $showSheet) {
             AddSpendingView()
+                .environmentObject(viewModel)
                 .presentationDetents([.medium])
         }
     }

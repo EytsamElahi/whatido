@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C33839AE2DD3B6C1002D4AFF /* NetworkManager.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C33839A62DD3B6C1002D4AFF /* NetworkManager.framework */; };
+		C33839AF2DD3B6C1002D4AFF /* NetworkManager.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C33839A62DD3B6C1002D4AFF /* NetworkManager.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		C3CBBE252DC12F2400D112D8 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = C3CBBE242DC12F2400D112D8 /* FirebaseAnalytics */; };
 		C3CBBE272DC12F2400D112D8 /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = C3CBBE262DC12F2400D112D8 /* FirebaseAppCheck */; };
 		C3CBBE292DC12F2400D112D8 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = C3CBBE282DC12F2400D112D8 /* FirebaseAuth */; };
@@ -20,11 +22,43 @@
 		C3CBBE392DC12F2400D112D8 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = C3CBBE382DC12F2400D112D8 /* FirebaseMessaging */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		C33839AC2DD3B6C1002D4AFF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C3CBBE032DBFE9E300D112D8 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C33839A52DD3B6C1002D4AFF;
+			remoteInfo = NetworkManager;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		C33839B42DD3B6C1002D4AFF /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				C33839AF2DD3B6C1002D4AFF /* NetworkManager.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		C33839A62DD3B6C1002D4AFF /* NetworkManager.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = NetworkManager.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C3CBBE0B2DBFE9E300D112D8 /* WhatIdo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WhatIdo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		C33839B32DD3B6C1002D4AFF /* Exceptions for "NetworkManager" folder in "NetworkManager" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			publicHeaders = (
+				NetworkManager.h,
+			);
+			target = C33839A52DD3B6C1002D4AFF /* NetworkManager */;
+		};
 		C3CBBE512DC1493400D112D8 /* Exceptions for "WhatIdo" folder in "WhatIdo" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -35,6 +69,14 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		C33839A72DD3B6C1002D4AFF /* NetworkManager */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C33839B32DD3B6C1002D4AFF /* Exceptions for "NetworkManager" folder in "NetworkManager" target */,
+			);
+			path = NetworkManager;
+			sourceTree = "<group>";
+		};
 		C3CBBE0D2DBFE9E300D112D8 /* WhatIdo */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -46,6 +88,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		C33839A32DD3B6C1002D4AFF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C3CBBE082DBFE9E300D112D8 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -59,6 +108,7 @@
 				C3CBBE332DC12F2400D112D8 /* FirebaseFirestore in Frameworks */,
 				C3CBBE312DC12F2400D112D8 /* FirebaseDatabase in Frameworks */,
 				C3CBBE2B2DC12F2400D112D8 /* FirebaseAuthCombine-Community in Frameworks */,
+				C33839AE2DD3B6C1002D4AFF /* NetworkManager.framework in Frameworks */,
 				C3CBBE392DC12F2400D112D8 /* FirebaseMessaging in Frameworks */,
 				C3CBBE372DC12F2400D112D8 /* FirebaseInAppMessaging-Beta in Frameworks */,
 			);
@@ -71,6 +121,7 @@
 			isa = PBXGroup;
 			children = (
 				C3CBBE0D2DBFE9E300D112D8 /* WhatIdo */,
+				C33839A72DD3B6C1002D4AFF /* NetworkManager */,
 				C3CBBE0C2DBFE9E300D112D8 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -79,13 +130,47 @@
 			isa = PBXGroup;
 			children = (
 				C3CBBE0B2DBFE9E300D112D8 /* WhatIdo.app */,
+				C33839A62DD3B6C1002D4AFF /* NetworkManager.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
+/* Begin PBXHeadersBuildPhase section */
+		C33839A12DD3B6C1002D4AFF /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
 /* Begin PBXNativeTarget section */
+		C33839A52DD3B6C1002D4AFF /* NetworkManager */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C33839B02DD3B6C1002D4AFF /* Build configuration list for PBXNativeTarget "NetworkManager" */;
+			buildPhases = (
+				C33839A12DD3B6C1002D4AFF /* Headers */,
+				C33839A22DD3B6C1002D4AFF /* Sources */,
+				C33839A32DD3B6C1002D4AFF /* Frameworks */,
+				C33839A42DD3B6C1002D4AFF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				C33839A72DD3B6C1002D4AFF /* NetworkManager */,
+			);
+			name = NetworkManager;
+			packageProductDependencies = (
+			);
+			productName = NetworkManager;
+			productReference = C33839A62DD3B6C1002D4AFF /* NetworkManager.framework */;
+			productType = "com.apple.product-type.framework";
+		};
 		C3CBBE0A2DBFE9E300D112D8 /* WhatIdo */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = C3CBBE1E2DBFE9E500D112D8 /* Build configuration list for PBXNativeTarget "WhatIdo" */;
@@ -93,10 +178,12 @@
 				C3CBBE072DBFE9E300D112D8 /* Sources */,
 				C3CBBE082DBFE9E300D112D8 /* Frameworks */,
 				C3CBBE092DBFE9E300D112D8 /* Resources */,
+				C33839B42DD3B6C1002D4AFF /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				C33839AD2DD3B6C1002D4AFF /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				C3CBBE0D2DBFE9E300D112D8 /* WhatIdo */,
@@ -129,6 +216,9 @@
 				LastSwiftUpdateCheck = 1620;
 				LastUpgradeCheck = 1620;
 				TargetAttributes = {
+					C33839A52DD3B6C1002D4AFF = {
+						CreatedOnToolsVersion = 16.2;
+					};
 					C3CBBE0A2DBFE9E300D112D8 = {
 						CreatedOnToolsVersion = 16.2;
 					};
@@ -152,11 +242,19 @@
 			projectRoot = "";
 			targets = (
 				C3CBBE0A2DBFE9E300D112D8 /* WhatIdo */,
+				C33839A52DD3B6C1002D4AFF /* NetworkManager */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		C33839A42DD3B6C1002D4AFF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C3CBBE092DBFE9E300D112D8 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -167,6 +265,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		C33839A22DD3B6C1002D4AFF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C3CBBE072DBFE9E300D112D8 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -176,7 +281,85 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		C33839AD2DD3B6C1002D4AFF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C33839A52DD3B6C1002D4AFF /* NetworkManager */;
+			targetProxy = C33839AC2DD3B6C1002D4AFF /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		C33839B12DD3B6C1002D4AFF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = M9R3KVSWLF;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = com.eytsam.NetworkManager;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		C33839B22DD3B6C1002D4AFF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = M9R3KVSWLF;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = com.eytsam.NetworkManager;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
 		C3CBBE1C2DBFE9E500D112D8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -359,6 +542,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		C33839B02DD3B6C1002D4AFF /* Build configuration list for PBXNativeTarget "NetworkManager" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C33839B12DD3B6C1002D4AFF /* Debug */,
+				C33839B22DD3B6C1002D4AFF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		C3CBBE062DBFE9E300D112D8 /* Build configuration list for PBXProject "WhatIdo" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

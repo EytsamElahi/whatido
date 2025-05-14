@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct AppPickerView: View {
-    var colors = ["Red", "Green", "Blue", "Tartan"]
-    @State private var selectedColor = "Red"
+    var listing: [String]
+    @Binding var pickedItem: String
     var body: some View {
         ZStack(content: {
             RoundedRectangle(cornerRadius: 10)
@@ -20,8 +20,8 @@ struct AppPickerView: View {
                         .foregroundStyle(Color.black)
                         .font(.customFont(name: .medium, size: .x16))
                     Spacer()
-                    Picker("Please choose a color", selection: $selectedColor) {
-                        ForEach(colors, id: \.self) {
+                    Picker("Please choose a color", selection: $pickedItem) {
+                        ForEach(listing, id: \.self) {
                             Text($0)
                                 .foregroundStyle(Color.black)
                                 .font(.customFont(name: .medium, size: .x16))
@@ -37,5 +37,5 @@ struct AppPickerView: View {
 }
 
 #Preview {
-    AppPickerView()
+    AppPickerView(listing: [], pickedItem: .constant(""))
 }
