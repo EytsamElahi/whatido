@@ -23,10 +23,13 @@ extension CollectionReference: FirestoreReference { }
 
 enum FirestoreEndpoints: FirestoreEndpoint {
     case createSpending
+    case getAllSpendings
     var path: FirestoreReference {
         switch self {
         case .createSpending:
             return firestore.collection("spendings").document()
+        case .getAllSpendings:
+            return firestore.collection("spendings")
         }
     }
 }

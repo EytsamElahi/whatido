@@ -10,6 +10,7 @@ import Foundation
 class SpendingsViewModel: ObservableObject {
     // MARK: - Data Members
     @Published var newSpending: Spending?
+    @Published var spendings: [SpendingDto]?
     @Published var spendingItemTf: String = ""
     @Published var amountTf: String = ""
     @Published var dateTf: String = ""
@@ -36,6 +37,16 @@ class SpendingsViewModel: ObservableObject {
     }
 }
 
+//MARK: - Fetching spendings
+extension SpendingsViewModel {
+    func fetchSpendings() {
+        Task {@MainActor in
+            self.spendings = try await spendingService.getAllSpendings()
+        }
+    }
+
+}
+
 // MARK: - Add New Spending
 extension SpendingsViewModel {
     func addSpending() {
@@ -43,11 +54,11 @@ extension SpendingsViewModel {
         guard let spendingType = spendingType else {return}
         newSpending = Spending(name: spendingItemTf, amount: Double(amountTf) ?? 0.0, date: date ?? Date(), categoryId: spendingType.catId ?? -1, typeId: spendingType.id ?? -1)
         guard let spending = newSpending else {
-            showAddNewSpendingSheet = false
             return
         }
-        Task {
+        Task {@MainActor in
             try await spendingService.addNewSpending(spending)
+            self.showAddNewSpendingSheet = false
         }
     }
 }

@@ -8,7 +8,7 @@
 import Foundation
 
 protocol WhatISpendServiceType {
-    func getAllSpendings()
+    func getAllSpendings() async throws -> [SpendingDto]
     func addNewSpending(_ spending: Spending) async throws
     func editSpending()
     func deleteSpending()
@@ -16,8 +16,16 @@ protocol WhatISpendServiceType {
 
 final class WhatISpendService: WhatISpendServiceType, FirebaseService {
 
-    func getAllSpendings() {
+    func getAllSpendings() async throws -> [SpendingDto] {
+        do {
+            let endpoint = FirestoreEndpoints.getAllSpendings
+            let spendingsData: [Spending] = try await request(endpoint: endpoint)
+            return spendingsData.map { $0.convertToDto() }
 
+        } catch {
+            debugPrint("Error in fetching spendings", error.localizedDescription)
+            throw error
+        }
     }
     
     func addNewSpending(_ spending: Spending) async throws {

@@ -24,7 +24,7 @@ extension FirebaseService {
         try await ref.setData(modelDict)
     }
 
-    func request<T: FirestoreIdentifiable>(_ queryParams: FirestoreQueryParam?, endpoint: FirestoreEndpoint) async throws -> [T] {
+    func request<T: FirestoreIdentifiable>(_ queryParams: FirestoreQueryParam? = nil, endpoint: FirestoreEndpoint) async throws -> [T] {
         guard let ref = endpoint.path as? CollectionReference else {
             throw FirestoreServiceError.collectionNotFound
         }

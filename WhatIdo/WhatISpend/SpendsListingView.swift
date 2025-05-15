@@ -35,15 +35,18 @@ struct SpendsListingView: View {
                             .shadow(color: .black.opacity(0.2) , radius: 2, x: 0, y: 0.5)
                     }.padding()
                 ScrollView {
-                    ForEach(0..<5) { _ in
-                        SpendingRow()
+                    ForEach(viewModel.spendings ?? [], id: \.self) { spending in
+                        SpendingRow(spending: spending)
                             .padding(.horizontal)
                             .padding(.vertical, 5)
                     }
                 }
                 Spacer()
             }
-        }.sheet(isPresented: $showSheet) {
+        }.onAppear(perform: {
+            viewModel.fetchSpendings()
+        })
+        .sheet(isPresented: $showSheet) {
             AddSpendingView()
                 .environmentObject(viewModel)
                 .presentationDetents([.medium])

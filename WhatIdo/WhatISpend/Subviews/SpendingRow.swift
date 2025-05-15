@@ -8,14 +8,28 @@
 import SwiftUI
 
 struct SpendingRow: View {
+    var spending: SpendingDto
     var body: some View {
-        HStack {
-            Text("Milk")
-                .font(.customFont(name: .regular, size: .x18))
-            Spacer()
-            Text("Rs 500")
-                .font(.customFont(name: .medium, size: .x18))
-        }.padding()
+        VStack(spacing: 10) {
+            HStack {
+                Text(spending.name)
+                    .font(.customFont(name: .regular, size: .x18))
+                Spacer()
+                Text("Rs\(spending.amount)")
+                    .font(.customFont(name: .medium, size: .x18))
+            }
+            HStack {
+                HStack {
+                    Image(systemName: "arrowshape.forward")
+                    Text(spending.type)
+                        .font(.customFont(name: .regular, size: .x16))
+                }
+                Spacer()
+                Text(spending.date.toDay())
+                    .font(.customFont(name: .regular, size: .x16))
+            }
+        }
+        .padding()
         .background {
             RoundedRectangle(cornerRadius: 10.0)
                 .fill(Color.white)
@@ -25,5 +39,5 @@ struct SpendingRow: View {
 }
 
 #Preview {
-    SpendingRow()
+    SpendingRow(spending: SpendingDto(id: "", name: "", amount: 0.0, date: Date(), type: ""))
 }

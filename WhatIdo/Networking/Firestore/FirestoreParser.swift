@@ -16,19 +16,16 @@ struct FirestoreParser {
             // Convert only date2 from Timestamp to a JSON-compatible format
             if let date2Timestamp = modifiedData["date"] as? FirebaseFirestore.Timestamp {
                 let date2 = date2Timestamp.dateValue()
-                modifiedData["date"] = date2.toFIRString()
+                print("📆 Original Date:", date2)
+                print("🕒 Seconds:", date2.timeIntervalSince1970)
+                modifiedData["date"] = date2.timeIntervalSince1970
 //                print("***MODIFIED DATE",date2Timestamp.dateValue())
-            }
-
-            if let updateAtToTimeStamp = modifiedData["updated_at"] as? FirebaseFirestore.Timestamp {
-                let date = updateAtToTimeStamp.dateValue()
-                modifiedData["updated_at"] = date.toFIRString()
-                debugPrint("***UpdatedAt DATE", updateAtToTimeStamp.dateValue())
             }
 
             // Serialize the modified dictionary to JSON
             let jsonData = try JSONSerialization.data(withJSONObject: modifiedData, options: [.fragmentsAllowed])
             let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .secondsSince1970
             return try decoder.decode(T.self, from: jsonData)
         } catch {
             throw FirestoreServiceError.parseError

@@ -41,4 +41,10 @@ class Spending: FirestoreIdentifiable {
         hasher.combine(id)
     }
 
+     func convertToDto() -> SpendingDto {
+         
+        return SpendingDto(id: self.id, name: self.name, amount: self.amount, date: self.date, type: "")
+    }
+
 }
+
