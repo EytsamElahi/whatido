@@ -26,12 +26,11 @@ struct AddSpendingView: View {
             CustomPickerView(listing: viewModel.spendingTypes.compactMap {$0.name ?? ""}, pickedItem: $viewModel.spendingTypeName)
                 .frame(height: 50)
             Spacer()
-            AppPrimaryButton(title: "Add", cornerPadding: 0, disable: .constant(false), action: {
-                viewModel.addSpending()
+            AppPrimaryButton(title: viewModel.spendingId == nil ? "Add" : "Update", cornerPadding: 0, disable: .constant(false), action: {
+                viewModel.addSpendingSheetAction()
             })
         }.padding()
-            .background(Color.gray.opacity(0.2))
-            .contentShape(Rectangle()) 
+            .contentShape(Rectangle())
             .alert(isPresented: $viewModel.showErrorAlert) {
                 Alert(title: Text("Error"), message: Text("One of the fields is empty"), dismissButton: .default(Text("Got it!")))
             }

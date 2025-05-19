@@ -51,6 +51,9 @@ struct SpendsListingView: View {
                     ScrollView {
                         ForEach(viewModel.spendings ?? [], id: \.self) { spending in
                             SpendingRow(spending: spending)
+                                .onTapGesture {
+                                    viewModel.editSpending(spending)
+                                }
                                 .padding(.horizontal)
                                 .padding(.vertical, 5)
                         }
@@ -74,6 +77,11 @@ struct SpendsListingView: View {
 //                              }
 //                          }
 //        })
+        .onChange(of: viewModel.showAddNewSpendingSheet) {old, new in
+            if new == false {
+                viewModel.resetAddSpendingForm()
+            }
+        }
         .sheet(isPresented: $viewModel.showAddNewSpendingSheet) {
             AddSpendingView()
                 .environmentObject(viewModel)

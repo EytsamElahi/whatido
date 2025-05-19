@@ -24,12 +24,15 @@ extension CollectionReference: FirestoreReference { }
 enum FirestoreEndpoints: FirestoreEndpoint {
     case createSpending
     case getAllSpendings
+    case editSpending(id: String)
     var path: FirestoreReference {
         switch self {
         case .createSpending:
             return firestore.collection("spendings").document()
         case .getAllSpendings:
             return firestore.collection("spendings")
+        case .editSpending(let documentId):
+            return firestore.collection("spendings").document(documentId)
         }
     }
 }

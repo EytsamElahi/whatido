@@ -10,7 +10,7 @@ import Foundation
 protocol WhatISpendServiceType {
     func getAllSpendings() async throws -> [SpendingDto]
     func addNewSpending(_ spending: Spending) async throws
-    func editSpending()
+    func editSpending(_ spending: Spending, id: String) async throws
     func deleteSpending()
 }
 
@@ -37,8 +37,13 @@ final class WhatISpendService: WhatISpendServiceType, FirebaseService {
         }
     }
     
-    func editSpending() {
-        debugPrint("")
+    func editSpending(_ spending: Spending, id: String) async throws {
+        do {
+            let endpoint = FirestoreEndpoints.editSpending(id: id)
+            try await post(data: spending, endpoint: endpoint)
+        } catch {
+            debugPrint("Error in posting data", error.localizedDescription)
+        }
     }
     
     func deleteSpending() {
