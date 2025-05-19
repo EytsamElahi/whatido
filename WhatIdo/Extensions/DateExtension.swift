@@ -126,6 +126,12 @@ extension Date {
         dateFormatter.dateFormat = "EE"
         return dateFormatter.string(from: self)
     }
+    func formatDateShort() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "E, d" // E = short day of week, d = day number
+        formatter.locale = Locale(identifier: "en_US_POSIX") // Ensures consistent output
+        return formatter.string(from: self)
+    }
     func getDayOnlyFromDate() -> String {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "dd"

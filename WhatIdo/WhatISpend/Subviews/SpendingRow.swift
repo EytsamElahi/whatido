@@ -15,17 +15,17 @@ struct SpendingRow: View {
                 Text(spending.name)
                     .font(.customFont(name: .regular, size: .x18))
                 Spacer()
-                Text("Rs\(spending.amount)")
+                Text("Rs \(Int(spending.amount))")
                     .font(.customFont(name: .medium, size: .x18))
             }
             HStack {
                 HStack {
-                    Image(systemName: "arrowshape.forward")
+                    Image(systemName: "tag.fill")
                     Text(spending.type)
                         .font(.customFont(name: .regular, size: .x16))
                 }
                 Spacer()
-                Text(spending.date.toDay())
+                Text(spending.date.formatDateShort())
                     .font(.customFont(name: .regular, size: .x16))
             }
         }

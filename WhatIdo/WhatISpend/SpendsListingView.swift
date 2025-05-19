@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct SpendsListingView: View {
-    @State var showSheet: Bool = false
     @EnvironmentObject var navigation: NavigationManager
     @StateObject var viewModel = SpendingsViewModel()
 
@@ -19,14 +18,24 @@ struct SpendsListingView: View {
                     VStack(alignment: .leading) {
                         Text("Current Spendings")
                             .font(.customFont(name: .medium, size: .x18))
-                        Text("Rs5000")
-                            .font(.customFont(name: .bold, size: .x30))
+                        if viewModel.isDataLoading {
+                            CircularLoadingIndicator()
+                        } else {
+                            HStack {
+                                Text("Rs")
+                                    .font(.customFont(name: .regular, size: .x18))
+                                Text("\(viewModel.totalSpending)")
+                                    .font(.customFont(name: .bold, size: .x30))
+                            }
+                        }
                     }
                     Spacer()
                     Button {
-                        showSheet.toggle()
+                        viewModel.showAddNewSpendingSheet.toggle()
                     } label: {
-                        Image(systemName: "plus")
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundStyle(Color.primary)
+                            .font(.title)
                     }
                 }.padding()
                     .background {
@@ -34,19 +43,38 @@ struct SpendsListingView: View {
                             .fill(Color.white)
                             .shadow(color: .black.opacity(0.2) , radius: 2, x: 0, y: 0.5)
                     }.padding()
-                ScrollView {
-                    ForEach(viewModel.spendings ?? [], id: \.self) { spending in
-                        SpendingRow(spending: spending)
-                            .padding(.horizontal)
-                            .padding(.vertical, 5)
+                if viewModel.isDataLoading {
+                    CircularLoadingIndicator()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                } else {
+                    ScrollView {
+                        ForEach(viewModel.spendings ?? [], id: \.self) { spending in
+                            SpendingRow(spending: spending)
+                                .padding(.horizontal)
+                                .padding(.vertical, 5)
+                        }
                     }
+                    Spacer()
                 }
-                Spacer()
             }
         }.onAppear(perform: {
             viewModel.fetchSpendings()
         })
-        .sheet(isPresented: $showSheet) {
+        // TODO: - Will move add button in toolbar when navigation will added
+//        .toolbar(content: {
+//            ToolbarItem(placement: .navigationBarTrailing) {
+//                              Button(action: {
+//                                  // Code for button action goes here
+//                                  print("Button tapped!")
+//                              }) {
+//                                  Text("Add")
+//                                  // Or use an image:
+//                                  // Image(systemName: "plus.circle.fill")
+//                              }
+//                          }
+//        })
+        .sheet(isPresented: $viewModel.showAddNewSpendingSheet) {
             AddSpendingView()
                 .environmentObject(viewModel)
                 .presentationDetents([.medium])

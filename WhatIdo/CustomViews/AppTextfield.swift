@@ -10,6 +10,7 @@ import SwiftUI
 struct AppTextfield: View {
     @Binding var inputText: String
     var placeHolder: String
+    var keyboardType: UIKeyboardType = .default
     var body: some View {
         ZStack(content: {
             RoundedRectangle(cornerRadius: 10)
@@ -18,6 +19,7 @@ struct AppTextfield: View {
                 Text(placeHolder)
                     .font(.customFont(name: .regular, size: .x16))
             }
+            .keyboardType(keyboardType)
             .font(.customFont(name: .medium, size: .x16))
             .frame(maxHeight: .infinity)
             .frame(maxWidth: .infinity)

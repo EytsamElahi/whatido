@@ -20,10 +20,13 @@ class SpendingsViewModel: ObservableObject {
         }
     }
     @Published var spendingTypes: [SpendingType] = []
+    @Published private(set) var totalSpending: Int = 0
     private var spendingType: SpendingType?
 
     //MARK: - State Members
     @Published var showAddNewSpendingSheet: Bool = false
+    @Published var isDataLoading: Bool = false
+    @Published var showErrorAlert: Bool = false
 
     init() {
         loadSpendingTypes()
@@ -40,8 +43,11 @@ class SpendingsViewModel: ObservableObject {
 //MARK: - Fetching spendings
 extension SpendingsViewModel {
     func fetchSpendings() {
+        isDataLoading = true
         Task {@MainActor in
             self.spendings = try await spendingService.getAllSpendings()
+            self.totalSpending = self.spendings?.reduce(0) { $0 + Int($1.amount) } ?? 0
+            self.isDataLoading = false
         }
     }
 
@@ -50,9 +56,13 @@ extension SpendingsViewModel {
 // MARK: - Add New Spending
 extension SpendingsViewModel {
     func addSpending() {
+        guard validateAddSpendingForm() else {
+            showErrorAlert = true
+            return
+        }
         let date = dateTf.toTimeStamp(format: "MM/dd/yyyy")
         guard let spendingType = spendingType else {return}
-        newSpending = Spending(name: spendingItemTf, amount: Double(amountTf) ?? 0.0, date: date ?? Date(), categoryId: spendingType.catId ?? -1, typeId: spendingType.id ?? -1)
+        newSpending = Spending(name: spendingItemTf, amount: Double(amountTf) ?? 0.0, date: date ?? Date(), categoryId: spendingType.catId ?? -1, typeId: spendingType.id ?? -1, spendingType: spendingType)
         guard let spending = newSpending else {
             return
         }
@@ -60,6 +70,20 @@ extension SpendingsViewModel {
             try await spendingService.addNewSpending(spending)
             self.showAddNewSpendingSheet = false
         }
+    }
+
+    private func validateAddSpendingForm() -> Bool {
+        guard !spendingItemTf.isEmpty, !amountTf.isEmpty, let _ = dateTf.toTimeStamp(format: "MM/dd/yyyy"), let spendingType = spendingType, spendingType.id != 0 else {
+            return false
+        }
+        return true
+    }
+
+    private func resetAddSpendingForm() {
+        self.spendingItemTf = ""
+        self.amountTf = ""
+        self.dateTf = ""
+        self.spendingType = nil
     }
 }
 
