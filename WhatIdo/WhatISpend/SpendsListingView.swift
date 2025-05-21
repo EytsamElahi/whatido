@@ -83,7 +83,18 @@ struct SpendsListingView: View {
             if new == false {
                 viewModel.resetAddSpendingForm()
             }
-        }
+        } .alert("Confirm Deletion",
+                 isPresented: $viewModel.showConfirmationAlert,
+                 presenting: viewModel.spendingToDelete) { spending in
+              Button("Delete", role: .destructive) {
+                  viewModel.confirmedDeleteSpending()
+              }
+              Button("Cancel", role: .cancel) {
+                  viewModel.spendingToDelete = nil
+              }
+          } message: { spending in
+              Text("Are you sure you want to delete spending?")
+          }
         .sheet(isPresented: $viewModel.showAddNewSpendingSheet) {
             AddSpendingView()
                 .environmentObject(viewModel)

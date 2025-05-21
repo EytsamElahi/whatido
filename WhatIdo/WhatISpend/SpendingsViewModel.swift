@@ -28,7 +28,9 @@ class SpendingsViewModel: ObservableObject {
     @Published var isDataLoading: Bool = false
     @Published var isDataUploading: Bool = false
     @Published var showErrorAlert: Bool = false
+    @Published var showConfirmationAlert: Bool = false
     var spendingId: String? // In case of edit
+    var spendingToDelete: SpendingDto? // Temporarily holding to be deleting spending
 
     init() {
         loadSpendingTypes()
@@ -133,13 +135,21 @@ extension SpendingsViewModel {
 
 // MARK: - Delete Spending
 extension SpendingsViewModel {
-    // TODO: - Add confirmation alert
     func deleteSpending(at offsets: IndexSet) {
         let spendingsToDelete = offsets.map { spendings?[$0] }
-        guard let spendingToDelete = spendingsToDelete.first else {return}
+        guard let firstSpending = spendingsToDelete.first else {return}
+        guard let spending = firstSpending else {return}
+        self.spendingToDelete = spending
+        showConfirmationAlert = true
+        
+    }
+    
+    func confirmedDeleteSpending() {
+        guard let spending = spendingToDelete else {return}
         Task {@MainActor in
-            try await spendingService.deleteSpending(spendingToDelete?.id ?? "")
-            self.spendings?.remove(atOffsets: offsets)
+            try await spendingService.deleteSpending(spending.id)
+            self.spendings?.removeAll {$0.id == spending.id}
+            self.spendingToDelete = nil
         }
     }
 }
