@@ -12,7 +12,7 @@ import FirebaseFirestore
 protocol FirebaseService {
     func post<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws
     func request<T: FirestoreIdentifiable>(_ queryParams: FirestoreQueryParam?, endpoint: FirestoreEndpoint) async throws -> [T]
-    func delete(documentId: String, endpoint: FirestoreEndpoint) async throws
+    func delete(endpoint: FirestoreEndpoint) async throws
 }
 
 extension FirebaseService {
@@ -49,5 +49,10 @@ extension FirebaseService {
         return response
     }
 
-    func delete(documentId: String, endpoint: FirestoreEndpoint) async throws {}
+    func delete(endpoint: FirestoreEndpoint) async throws {
+        guard let ref = endpoint.path as? DocumentReference else {
+            throw FirestoreServiceError.collectionNotFound
+        }
+        try await ref.delete()
+    }
 }

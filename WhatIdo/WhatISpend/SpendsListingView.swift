@@ -46,18 +46,20 @@ struct SpendsListingView: View {
                 if viewModel.isDataLoading {
                     CircularLoadingIndicator()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-
+                    
                 } else {
-                    ScrollView {
+                    List {
                         ForEach(viewModel.spendings ?? [], id: \.self) { spending in
                             SpendingRow(spending: spending)
                                 .onTapGesture {
                                     viewModel.editSpending(spending)
                                 }
-                                .padding(.horizontal)
-                                .padding(.vertical, 5)
+                            // .padding(.vertical, 5)
                         }
+                        .onDelete(perform: viewModel.deleteSpending)
                     }
+                    .listRowSeparator(.hidden)
+                    .listStyle(PlainListStyle())
                     Spacer()
                 }
             }

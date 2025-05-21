@@ -11,7 +11,7 @@ protocol WhatISpendServiceType {
     func getAllSpendings() async throws -> [SpendingDto]
     func addNewSpending(_ spending: Spending) async throws
     func editSpending(_ spending: Spending, id: String) async throws
-    func deleteSpending()
+    func deleteSpending(_ documentId: String) async throws
 }
 
 final class WhatISpendService: WhatISpendServiceType, FirebaseService {
@@ -46,8 +46,13 @@ final class WhatISpendService: WhatISpendServiceType, FirebaseService {
         }
     }
     
-    func deleteSpending() {
-        debugPrint("")
+    func deleteSpending(_ documentId: String) async throws {
+        do {
+            let endpoint = FirestoreEndpoints.deleteSpending(id: documentId)
+            try await delete(endpoint: endpoint)
+        } catch {
+            debugPrint("Error in deleting data", error.localizedDescription)
+        }
     }
 
 }

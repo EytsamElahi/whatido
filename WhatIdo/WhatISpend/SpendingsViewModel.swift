@@ -131,3 +131,15 @@ extension SpendingsViewModel {
     }
 }
 
+// MARK: - Delete Spending
+extension SpendingsViewModel {
+    // TODO: - Add confirmation alert
+    func deleteSpending(at offsets: IndexSet) {
+        let spendingsToDelete = offsets.map { spendings?[$0] }
+        guard let spendingToDelete = spendingsToDelete.first else {return}
+        Task {@MainActor in
+            try await spendingService.deleteSpending(spendingToDelete?.id ?? "")
+            self.spendings?.remove(atOffsets: offsets)
+        }
+    }
+}
