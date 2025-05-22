@@ -9,6 +9,7 @@ import SwiftUI
 
 struct CircularLoadingIndicator: View {
     @State private var isAnimating = false
+    var indicatorColor: Color? = nil
 
     var body: some View {
         ZStack {
@@ -18,7 +19,7 @@ struct CircularLoadingIndicator: View {
             Circle()
                 .trim(from: 0, to: 0.3)
                 .stroke(
-                    AngularGradient(gradient: Gradient(colors: [.appPrimaryColor]), center: .center),
+                    AngularGradient(gradient: Gradient(colors: [indicatorColor ?? .appPrimaryColor]), center: .center),
                     style: StrokeStyle(lineWidth: 6, lineCap: .round)
                 )
                 .rotationEffect(Angle(degrees: isAnimating ? 360 : 0))

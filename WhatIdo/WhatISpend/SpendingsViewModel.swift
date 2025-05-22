@@ -78,6 +78,7 @@ extension SpendingsViewModel {
     }
 
     private func updateSpending() {
+        isDataUploading = true
         mapDtoToDomainModelAndValidate()
         guard let spending = newSpending else {
             return
@@ -85,9 +86,10 @@ extension SpendingsViewModel {
         guard let spendingId = spendingId else {return}
         Task {@MainActor in
             try await spendingService.editSpending(spending, id: spendingId)
-            self.fetchSpendings()
-            self.showAddNewSpendingSheet = false
             self.spendingId = nil
+            self.isDataUploading = false
+            self.showAddNewSpendingSheet = false
+            self.fetchSpendings()
 
         }
     }
@@ -96,20 +98,23 @@ extension SpendingsViewModel {
 // MARK: - Add New Spending
 extension SpendingsViewModel {
     private func addSpending() {
+        isDataUploading = true
         mapDtoToDomainModelAndValidate()
         guard let spending = newSpending else {
             return
         }
         Task {@MainActor in
             try await spendingService.addNewSpending(spending)
-            self.fetchSpendings()
+            self.isDataUploading = false
             self.showAddNewSpendingSheet = false
+            self.fetchSpendings()
         }
     }
 
     private func mapDtoToDomainModelAndValidate() {
         guard validateAddSpendingForm() else {
             showErrorAlert = true
+            self.isDataUploading = false
             return
         }
         let date = dateTf.toTimeStamp(format: "MM/dd/yyyy")

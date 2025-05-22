@@ -13,15 +13,20 @@ struct AppPrimaryButton: View {
     var height: Double? = nil
     var fontSize: FontSize? = nil
     @Binding var disable: Bool
+    @Binding var isLoading: Bool
     var action: () -> ()
     var body: some View {
         Button(action: {
             action()
         }) {
             Spacer()
-            Text(title)
-                .foregroundColor(.white)
-                .font(.customFont(name: .medium, size: fontSize ?? .x18))
+            if isLoading {
+                CircularLoadingIndicator(indicatorColor: .white)
+            } else {
+                Text(title)
+                    .foregroundColor(.white)
+                    .font(.customFont(name: .medium, size: fontSize ?? .x18))
+            }
             Spacer()
         }.frame(height: height ?? 51)
             .background(disable ? Color.black.opacity(0.5) : Color.black.opacity(1))
@@ -33,5 +38,5 @@ struct AppPrimaryButton: View {
 }
 
 #Preview {
-    AppPrimaryButton(title: "Login", disable: .constant(false), action: {})
+    AppPrimaryButton(title: "Login", disable: .constant(false), isLoading: .constant(false), action: {})
 }

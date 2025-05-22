@@ -26,7 +26,7 @@ struct AddSpendingView: View {
             CustomPickerView(listing: viewModel.spendingTypes.compactMap {$0.name ?? ""}, pickedItem: $viewModel.spendingTypeName)
                 .frame(height: 50)
             Spacer()
-            AppPrimaryButton(title: viewModel.spendingId == nil ? "Add" : "Update", cornerPadding: 0, disable: .constant(false), action: {
+            AppPrimaryButton(title: viewModel.spendingId == nil ? "Add" : "Update", cornerPadding: 0, disable: .constant(false), isLoading: $viewModel.isDataUploading, action: {
                 viewModel.addSpendingSheetAction()
             })
         }.padding()

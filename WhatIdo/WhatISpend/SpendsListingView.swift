@@ -54,11 +54,12 @@ struct SpendsListingView: View {
                                 .onTapGesture {
                                     viewModel.editSpending(spending)
                                 }
-                            // .padding(.vertical, 5)
+                                .listRowInsets(EdgeInsets(top: 5, leading: 15, bottom: 10, trailing: 15)) // Customize spacing here
                         }
                         .onDelete(perform: viewModel.deleteSpending)
+                        .listRowSeparator(.hidden)
+                        .listRowSpacing(0)
                     }
-                    .listRowSeparator(.hidden)
                     .listStyle(PlainListStyle())
                     Spacer()
                 }
@@ -82,6 +83,7 @@ struct SpendsListingView: View {
         .onChange(of: viewModel.showAddNewSpendingSheet) {old, new in
             if new == false {
                 viewModel.resetAddSpendingForm()
+                viewModel.spendingId = nil
             }
         } .alert("Confirm Deletion",
                  isPresented: $viewModel.showConfirmationAlert,
