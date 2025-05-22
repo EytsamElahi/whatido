@@ -21,7 +21,9 @@ class SpendingsViewModel: ObservableObject {
     }
     @Published var spendingTypes: [SpendingType] = []
     @Published private(set) var totalSpending: Int = 0
+    private(set) var spendingSortTypes: [FilterLevel] = [FilterLevel(id: 0, name: "Date"), FilterLevel(id: 1, name: "Amount")]
     private var spendingType: SpendingType?
+    @Published var selectedSortType: FilterLevel = FilterLevel(id: 0, name: "Date")
 
     //MARK: - State Members
     @Published var showAddNewSpendingSheet: Bool = false
@@ -57,7 +59,9 @@ extension SpendingsViewModel {
     func fetchSpendings() {
         isDataLoading = true
         Task {@MainActor in
-            self.spendings = try await spendingService.getAllSpendings()
+            let spendings = try await spendingService.getAllSpendings()
+            let sortedSpendings = sortSpendings(spendings: spendings)
+            self.spendings = sortedSpendings
             self.totalSpending = self.spendings?.reduce(0) { $0 + Int($1.amount) } ?? 0
             self.isDataLoading = false
         }
@@ -157,5 +161,35 @@ extension SpendingsViewModel {
             self.totalSpending = self.spendings?.reduce(0) { $0 + Int($1.amount) } ?? 0
             self.spendingToDelete = nil
         }
+    }
+}
+
+//MARK: - Filter
+extension SpendingsViewModel {
+    func updatedSorting() {
+        guard let spendings = self.spendings else {
+            return
+        }
+        let sortedSpendings = sortSpendings(spendings: spendings)
+        self.spendings = sortedSpendings
+    }
+   private func sortSpendings(spendings: [SpendingDto]) -> [SpendingDto] {
+        guard !spendings.isEmpty else {
+           return []
+        }
+        var sortedSpendings = [SpendingDto]()
+        switch selectedSortType.id {
+        case 0:
+            sortedSpendings = spendings.sorted { (spending1, spending2) -> Bool in
+                return spending1.date > spending2.date
+            }
+        case 1:
+            sortedSpendings = spendings.sorted { (spending1, spending2) -> Bool in
+                return spending1.amount > spending2.amount
+            }
+        default:
+            return []
+        }
+        return sortedSpendings
     }
 }

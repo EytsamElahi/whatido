@@ -48,6 +48,11 @@ struct SpendsListingView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                     
                 } else {
+                    HStack {
+                        Spacer()
+                        SortingView(listing: viewModel.spendingSortTypes, pickedItem: $viewModel.selectedSortType)
+                    }.padding(.horizontal)
+                        .padding(.vertical, 5)
                     List {
                         ForEach(viewModel.spendings ?? [], id: \.self) { spending in
                             SpendingRow(spending: spending)
@@ -85,7 +90,10 @@ struct SpendsListingView: View {
                 viewModel.resetAddSpendingForm()
                 viewModel.tempSpending = nil
             }
-        } .alert("Confirm Deletion",
+        }.onChange(of: viewModel.selectedSortType) { _ , _ in
+            viewModel.updatedSorting()
+        }
+        .alert("Confirm Deletion",
                  isPresented: $viewModel.showConfirmationAlert,
                  presenting: viewModel.spendingToDelete) { spending in
               Button("Delete", role: .destructive) {
