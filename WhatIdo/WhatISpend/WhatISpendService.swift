@@ -40,7 +40,7 @@ final class WhatISpendService: WhatISpendServiceType, FirebaseService {
     func editSpending(_ spending: Spending, id: String) async throws {
         do {
             let endpoint = FirestoreEndpoints.editSpending(id: id)
-            try await post(data: spending, endpoint: endpoint)
+            try await update(data: spending, endpoint: endpoint)
         } catch {
             debugPrint("Error in posting data", error.localizedDescription)
         }

@@ -29,7 +29,7 @@ class SpendingsViewModel: ObservableObject {
     @Published var isDataUploading: Bool = false
     @Published var showErrorAlert: Bool = false
     @Published var showConfirmationAlert: Bool = false
-    var spendingId: String? // In case of edit
+    var tempSpending: SpendingDto? // In case of edit
     var spendingToDelete: SpendingDto? // Temporarily holding to be deleting spending
 
     init() {
@@ -44,7 +44,7 @@ class SpendingsViewModel: ObservableObject {
     }
 
     func addSpendingSheetAction() {
-        if spendingId == nil {
+        if tempSpending == nil {
             addSpending()
         } else {
             updateSpending()
@@ -68,9 +68,9 @@ extension SpendingsViewModel {
 // MARK: - Edit Spending
 extension SpendingsViewModel {
     func editSpending(_ spending: SpendingDto) {
-        self.spendingId = spending.id
+        self.tempSpending = spending
         self.spendingItemTf = spending.name
-        self.amountTf = String(spending.amount.formatted())
+        self.amountTf = String(Int(spending.amount))
         self.dateTf = spending.date.toDateReturnString()
         spendingTypeName = spending.type
         self.spendingType = spendingTypes.first { $0.name == spending.type }
@@ -83,10 +83,10 @@ extension SpendingsViewModel {
         guard let spending = newSpending else {
             return
         }
-        guard let spendingId = spendingId else {return}
+        guard let spendingId = tempSpending?.id else {return}
         Task {@MainActor in
             try await spendingService.editSpending(spending, id: spendingId)
-            self.spendingId = nil
+            self.tempSpending = nil
             self.isDataUploading = false
             self.showAddNewSpendingSheet = false
             self.fetchSpendings()
@@ -119,7 +119,7 @@ extension SpendingsViewModel {
         }
         let date = dateTf.toTimeStamp(format: "MM/dd/yyyy")
         guard let spendingType = spendingType else {return}
-        newSpending = Spending(name: spendingItemTf, amount: Double(amountTf) ?? 0.0, date: date ?? Date(), categoryId: spendingType.catId ?? -1, typeId: spendingType.id ?? -1, spendingType: spendingType)
+        newSpending = Spending(name: spendingItemTf, amount: Double(amountTf) ?? 0.0, date: date ?? Date(), spendingType: spendingType, created: self.tempSpending?.created ?? Date())
     }
 
     private func validateAddSpendingForm() -> Bool {
@@ -154,6 +154,7 @@ extension SpendingsViewModel {
         Task {@MainActor in
             try await spendingService.deleteSpending(spending.id)
             self.spendings?.removeAll {$0.id == spending.id}
+            self.totalSpending = self.spendings?.reduce(0) { $0 + Int($1.amount) } ?? 0
             self.spendingToDelete = nil
         }
     }

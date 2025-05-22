@@ -16,10 +16,15 @@ struct FirestoreParser {
             // Convert only date2 from Timestamp to a JSON-compatible format
             if let date2Timestamp = modifiedData["date"] as? FirebaseFirestore.Timestamp {
                 let date2 = date2Timestamp.dateValue()
-                print("📆 Original Date:", date2)
-                print("🕒 Seconds:", date2.timeIntervalSince1970)
                 modifiedData["date"] = date2.timeIntervalSince1970
-//                print("***MODIFIED DATE",date2Timestamp.dateValue())
+            }
+            if let createdTS = modifiedData["created"] as? FirebaseFirestore.Timestamp {
+                let date2 = createdTS.dateValue()
+                modifiedData["created"] = date2.timeIntervalSince1970
+            }
+            if let updatedTS = modifiedData["updated"] as? FirebaseFirestore.Timestamp {
+                let date2 = updatedTS.dateValue()
+                modifiedData["updated"] = date2.timeIntervalSince1970
             }
 
             // Serialize the modified dictionary to JSON

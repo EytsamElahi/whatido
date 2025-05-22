@@ -13,6 +13,7 @@ protocol FirebaseService {
     func post<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws
     func request<T: FirestoreIdentifiable>(_ queryParams: FirestoreQueryParam?, endpoint: FirestoreEndpoint) async throws -> [T]
     func delete(endpoint: FirestoreEndpoint) async throws
+    func update<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws
 }
 
 extension FirebaseService {
@@ -20,8 +21,24 @@ extension FirebaseService {
         guard let ref = endpoint.path as? DocumentReference else {
             throw FirestoreServiceError.documentNotFound
         }
+        var dict: [String: Any] = [
+            "created": Timestamp(date: Date()),
+            "updated": Timestamp(date: Date()),
+        ]
         let modelDict = data.asDictionary()
-        try await ref.setData(modelDict)
+        dict.merge(modelDict) { (_, new) in new }
+        try await ref.setData(dict)
+    }
+    func update<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws {
+        guard let ref = endpoint.path as? DocumentReference else {
+            throw FirestoreServiceError.documentNotFound
+        }
+        var dict: [String: Any] = [
+            "updated": Timestamp(date: Date()),
+        ]
+        let modelDict = data.asDictionary()
+        dict.merge(modelDict) { (_, new) in new }
+        try await ref.setData(dict)
     }
 
     func request<T: FirestoreIdentifiable>(_ queryParams: FirestoreQueryParam? = nil, endpoint: FirestoreEndpoint) async throws -> [T] {

@@ -83,7 +83,7 @@ struct SpendsListingView: View {
         .onChange(of: viewModel.showAddNewSpendingSheet) {old, new in
             if new == false {
                 viewModel.resetAddSpendingForm()
-                viewModel.spendingId = nil
+                viewModel.tempSpending = nil
             }
         } .alert("Confirm Deletion",
                  isPresented: $viewModel.showConfirmationAlert,

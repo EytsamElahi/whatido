@@ -13,4 +13,5 @@ struct SpendingDto: Hashable {
     let amount: Double
     let date: Date
     let type: String
+    let created: Date
 }
