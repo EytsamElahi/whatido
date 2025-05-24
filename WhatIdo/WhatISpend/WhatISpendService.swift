@@ -56,3 +56,23 @@ final class WhatISpendService: WhatISpendServiceType, FirebaseService {
     }
 
 }
+
+
+final class WhatISpendServiceStub: WhatISpendServiceType {
+
+    func getAllSpendings() async throws -> [SpendingDto] {
+        return []
+    }
+
+    func addNewSpending(_ spending: Spending) async throws {
+        // No-op or update local stub data
+    }
+
+    func editSpending(_ spending: Spending, id: String) async throws {
+        // No-op
+    }
+
+    func deleteSpending(_ documentId: String) async throws {
+        // No-op
+    }
+}

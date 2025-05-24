@@ -7,7 +7,7 @@
 
 import Foundation
 
-class SpendingsViewModel: ObservableObject {
+class SpendingsViewModel: BaseViewModel {
     // MARK: - Data Members
     @Published var newSpending: Spending?
     @Published var spendings: [SpendingDto]?
@@ -34,7 +34,8 @@ class SpendingsViewModel: ObservableObject {
     var tempSpending: SpendingDto? // In case of edit
     var spendingToDelete: SpendingDto? // Temporarily holding to be deleting spending
 
-    init() {
+    override init() {
+        super.init()
         loadSpendingTypes()
     }
 

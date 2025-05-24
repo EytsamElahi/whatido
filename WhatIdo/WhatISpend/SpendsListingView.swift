@@ -9,7 +9,7 @@ import SwiftUI
 
 struct SpendsListingView: View {
     @EnvironmentObject var navigation: NavigationManager
-    @StateObject var viewModel = SpendingsViewModel()
+    @StateObject var viewModel: SpendingsViewModel
 
     var body: some View {
         VStack(alignment: .leading) {
@@ -114,5 +114,5 @@ struct SpendsListingView: View {
 }
 
 #Preview {
-    SpendsListingView()
+    SpendsListingView(viewModel: SpendingsViewModel())
 }

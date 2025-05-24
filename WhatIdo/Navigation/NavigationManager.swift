@@ -26,7 +26,3 @@ final class NavigationManager: ObservableObject {
         path.removeLast(numberOfViews)
     }
 }
-
-enum Route: Hashable {
-    case spendings
-}

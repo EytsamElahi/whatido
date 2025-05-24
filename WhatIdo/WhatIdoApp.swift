@@ -24,7 +24,7 @@ struct WhatIdoApp: App {
 
     var body: some Scene {
         WindowGroup {
-            SpendsListingView()
+            SplashView()
                 .environmentObject(navManager)
         }
     }
