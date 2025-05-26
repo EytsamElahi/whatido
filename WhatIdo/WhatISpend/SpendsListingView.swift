@@ -10,9 +10,8 @@ import SwiftUI
 struct SpendsListingView: View {
     @EnvironmentObject var navigation: NavigationManager
     @StateObject var viewModel: SpendingsViewModel
-    @State var showMonthlySplit: Bool = false
     var body: some View {
-        if showMonthlySplit {
+        if viewModel.showMoreMonths {
             SpendingCalendarSplitView()
                 .environmentObject(viewModel)
         } else {
@@ -74,9 +73,10 @@ struct SpendsListingView: View {
                     }
                 }
             }.onAppear(perform: {
-                viewModel.fetchCurrentMonthSpendings()
+                let date = Date().getFirstDateOfMonth()
+                viewModel.fetchCurrentMonthSpendings(date: date)
             })
-            .navigationTitle("This Month")
+            .navigationTitle(viewModel.currentMonth)
           //  .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden(true)
             .toolbar(content: {
@@ -90,7 +90,7 @@ struct SpendsListingView: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: {
-                        self.showMonthlySplit.toggle()
+                        self.viewModel.showMoreMonths.toggle()
                     }) {
                         Image(systemName: "calendar")
                             .foregroundStyle(Color.appPrimaryColor)

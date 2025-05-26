@@ -26,6 +26,7 @@ class SpendingsViewModel: BaseViewModel {
     @Published var selectedSortType: FilterLevel = FilterLevel(id: 0, name: "Date")
     @Published var allSpendings: [SpendingDto]?
     @Published var allSpendingsMonthYear: [Int: [MonthItem]]?
+    @Published var currentMonth: String = Date().getMonthName()
 
     //MARK: - State Members
     @Published var showAddNewSpendingSheet: Bool = false
@@ -34,6 +35,7 @@ class SpendingsViewModel: BaseViewModel {
     @Published var showErrorAlert: Bool = false
     @Published var showConfirmationAlert: Bool = false
     @Published var fetchingAllSpendings: Bool = false
+    @Published var showMoreMonths: Bool = false
     var tempSpending: SpendingDto? // In case of edit
     var spendingToDelete: SpendingDto? // Temporarily holding to be deleting spending
 
@@ -60,9 +62,22 @@ class SpendingsViewModel: BaseViewModel {
 
 //MARK: - Fetching spendings
 extension SpendingsViewModel {
-    func fetchCurrentMonthSpendings() {
+    //TODO: - Do not fetch it from firestore if we already fetched all data i-e in case of all spendings. Pick it from all spendings
+    func fetchMonthlySpendings(_ month: String, year: Int) {
+        if month == self.currentMonth {
+            self.showMoreMonths = false
+            return
+        }
+        let date = Utilities.dateFrom(monthName: month, year: year)
+        let firstDateOfMonth = date?.getFirstDateOfMonth()
+        self.currentMonth = month
+        self.showMoreMonths = false
+        fetchCurrentMonthSpendings(date: firstDateOfMonth)
+
+    }
+    func fetchCurrentMonthSpendings(date: Date? = nil) {
         isDataLoading = true
-        guard let firstDateOfCurrentMonth = Date().getFirstDateOfMonth() else {return}
+        guard let firstDateOfCurrentMonth = date else {return}
         Task {@MainActor in
             let spendings = try await spendingService.getSpendingsOfMonth(firstDateOfCurrentMonth)
             let sortedSpendings = sortSpendings(spendings: spendings)

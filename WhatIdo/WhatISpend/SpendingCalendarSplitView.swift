@@ -29,13 +29,16 @@ struct SpendingCalendarSplitView: View {
                         ForEach(monthData.keys.sorted(by: >), id: \.self) { year in
                             Section(header:
                                         Text("\(year)")
-                                .font(.title) // 👈 Large font
+                                .font(.title)
                                 .fontWeight(.bold)
                                 .foregroundStyle(Color.primary)
                                 .padding(.vertical, 4)
                             ) {
                                 ForEach(monthData[year] ?? []) { month in
                                     Text(month.month)
+                                        .onTapGesture {
+                                            viewModel.fetchMonthlySpendings(month.month, year: year)
+                                        }
                                 }
                             }
                         }
@@ -44,7 +47,7 @@ struct SpendingCalendarSplitView: View {
             }
         }.navigationBarBackButtonHidden(true)
         .onAppear {
-            guard !viewModel.fetchingAllSpendings else { return }
+            guard viewModel.allSpendings == nil else { return }
             viewModel.fetchallSpendings()
         }
     }
