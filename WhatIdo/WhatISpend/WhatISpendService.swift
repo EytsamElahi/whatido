@@ -9,6 +9,7 @@ import Foundation
 
 protocol WhatISpendServiceType {
     func getAllSpendings() async throws -> [SpendingDto]
+    func getSpendingsOfMonth(_ month: Date) async throws -> [SpendingDto]
     func addNewSpending(_ spending: Spending) async throws
     func editSpending(_ spending: Spending, id: String) async throws
     func deleteSpending(_ documentId: String) async throws
@@ -27,7 +28,20 @@ final class WhatISpendService: WhatISpendServiceType, FirebaseService {
             throw error
         }
     }
-    
+
+    func getSpendingsOfMonth(_ month: Date) async throws -> [SpendingDto] {
+        let filter = FirestoreDateFilter(key: "date", from: month, to: Date())
+        do {
+            let endpoint = FirestoreEndpoints.getAllSpendings
+            let spendingsData: [Spending] = try await request(filter: filter, endpoint: endpoint)
+            return spendingsData.map { $0.convertToDto() }
+
+        } catch {
+            debugPrint("Error in fetching spendings", error.localizedDescription)
+            throw error
+        }
+    }
+
     func addNewSpending(_ spending: Spending) async throws {
         do {
             let endpoint = FirestoreEndpoints.createSpending
@@ -75,4 +89,6 @@ final class WhatISpendServiceStub: WhatISpendServiceType {
     func deleteSpending(_ documentId: String) async throws {
         // No-op
     }
+
+    func getSpendingsOfMonth(_ month: Date) async throws -> [SpendingDto] {return []}
 }

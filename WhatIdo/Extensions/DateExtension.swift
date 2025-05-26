@@ -174,6 +174,11 @@ extension Date {
         return date
     }
 
+    func getFirstDateOfMonth() -> Date? {
+        let calendar = Calendar.current
+        return calendar.date(from: calendar.dateComponents([.year, .month], from: self))
+    }
+
     // MARK: -
     func makeDateToDayEnd() -> Self? {
 //        let dateFormatter = DateFormatter()

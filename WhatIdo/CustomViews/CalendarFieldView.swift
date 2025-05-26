@@ -130,4 +130,31 @@ fileprivate struct CalendarIcon: View {
                 })
         }
     }
+
+//    {
+//        if let firstDateOfMonth = Date().getFirstDateOfMonth() {
+//            switch datePickerRange {
+//            case .future:
+//                DatePicker(selection: $selectedDate, in: Date()...firstDateOfMonth, displayedComponents: .date) {}
+//                    .tint(Color.black)
+//                    .labelsHidden()
+//                    .contentShape(Rectangle())
+//                    .opacity(0.011)
+//                    .id(calendarId)
+//                    .onTapGesture(count: 99, perform: {
+//                        // overrides tap gesture to fix ios 17.1 bug
+//                    })
+//            case .past:
+//                DatePicker(selection: $selectedDate, in: firstDateOfMonth...Date(), displayedComponents: .date) {}
+//                    .tint(Color.black)
+//                    .labelsHidden()
+//                    .contentShape(Rectangle())
+//                    .opacity(0.011)
+//                    .id(calendarId)
+//                    .onTapGesture(count: 99, perform: {
+//                        // overrides tap gesture to fix ios 17.1 bug
+//                    })
+//            }
+//        }
+//    }
 }

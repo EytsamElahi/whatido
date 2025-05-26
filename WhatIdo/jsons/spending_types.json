@@ -10,6 +10,11 @@
         "name": "Rent"
     },
     {
+        "id": 18,
+        "cat_id": 1,
+        "name": "Bill"
+    },
+    {
         "id": 2,
         "cat_id": 1,
         "name": "Utilities"

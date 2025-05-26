@@ -11,7 +11,7 @@ import FirebaseFirestore
 
 protocol FirebaseService {
     func post<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws
-    func request<T: FirestoreIdentifiable>(_ queryParams: FirestoreQueryParam?, endpoint: FirestoreEndpoint) async throws -> [T]
+    func request<T: FirestoreIdentifiable>(_ queryParams: FirestoreQueryParam?, filter date: FirestoreDateFilter?, endpoint: FirestoreEndpoint) async throws -> [T]
     func delete(endpoint: FirestoreEndpoint) async throws
     func update<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws
 }
@@ -41,19 +41,24 @@ extension FirebaseService {
         try await ref.setData(dict)
     }
 
-    func request<T: FirestoreIdentifiable>(_ queryParams: FirestoreQueryParam? = nil, endpoint: FirestoreEndpoint) async throws -> [T] {
+    func request<T: FirestoreIdentifiable>(_ queryParams: FirestoreQueryParam? = nil, filter date: FirestoreDateFilter? = nil, endpoint: FirestoreEndpoint) async throws -> [T] {
         guard let ref = endpoint.path as? CollectionReference else {
             throw FirestoreServiceError.collectionNotFound
         }
 //        if !Reachability.isConnectedToNetwork() {
 //            throw FirestoreServiceError.noInternet
 //        }
-        var querySnapshot = try await ref.getDocuments()
+        var query: Query = ref.order(by: "date", descending: true)
 
-        // MARK: - if query param is passed
-        if let query = queryParams {
-            querySnapshot = try await ref.whereField(query.key, isEqualTo: query.value).getDocuments()
+        if let dateFilter = date {
+            query = query.whereField(dateFilter.key, isGreaterThanOrEqualTo: Timestamp(date: dateFilter.from))
+            query = query.whereField(dateFilter.key, isLessThanOrEqualTo: Timestamp(date: dateFilter.to))
         }
+        // MARK: - if query param is passed
+        if let params = queryParams {
+            query = query.whereField(params.key, isEqualTo: params.value)
+        }
+        let querySnapshot = try await query.getDocuments()
         var response: [T] = []
         for document in querySnapshot.documents {
             var data = try FirestoreParser.parse(document.data(), type: T.self)

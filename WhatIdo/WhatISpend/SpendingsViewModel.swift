@@ -10,7 +10,7 @@ import Foundation
 class SpendingsViewModel: BaseViewModel {
     // MARK: - Data Members
     @Published var newSpending: Spending?
-    @Published var spendings: [SpendingDto]?
+    @Published var currentMonthSpendings: [SpendingDto]?
     @Published var spendingItemTf: String = ""
     @Published var amountTf: String = ""
     @Published var dateTf: String = ""
@@ -24,6 +24,8 @@ class SpendingsViewModel: BaseViewModel {
     private(set) var spendingSortTypes: [FilterLevel] = [FilterLevel(id: 0, name: "Date"), FilterLevel(id: 1, name: "Amount")]
     private var spendingType: SpendingType?
     @Published var selectedSortType: FilterLevel = FilterLevel(id: 0, name: "Date")
+    @Published var allSpendings: [SpendingDto]?
+    @Published var allSpendingsMonthYear: [Int: [MonthItem]]?
 
     //MARK: - State Members
     @Published var showAddNewSpendingSheet: Bool = false
@@ -31,6 +33,7 @@ class SpendingsViewModel: BaseViewModel {
     @Published var isDataUploading: Bool = false
     @Published var showErrorAlert: Bool = false
     @Published var showConfirmationAlert: Bool = false
+    @Published var fetchingAllSpendings: Bool = false
     var tempSpending: SpendingDto? // In case of edit
     var spendingToDelete: SpendingDto? // Temporarily holding to be deleting spending
 
@@ -57,14 +60,26 @@ class SpendingsViewModel: BaseViewModel {
 
 //MARK: - Fetching spendings
 extension SpendingsViewModel {
-    func fetchSpendings() {
+    func fetchCurrentMonthSpendings() {
         isDataLoading = true
+        guard let firstDateOfCurrentMonth = Date().getFirstDateOfMonth() else {return}
+        Task {@MainActor in
+            let spendings = try await spendingService.getSpendingsOfMonth(firstDateOfCurrentMonth)
+            let sortedSpendings = sortSpendings(spendings: spendings)
+            self.currentMonthSpendings = sortedSpendings
+            self.totalSpending = self.currentMonthSpendings?.reduce(0) { $0 + Int($1.amount) } ?? 0
+            self.isDataLoading = false
+        }
+    }
+
+    func fetchallSpendings() {
+        self.fetchingAllSpendings = true
         Task {@MainActor in
             let spendings = try await spendingService.getAllSpendings()
-            let sortedSpendings = sortSpendings(spendings: spendings)
-            self.spendings = sortedSpendings
-            self.totalSpending = self.spendings?.reduce(0) { $0 + Int($1.amount) } ?? 0
-            self.isDataLoading = false
+            let allDates = spendings.compactMap{ $0.date }
+            self.allSpendings = spendings
+            self.allSpendingsMonthYear = groupDatesToMonthItems(dates: allDates)
+            self.fetchingAllSpendings = false
         }
     }
 
@@ -94,7 +109,7 @@ extension SpendingsViewModel {
             self.tempSpending = nil
             self.isDataUploading = false
             self.showAddNewSpendingSheet = false
-            self.fetchSpendings()
+            self.fetchCurrentMonthSpendings()
 
         }
     }
@@ -112,7 +127,8 @@ extension SpendingsViewModel {
             try await spendingService.addNewSpending(spending)
             self.isDataUploading = false
             self.showAddNewSpendingSheet = false
-            self.fetchSpendings()
+            self.resetAddSpendingForm()
+            self.fetchCurrentMonthSpendings()
         }
     }
 
@@ -146,7 +162,7 @@ extension SpendingsViewModel {
 // MARK: - Delete Spending
 extension SpendingsViewModel {
     func deleteSpending(at offsets: IndexSet) {
-        let spendingsToDelete = offsets.map { spendings?[$0] }
+        let spendingsToDelete = offsets.map { currentMonthSpendings?[$0] }
         guard let firstSpending = spendingsToDelete.first else {return}
         guard let spending = firstSpending else {return}
         self.spendingToDelete = spending
@@ -158,8 +174,8 @@ extension SpendingsViewModel {
         guard let spending = spendingToDelete else {return}
         Task {@MainActor in
             try await spendingService.deleteSpending(spending.id)
-            self.spendings?.removeAll {$0.id == spending.id}
-            self.totalSpending = self.spendings?.reduce(0) { $0 + Int($1.amount) } ?? 0
+            self.currentMonthSpendings?.removeAll {$0.id == spending.id}
+            self.totalSpending = self.currentMonthSpendings?.reduce(0) { $0 + Int($1.amount) } ?? 0
             self.spendingToDelete = nil
         }
     }
@@ -168,11 +184,11 @@ extension SpendingsViewModel {
 //MARK: - Filter
 extension SpendingsViewModel {
     func updatedSorting() {
-        guard let spendings = self.spendings else {
+        guard let spendings = self.currentMonthSpendings else {
             return
         }
         let sortedSpendings = sortSpendings(spendings: spendings)
-        self.spendings = sortedSpendings
+        self.currentMonthSpendings = sortedSpendings
     }
    private func sortSpendings(spendings: [SpendingDto]) -> [SpendingDto] {
         guard !spendings.isEmpty else {
@@ -192,5 +208,42 @@ extension SpendingsViewModel {
             return []
         }
         return sortedSpendings
+    }
+}
+
+//MARK: - All Spendings Month Split
+extension SpendingsViewModel {
+    func groupDatesToMonthItems(dates: [Date]) -> [Int: [MonthItem]] {
+        var result: [Int: Set<Int>] = [:]
+        let calendar = Calendar.current
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US")
+        formatter.dateFormat = "MMMM"
+
+        // Group months (as Int) by year
+        for date in dates {
+            let year = calendar.component(.year, from: date)
+            let month = calendar.component(.month, from: date)
+            result[year, default: []].insert(month)
+        }
+
+        // Convert month numbers to MonthItem
+        var namedResult: [Int: [MonthItem]] = [:]
+        for (year, monthSet) in result {
+            let sortedMonths = monthSet.sorted()
+            let monthItems = sortedMonths.compactMap { month -> MonthItem? in
+                var components = DateComponents()
+                components.month = month
+                components.day = 1
+                if let date = calendar.date(from: components) {
+                    let monthName = formatter.string(from: date)
+                    return MonthItem(month: monthName, year: year)
+                }
+                return nil
+            }
+            namedResult[year] = monthItems
+        }
+
+        return namedResult
     }
 }
