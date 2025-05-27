@@ -73,6 +73,7 @@ struct SpendsListingView: View {
                     }
                 }
             }.onAppear(perform: {
+                guard viewModel.currentMonthSpendings == nil else {return}
                 let date = Date().getFirstDateOfMonth()
                 viewModel.fetchCurrentMonthSpendings(date: date)
             })

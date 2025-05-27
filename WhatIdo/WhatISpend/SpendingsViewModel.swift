@@ -62,18 +62,16 @@ class SpendingsViewModel: BaseViewModel {
 
 //MARK: - Fetching spendings
 extension SpendingsViewModel {
-    //TODO: - Do not fetch it from firestore if we already fetched all data i-e in case of all spendings. Pick it from all spendings
     func fetchMonthlySpendings(_ month: String, year: Int) {
         if month == self.currentMonth {
             self.showMoreMonths = false
             return
         }
-        let date = Utilities.dateFrom(monthName: month, year: year)
-        let firstDateOfMonth = date?.getFirstDateOfMonth()
+        let existedMonthlySpendings = self.allSpendings?.filter {$0.date.getMonthName() == month }
         self.currentMonth = month
         self.showMoreMonths = false
-        fetchCurrentMonthSpendings(date: firstDateOfMonth)
-
+        self.currentMonthSpendings = existedMonthlySpendings
+        self.totalSpending = self.currentMonthSpendings?.reduce(0) { $0 + Int($1.amount) } ?? 0
     }
     func fetchCurrentMonthSpendings(date: Date? = nil) {
         isDataLoading = true
