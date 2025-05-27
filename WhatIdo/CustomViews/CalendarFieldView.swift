@@ -24,7 +24,8 @@ struct CalendarFieldView: View {
     var placeHolder: String
     var datePickerPosition: DateAlignment
     var datePickerRange: DateRange
-    
+    var month: Date
+
     // MARK: Local Variables
     @State var selectedDate: Date = Date()
     @State var calendarId: UUID = UUID()
@@ -78,7 +79,7 @@ struct CalendarFieldView: View {
                 ).zIndex(1)
                
         }.overlay {
-            CalendarIcon(calendarId: $calendarId, selectedDate: $selectedDate, datePickerRange: datePickerRange)
+            CalendarIcon(calendarId: $calendarId, selectedDate: $selectedDate, datePickerRange: datePickerRange, month: month)
         }.onChange(of: fieldInputText, perform: { newValue in
             self.selectedDate = newValue.toDateFormat() ?? Date()
         })
@@ -92,24 +93,26 @@ struct CalendarFieldView: View {
 }
 
 #Preview {
-    CalendarFieldView(fieldInputText: .constant(""), placeHolder: "mm/dd/yyyy", datePickerPosition: .start, datePickerRange: .future)
+    CalendarFieldView(fieldInputText: .constant(""), placeHolder: "mm/dd/yyyy", datePickerPosition: .start, datePickerRange: .future, month: Date())
 }
 
 fileprivate struct CalendarIcon: View {
     @Binding var calendarId: UUID
     @Binding var selectedDate: Date
     var datePickerRange: DateRange
-    
-    init(calendarId: Binding<UUID>, selectedDate: Binding<Date>, datePickerRange: DateRange) {
+    var month: Date
+
+    init(calendarId: Binding<UUID>, selectedDate: Binding<Date>, datePickerRange: DateRange, month: Date) {
         self._calendarId = calendarId
         self._selectedDate = selectedDate
         self.datePickerRange = datePickerRange
+        self.month = month
     }
     
     var body: some View {
         switch datePickerRange {
         case .future:
-            DatePicker(selection: $selectedDate, in: Date()..., displayedComponents: .date) {}
+            DatePicker(selection: $selectedDate, in: Date()...month, displayedComponents: .date) {}
                 .tint(Color.black)
                 .labelsHidden()
                 .contentShape(Rectangle())
@@ -119,7 +122,7 @@ fileprivate struct CalendarIcon: View {
                     // overrides tap gesture to fix ios 17.1 bug
                 })
         case .past:
-            DatePicker(selection: $selectedDate, in: ...Date(), displayedComponents: .date) {}
+            DatePicker(selection: $selectedDate, in: month...(month.getMonthName() == Date().getMonthName() ? Date() : month.lastDateOfMonth() ?? Date()), displayedComponents: .date) {}
                 .tint(Color.black)
                 .labelsHidden()
                 .contentShape(Rectangle())

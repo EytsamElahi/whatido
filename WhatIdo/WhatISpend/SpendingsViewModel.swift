@@ -27,6 +27,7 @@ class SpendingsViewModel: BaseViewModel {
     @Published var allSpendings: [SpendingDto]?
     @Published var allSpendingsMonthYear: [Int: [MonthItem]]?
     @Published var currentMonth: String = Date().getMonthName()
+    @Published var currentMonthInDateFormat: Date? = Date().getFirstDateOfMonth()
 
     //MARK: - State Members
     @Published var showAddNewSpendingSheet: Bool = false
@@ -69,6 +70,7 @@ extension SpendingsViewModel {
         }
         let existedMonthlySpendings = self.allSpendings?.filter {$0.date.getMonthName() == month }
         self.currentMonth = month
+        self.currentMonthInDateFormat = Utilities.dateFrom(monthName: month, year: year)?.getFirstDateOfMonth() ?? Date()
         self.showMoreMonths = false
         self.currentMonthSpendings = existedMonthlySpendings
         self.totalSpending = self.currentMonthSpendings?.reduce(0) { $0 + Int($1.amount) } ?? 0

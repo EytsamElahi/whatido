@@ -213,6 +213,22 @@ extension Date {
         return calendar.date(from: dateComponents)
     }
 
+    func lastDateOfMonth() -> Date? {
+        let calendar = Calendar.current
+
+        // Get the range of days in the month
+        guard let range = calendar.range(of: .day, in: .month, for: self),
+              let lastDay = range.last else {
+            return nil
+        }
+
+        // Construct the last date
+        var components = calendar.dateComponents([.year, .month], from: self)
+        components.day = lastDay
+
+        return calendar.date(from: components)
+    }
+
 }
 extension Date {
     func startOfDay() -> Date {

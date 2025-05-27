@@ -19,8 +19,9 @@ struct SpendsListingView: View {
                 VStack(alignment: .leading) {
                     HStack {
                         VStack(alignment: .leading) {
-                            Text("Current Spendings")
-                                .font(.customFont(name: .medium, size: .x18))
+                            Text("Total")
+                                .font(.customFont(name: .medium, size: .x20))
+                                .padding(.trailing, 5)
                             if viewModel.isDataLoading {
                                 CircularLoadingIndicator()
                             } else {

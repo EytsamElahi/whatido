@@ -25,20 +25,33 @@ struct SpendingCalendarSplitView: View {
 
             } else {
                 if let monthData = viewModel.allSpendingsMonthYear {
-                    List {
-                        ForEach(monthData.keys.sorted(by: >), id: \.self) { year in
-                            Section(header:
-                                        Text("\(year)")
-                                .font(.title)
-                                .fontWeight(.bold)
-                                .foregroundStyle(Color.primary)
-                                .padding(.vertical, 4)
-                            ) {
-                                ForEach(monthData[year] ?? []) { month in
-                                    Text(month.month)
-                                        .onTapGesture {
-                                            viewModel.fetchMonthlySpendings(month.month, year: year)
-                                        }
+                    VStack {
+                        HStack {
+                            Spacer()
+                            Button {
+                                viewModel.showMoreMonths = false
+                            } label: {
+                                Image(systemName: "xmark")
+                                    .foregroundStyle(Color.primary)
+                                    .font(.title3)
+                            }
+                        }.padding(.trailing)
+                            .padding(.bottom, 5)
+                        List {
+                            ForEach(monthData.keys.sorted(by: >), id: \.self) { year in
+                                Section(header:
+                                            Text("\(year)")
+                                    .font(.title)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(Color.primary)
+                                    .padding(.vertical, 4)
+                                ) {
+                                    ForEach(monthData[year] ?? []) { month in
+                                        Text(month.month)
+                                            .onTapGesture {
+                                                viewModel.fetchMonthlySpendings(month.month, year: year)
+                                            }
+                                    }
                                 }
                             }
                         }

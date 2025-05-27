@@ -12,7 +12,7 @@ struct AddSpendingView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 15){
-            Text("Add Spending")
+            Text( viewModel.tempSpending == nil ? "Update Spending" : "Add Spending")
                 .foregroundStyle(Color.black)
                 .font(.customFont(name: .bold, size: .x20))
             AppTextfield(inputText: $viewModel.spendingItemTf, placeHolder: "Jot down spending")
@@ -20,7 +20,7 @@ struct AddSpendingView: View {
             HStack {
                 AppTextfield(inputText: $viewModel.amountTf, placeHolder: "Amount", keyboardType: .numberPad)
                     .frame(height: 50)
-                CalendarFieldView(fieldInputText: $viewModel.dateTf, placeHolder: "Date", datePickerPosition: .start, datePickerRange: .past)
+                CalendarFieldView(fieldInputText: $viewModel.dateTf, placeHolder: "Date", datePickerPosition: .start, datePickerRange: .past, month: viewModel.currentMonthInDateFormat ?? Date())
                     .frame(height: 50)
             }
             CustomPickerView(listing: viewModel.spendingTypes.compactMap {$0.name ?? ""}, pickedItem: $viewModel.spendingTypeName)
