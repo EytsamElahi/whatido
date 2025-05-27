@@ -119,11 +119,16 @@ extension SpendingsViewModel {
         guard let spendingId = tempSpending?.id else {return}
         Task {@MainActor in
             try await spendingService.editSpending(spending, id: spendingId)
+            let updatedSpending = try await spendingService.getSpendingById(spendingId)
+            if let index = currentMonthSpendings?.firstIndex(where: { $0.id == spendingId }) {
+                currentMonthSpendings?[index] = updatedSpending!
+            }
+            if let index = allSpendings?.firstIndex(where: { $0.id == spendingId }) {
+                allSpendings?[index] = updatedSpending!
+            }
             self.tempSpending = nil
             self.isDataUploading = false
             self.showAddNewSpendingSheet = false
-            self.fetchCurrentMonthSpendings()
-
         }
     }
 }
@@ -137,11 +142,14 @@ extension SpendingsViewModel {
             return
         }
         Task {@MainActor in
-            try await spendingService.addNewSpending(spending)
+           let id = try await spendingService.addNewSpending(spending)
+            let recentAddedSpending = try await spendingService.getSpendingById(id)
+            self.currentMonthSpendings?.append(recentAddedSpending!)
+            self.updatedSorting()
+            self.allSpendings?.append(recentAddedSpending!)
             self.isDataUploading = false
             self.showAddNewSpendingSheet = false
             self.resetAddSpendingForm()
-            self.fetchCurrentMonthSpendings()
         }
     }
 

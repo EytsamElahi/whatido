@@ -10,17 +10,21 @@ import FirebaseFirestore
 
 
 protocol FirebaseService {
-    func post<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws
+    @discardableResult
+    func post<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws -> String
     func request<T: FirestoreIdentifiable>(_ queryParams: FirestoreQueryParam?, filter date: FirestoreDateFilter?, endpoint: FirestoreEndpoint) async throws -> [T]
+    func request<T: FirestoreIdentifiable>(endpoint: FirestoreEndpoint) async throws -> T
     func delete(endpoint: FirestoreEndpoint) async throws
     func update<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws
 }
 
 extension FirebaseService {
-    func post<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws {
+    @discardableResult
+    func post<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws -> String {
         guard let ref = endpoint.path as? DocumentReference else {
             throw FirestoreServiceError.documentNotFound
         }
+        debugPrint("New document id:",ref.documentID)
         var dict: [String: Any] = [
             "created": Timestamp(date: Date()),
             "updated": Timestamp(date: Date()),
@@ -28,6 +32,7 @@ extension FirebaseService {
         let modelDict = data.asDictionary()
         dict.merge(modelDict) { (_, new) in new }
         try await ref.setData(dict)
+        return ref.documentID
     }
     func update<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws {
         guard let ref = endpoint.path as? DocumentReference else {
@@ -69,6 +74,21 @@ extension FirebaseService {
             response.append(data)
         }
         return response
+    }
+    
+    func request<T: FirestoreIdentifiable>(endpoint: FirestoreEndpoint) async throws -> T {
+        guard let ref = endpoint.path as? DocumentReference else {
+            throw FirestoreServiceError.documentNotFound
+        }
+        let document =  try await ref.getDocument()
+        guard let data = document.data() else {
+            throw FirestoreServiceError.documentNotFound
+        }
+        var parsedData = try FirestoreParser.parse(data, type: T.self)
+        if parsedData.id == "" {
+            parsedData.id = document.documentID
+        }
+        return parsedData
     }
 
     func delete(endpoint: FirestoreEndpoint) async throws {

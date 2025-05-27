@@ -23,6 +23,7 @@ extension CollectionReference: FirestoreReference { }
 
 enum FirestoreEndpoints: FirestoreEndpoint {
     case createSpending
+    case getSpending(id: String)
     case getAllSpendings
     case editSpending(id: String)
     case deleteSpending(id: String)
@@ -35,6 +36,8 @@ enum FirestoreEndpoints: FirestoreEndpoint {
         case .editSpending(let documentId):
             return firestore.collection("spendings").document(documentId)
         case .deleteSpending(let documentId):
+            return firestore.collection("spendings").document(documentId)
+        case .getSpending(let documentId):
             return firestore.collection("spendings").document(documentId)
         }
     }

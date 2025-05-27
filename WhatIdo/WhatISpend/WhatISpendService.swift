@@ -10,7 +10,9 @@ import Foundation
 protocol WhatISpendServiceType {
     func getAllSpendings() async throws -> [SpendingDto]
     func getSpendingsOfMonth(_ month: Date) async throws -> [SpendingDto]
-    func addNewSpending(_ spending: Spending) async throws
+    func getSpendingById(_ id: String) async throws -> SpendingDto?
+    @discardableResult
+    func addNewSpending(_ spending: Spending) async throws -> String
     func editSpending(_ spending: Spending, id: String) async throws
     func deleteSpending(_ documentId: String) async throws
 }
@@ -23,6 +25,17 @@ final class WhatISpendService: WhatISpendServiceType, FirebaseService {
             let spendingsData: [Spending] = try await request(endpoint: endpoint)
             return spendingsData.map { $0.convertToDto() }
 
+        } catch {
+            debugPrint("Error in fetching spendings", error.localizedDescription)
+            throw error
+        }
+    }
+    
+    func getSpendingById(_ id: String) async throws -> SpendingDto? {
+        do {
+            let endpoint = FirestoreEndpoints.getSpending(id: id)
+            let spendingData: Spending = try await request(endpoint: endpoint)
+            return spendingData.convertToDto()
         } catch {
             debugPrint("Error in fetching spendings", error.localizedDescription)
             throw error
@@ -41,12 +54,14 @@ final class WhatISpendService: WhatISpendServiceType, FirebaseService {
             throw error
         }
     }
-
-    func addNewSpending(_ spending: Spending) async throws {
+    
+    @discardableResult
+    func addNewSpending(_ spending: Spending) async throws -> String {
         do {
             let endpoint = FirestoreEndpoints.createSpending
-            try await post(data: spending, endpoint: endpoint)
+           return try await post(data: spending, endpoint: endpoint)
         } catch {
+            throw error
             debugPrint("Error in posting data", error.localizedDescription)
         }
     }
@@ -78,14 +93,16 @@ final class WhatISpendServiceStub: WhatISpendServiceType {
         return []
     }
 
-    func addNewSpending(_ spending: Spending) async throws {
-        // No-op or update local stub data
+    func addNewSpending(_ spending: Spending) async throws -> String  {
+        return ""
     }
 
     func editSpending(_ spending: Spending, id: String) async throws {
         // No-op
     }
-
+    func getSpendingById(_ id: String) async throws -> SpendingDto? {
+        return nil
+    }
     func deleteSpending(_ documentId: String) async throws {
         // No-op
     }
