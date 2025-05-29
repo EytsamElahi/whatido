@@ -12,7 +12,7 @@ struct AddSpendingView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 15){
-            Text( viewModel.tempSpending == nil ? "Update Spending" : "Add Spending")
+            Text( viewModel.tempSpending == nil ? "Add Spending" : "Update Spending")
                 .foregroundStyle(Color.black)
                 .font(.customFont(name: .bold, size: .x20))
             AppTextfield(inputText: $viewModel.spendingItemTf, placeHolder: "Jot down spending")
@@ -40,5 +40,5 @@ struct AddSpendingView: View {
 
 #Preview {
     AddSpendingView()
-        .environmentObject(SpendingsViewModel())
+        .environmentObject(SpendingsViewModel(spendingService: WhatISpendServiceStub()))
 }

@@ -21,13 +21,15 @@ class SpendingsViewModel: BaseViewModel {
     }
     @Published var spendingTypes: [SpendingType] = []
     @Published private(set) var totalSpending: Int = 0
-    private(set) var spendingSortTypes: [FilterLevel] = [FilterLevel(id: 0, name: "Date"), FilterLevel(id: 1, name: "Amount")]
+    private(set) var spendingSortTypes: [MenuItem] = [MenuItem(id: 0, name: "Date"), MenuItem(id: 1, name: "Amount")]
+    private(set) var menuOptions: [MenuItem] = [MenuItem(id: 0, name: "Previous Spendings"), MenuItem(id: 1, name: "Set a budget")]
     private var spendingType: SpendingType?
-    @Published var selectedSortType: FilterLevel = FilterLevel(id: 0, name: "Date")
+    @Published var selectedSortType: MenuItem?
     @Published var allSpendings: [SpendingDto]?
     @Published var allSpendingsMonthYear: [Int: [MonthItem]]?
     @Published var currentMonth: String = Date().getMonthName()
     @Published var currentMonthInDateFormat: Date? = Date().getFirstDateOfMonth()
+    @Published var selectedMenuItem: MenuItem?
 
     //MARK: - State Members
     @Published var showAddNewSpendingSheet: Bool = false
@@ -37,15 +39,17 @@ class SpendingsViewModel: BaseViewModel {
     @Published var showConfirmationAlert: Bool = false
     @Published var fetchingAllSpendings: Bool = false
     @Published var showMoreMonths: Bool = false
+    @Published var showBudgetSettingSheet: Bool = false
     var tempSpending: SpendingDto? // In case of edit
     var spendingToDelete: SpendingDto? // Temporarily holding to be deleting spending
 
-    override init() {
+    var spendingService: WhatISpendServiceType
+    init(spendingService: WhatISpendServiceType) {
+        self.spendingService = spendingService
         super.init()
-        loadSpendingTypes()
+        self.loadSpendingTypes()
+        
     }
-
-    var spendingService: WhatISpendServiceType = WhatISpendService()
 
     private func loadSpendingTypes() {
         let types: [SpendingType] = Helper.load("spending_types.json")
@@ -80,8 +84,7 @@ extension SpendingsViewModel {
         guard let firstDateOfCurrentMonth = date else {return}
         Task {@MainActor in
             let spendings = try await spendingService.getSpendingsOfMonth(firstDateOfCurrentMonth)
-            let sortedSpendings = sortSpendings(spendings: spendings)
-            self.currentMonthSpendings = sortedSpendings
+            self.currentMonthSpendings = spendings
             self.totalSpending = self.currentMonthSpendings?.reduce(0) { $0 + Int($1.amount) } ?? 0
             self.isDataLoading = false
         }
@@ -217,6 +220,7 @@ extension SpendingsViewModel {
         guard !spendings.isEmpty else {
            return []
         }
+       guard let selectedSortType = selectedSortType else {return []}
         var sortedSpendings = [SpendingDto]()
         switch selectedSortType.id {
         case 0:
@@ -268,5 +272,19 @@ extension SpendingsViewModel {
         }
 
         return namedResult
+    }
+}
+
+//MARK: - Menu Items Action
+extension SpendingsViewModel {
+    func menuItemAction(_ menuItem: MenuItem) {
+        switch menuItem.id {
+        case 0:
+            self.showMoreMonths.toggle()
+        case 1:
+            self.showBudgetSettingSheet.toggle()
+        default:
+            debugPrint("")
+        }
     }
 }
