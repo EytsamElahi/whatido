@@ -12,6 +12,7 @@ struct AppPrimaryButton: View {
     var cornerPadding: Double? = nil
     var height: Double? = nil
     var fontSize: FontSize? = nil
+    var buttonColor: Color? = nil
     @Binding var disable: Bool
     @Binding var isLoading: Bool
     var action: () -> ()
@@ -29,7 +30,7 @@ struct AppPrimaryButton: View {
             }
             Spacer()
         }.frame(height: height ?? 51)
-            .background(disable ? Color.black.opacity(0.5) : Color.black.opacity(1))
+            .background(disable ? buttonColor?.opacity(0.5) ?? Color.primary.opacity(0.5) : buttonColor?.opacity(1) ?? Color.primary.opacity(1))
             .cornerRadius(10.0, corners: .allCorners)
             .padding([.leading, .trailing], cornerPadding ?? 20)
             .disabled(disable)

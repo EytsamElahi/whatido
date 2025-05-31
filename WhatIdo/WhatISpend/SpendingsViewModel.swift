@@ -85,6 +85,7 @@ extension SpendingsViewModel {
         Task {@MainActor in
             let spendings = try await spendingService.getSpendingsOfMonth(firstDateOfCurrentMonth)
             self.currentMonthSpendings = spendings
+            self.getCurrentMonthBudget()
             self.totalSpending = self.currentMonthSpendings?.reduce(0) { $0 + Int($1.amount) } ?? 0
             self.isDataLoading = false
         }
@@ -289,10 +290,12 @@ extension SpendingsViewModel {
         }
     }
     func getCurrentMonthBudget() {
+        guard AppData.budget == nil else {return}
         let id = "\(currentMonthInDateFormat?.components.year ?? 0)_\(self.currentMonth)"
         Task {@MainActor in
             let budget = try await spendingService.getMonthlyBudget(id: id)
             self.budgetAmountTf = "\(budget?.budgetAmount)"
+            AppData.budget = budget?.budgetAmount
         }
     }
 }

@@ -18,7 +18,7 @@ struct SpendsListingView: View {
             GeometryReader { proxy in
                 VStack(alignment: .leading) {
                     VStack(alignment: .leading) {
-                        VStack(alignment: .leading, spacing: 5) {
+                        VStack(alignment: .leading, spacing: 15) {
                             HStack {
                                 VStack(alignment: .leading) {
                                     Text("Total spendings")
@@ -28,8 +28,8 @@ struct SpendsListingView: View {
                                     if viewModel.isDataLoading {
                                         CircularLoadingIndicator()
                                     } else {
-                                        HStack {
-                                            Text("Rs")
+                                        HStack(spacing: 0) {
+                                            Text("Rs ")
                                                 .foregroundStyle(Color.white)
                                                 .font(.customFont(name: .regular, size: .x18))
                                             Text("\(viewModel.totalSpending)")
@@ -48,19 +48,39 @@ struct SpendsListingView: View {
                                 }
                             }
                             HStack {
+                                if let budget = AppData.budget {
+                                    HStack(spacing: 0) {
+                                        Text("Budget: ")
+                                            .foregroundStyle(Color.white)
+                                            .font(.customFont(name: .medium, size:.x16))
+                                        Text(budget.formatted())
+                                            .foregroundStyle(Color.white)
+                                            .font(.customFont(name: .bold, size: .x16))
+                                        Button {
+                                            viewModel.showBudgetSettingSheet.toggle()
+                                        } label: {
+                                            Text("Edit")
+                                                .underline()
+                                                .foregroundStyle(Color.white)
+                                                .font(.customFont(name: .medium, size:.x12))
+                                                .padding(.top, 2)
+                                                .padding(.leading, 5)
+                                        }
+                                    }
+                                }
                                 Spacer()
                                 Button {
-                                    
+
                                 } label: {
                                     HStack {
                                         Text("View more")
                                             .foregroundStyle(Color.white)
-                                            .font(.customFont(name: .medium, size:.x16))
-                                        Image(systemName: "arrow.right")
-                                            //.font(.title3)
-                                            .foregroundStyle(Color.white)
-                                            .frame(width: 10)
-                                            .padding([.top, .leading], 2)
+                                            .font(.customFont(name: .medium, size:.x14))
+                                        //                                        Image(systemName: "arrow.right")
+                                        //                                            //.font(.title3)
+                                        //                                            .foregroundStyle(Color.white)
+                                        //                                            .frame(width: 10)
+                                        //                                            .padding([.top, .leading], 2)
                                     }
                                 }
                             }
@@ -160,7 +180,7 @@ struct SpendsListingView: View {
                 .sheet(isPresented: $viewModel.showBudgetSettingSheet) {
                     SetBudgetView()
                         .environmentObject(viewModel)
-                        .presentationDetents([.height(250)])
+                        .presentationDetents([.height(300)])
                  }
             }
         }

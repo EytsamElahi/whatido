@@ -11,16 +11,28 @@ struct SetBudgetView: View {
     @EnvironmentObject var viewModel: SpendingsViewModel
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("Set budget")
+            Text(AppData.budget ==  nil ? "Set budget for the month" : "Update budget")
                 .foregroundStyle(Color.black)
                 .font(.customFont(name: .bold, size: .x20))
             AppTextfield(inputText: $viewModel.budgetAmountTf, placeHolder: "Amount", keyboardType: .numberPad)
                 .frame(height: 50)
             Spacer()
-            AppPrimaryButton(title: "Set", cornerPadding: 0, disable: .constant(false), isLoading: $viewModel.isDataUploading, action: {
-                 viewModel.setBudget()
-            })
+            VStack {
+                if let _ = AppData.budget {
+                    AppPrimaryButton(title: "Remove budget", cornerPadding: 0, buttonColor: .red, disable: .constant(false), isLoading: $viewModel.isDataUploading, action: {
+                        // viewModel.setBudget()
+                    })
+                }
+                AppPrimaryButton(title: AppData.budget ==  nil ? "Set" : "Update", cornerPadding: 0, disable: .constant(false), isLoading: $viewModel.isDataUploading, action: {
+                    viewModel.setBudget()
+                })
+            }
         }.padding()
+            .onAppear {
+                if let budget = AppData.budget {
+                    viewModel.budgetAmountTf = budget.formatted()
+                }
+            }
     }
 }
 
