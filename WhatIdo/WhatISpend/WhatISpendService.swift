@@ -15,6 +15,8 @@ protocol WhatISpendServiceType {
     func addNewSpending(_ spending: Spending) async throws -> String
     func editSpending(_ spending: Spending, id: String) async throws
     func deleteSpending(_ documentId: String) async throws
+    func addMonthlyBudget(_ budget: Budget) async throws
+    func getMonthlyBudget(id: String) async throws -> Budget?
 }
 
 final class WhatISpendService: WhatISpendServiceType, FirebaseService {
@@ -84,28 +86,35 @@ final class WhatISpendService: WhatISpendServiceType, FirebaseService {
         }
     }
 
+    func addMonthlyBudget(_ budget: Budget) async throws {
+        do {
+            let endpoint = FirestoreEndpoints.addBudget(year: budget.year, month: budget.month)
+            try await post(data: budget, endpoint: endpoint)
+        } catch {
+            debugPrint("Error in Adding budget", error.localizedDescription)
+        }
+    }
+
+    func getMonthlyBudget(id: String) async throws -> Budget? {
+        do {
+            let endpoint = FirestoreEndpoints.getBudget(id: id)
+            return try await request(endpoint: endpoint)
+        } catch {
+            throw error
+            debugPrint("Error in fetching budget", error.localizedDescription)
+        }
+    }
+
 }
 
 
 final class WhatISpendServiceStub: WhatISpendServiceType {
-
-    func getAllSpendings() async throws -> [SpendingDto] {
-        return []
-    }
-
-    func addNewSpending(_ spending: Spending) async throws -> String  {
-        return ""
-    }
-
-    func editSpending(_ spending: Spending, id: String) async throws {
-        // No-op
-    }
-    func getSpendingById(_ id: String) async throws -> SpendingDto? {
-        return nil
-    }
-    func deleteSpending(_ documentId: String) async throws {
-        // No-op
-    }
-
+    func getAllSpendings() async throws -> [SpendingDto] { return []  }
+    func addNewSpending(_ spending: Spending) async throws -> String  { return "" }
+    func editSpending(_ spending: Spending, id: String) async throws { }
+    func getSpendingById(_ id: String) async throws -> SpendingDto? { return nil }
+    func deleteSpending(_ documentId: String) async throws {}
     func getSpendingsOfMonth(_ month: Date) async throws -> [SpendingDto] {return []}
+    func addMonthlyBudget(_ budget: Budget) async throws {  }
+    func getMonthlyBudget(id: String) async throws -> Budget? { return nil }
 }

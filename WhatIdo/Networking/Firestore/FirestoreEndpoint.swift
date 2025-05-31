@@ -27,6 +27,8 @@ enum FirestoreEndpoints: FirestoreEndpoint {
     case getAllSpendings
     case editSpending(id: String)
     case deleteSpending(id: String)
+    case addBudget(year: Int, month: String)
+    case getBudget(id: String)
     var path: FirestoreReference {
         switch self {
         case .createSpending:
@@ -39,6 +41,10 @@ enum FirestoreEndpoints: FirestoreEndpoint {
             return firestore.collection("spendings").document(documentId)
         case .getSpending(let documentId):
             return firestore.collection("spendings").document(documentId)
+        case .addBudget(let year, let month):
+            return firestore.collection("budget").document("\(year)_\(month)")
+        case .getBudget(let documentId):
+            return firestore.collection("budget").document(documentId)
         }
     }
 }

@@ -116,8 +116,19 @@ struct SpendsListingView: View {
                         }
                     }
                     ToolbarItem(placement: .topBarTrailing) {
-                        MenuView(listing: viewModel.menuOptions, icon: "ellipsis", rotation: 90) { selectedOpt in
-                            viewModel.menuItemAction(selectedOpt)
+                        Button(action: {
+                            viewModel.showBudgetSettingSheet.toggle()
+                        }) {
+                            Image(systemName: "dollarsign.circle")
+                                .foregroundStyle(Color.appPrimaryColor)
+                        }
+                    }
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button(action: {
+                           // viewModel.showMoreMonths.toggle()
+                        }) {
+                            Image(systemName: "calendar")
+                                .foregroundStyle(Color.appPrimaryColor)
                         }
                     }
                 })
@@ -145,6 +156,11 @@ struct SpendsListingView: View {
                     AddSpendingView()
                         .environmentObject(viewModel)
                         .presentationDetents([.medium])
+                 }
+                .sheet(isPresented: $viewModel.showBudgetSettingSheet) {
+                    SetBudgetView()
+                        .environmentObject(viewModel)
+                        .presentationDetents([.height(250)])
                  }
             }
         }

@@ -21,17 +21,17 @@ class SpendingsViewModel: BaseViewModel {
     }
     @Published var spendingTypes: [SpendingType] = []
     @Published private(set) var totalSpending: Int = 0
+    @Published var budgetAmountTf: String = ""
     private(set) var spendingSortTypes: [MenuItem] = [MenuItem(id: 0, name: "Date"), MenuItem(id: 1, name: "Amount")]
-    private(set) var menuOptions: [MenuItem] = [MenuItem(id: 0, name: "Previous Spendings"), MenuItem(id: 1, name: "Set a budget")]
     private var spendingType: SpendingType?
     @Published var selectedSortType: MenuItem?
     @Published var allSpendings: [SpendingDto]?
     @Published var allSpendingsMonthYear: [Int: [MonthItem]]?
     @Published var currentMonth: String = Date().getMonthName()
     @Published var currentMonthInDateFormat: Date? = Date().getFirstDateOfMonth()
-    @Published var selectedMenuItem: MenuItem?
+    @Published var currentMonthBudget: Budget?
 
-    //MARK: - State Members
+    // MARK: - State Members
     @Published var showAddNewSpendingSheet: Bool = false
     @Published var isDataLoading: Bool = false
     @Published var isDataUploading: Bool = false
@@ -65,7 +65,7 @@ class SpendingsViewModel: BaseViewModel {
     }
 }
 
-//MARK: - Fetching spendings
+// MARK: - Fetching spendings
 extension SpendingsViewModel {
     func fetchMonthlySpendings(_ month: String, year: Int) {
         if month == self.currentMonth {
@@ -207,7 +207,7 @@ extension SpendingsViewModel {
     }
 }
 
-//MARK: - Filter
+// MARK: - Filter
 extension SpendingsViewModel {
     func updatedSorting() {
         guard let spendings = self.currentMonthSpendings else {
@@ -238,7 +238,7 @@ extension SpendingsViewModel {
     }
 }
 
-//MARK: - All Spendings Month Split
+// MARK: - All Spendings Month Split
 extension SpendingsViewModel {
     func groupDatesToMonthItems(dates: [Date]) -> [Int: [MonthItem]] {
         var result: [Int: Set<Int>] = [:]
@@ -275,16 +275,24 @@ extension SpendingsViewModel {
     }
 }
 
-//MARK: - Menu Items Action
+// MARK: - Set a budget
 extension SpendingsViewModel {
-    func menuItemAction(_ menuItem: MenuItem) {
-        switch menuItem.id {
-        case 0:
-            self.showMoreMonths.toggle()
-        case 1:
-            self.showBudgetSettingSheet.toggle()
-        default:
-            debugPrint("")
+    func setBudget() {
+        guard budgetAmountTf.isEmpty == false else { return }
+        self.isDataUploading = true
+        let budget = Budget(month: self.currentMonth, year: self.currentMonthInDateFormat?.components.year ?? 0, budgetAmount: Double(budgetAmountTf) ?? 0.0)
+        AppData.budget = Double(budgetAmountTf) ?? 0.0
+        Task {@MainActor in
+            try await spendingService.addMonthlyBudget(budget)
+            self.isDataUploading = false
+            self.showBudgetSettingSheet = false
+        }
+    }
+    func getCurrentMonthBudget() {
+        let id = "\(currentMonthInDateFormat?.components.year ?? 0)_\(self.currentMonth)"
+        Task {@MainActor in
+            let budget = try await spendingService.getMonthlyBudget(id: id)
+            self.budgetAmountTf = "\(budget?.budgetAmount)"
         }
     }
 }
