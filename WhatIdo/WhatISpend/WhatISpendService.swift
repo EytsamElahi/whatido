@@ -17,6 +17,8 @@ protocol WhatISpendServiceType {
     func deleteSpending(_ documentId: String) async throws
     func addMonthlyBudget(_ budget: Budget) async throws
     func getMonthlyBudget(id: String) async throws -> Budget?
+    func deleteMonthlyBudget(_ documentId: String) async throws
+    func editMonthlyBudget(_ budget: Budget, id: String) async throws
 }
 
 final class WhatISpendService: WhatISpendServiceType, FirebaseService {
@@ -104,6 +106,22 @@ final class WhatISpendService: WhatISpendServiceType, FirebaseService {
             debugPrint("Error in fetching budget", error.localizedDescription)
         }
     }
+    func deleteMonthlyBudget(_ documentId: String) async throws {
+        do {
+            let endpoint = FirestoreEndpoints.deleteBudget(id: documentId)
+            try await delete(endpoint: endpoint)
+        } catch {
+            debugPrint("Error in deleting data", error.localizedDescription)
+        }
+    }
+    func editMonthlyBudget(_ budget: Budget, id: String) async throws {
+        do {
+            let endpoint = FirestoreEndpoints.editBudget(id: id)
+            try await update(data: budget, endpoint: endpoint)
+        } catch {
+            debugPrint("Error in posting data", error.localizedDescription)
+        }
+    }
 
 }
 
@@ -117,4 +135,6 @@ final class WhatISpendServiceStub: WhatISpendServiceType {
     func getSpendingsOfMonth(_ month: Date) async throws -> [SpendingDto] {return []}
     func addMonthlyBudget(_ budget: Budget) async throws {  }
     func getMonthlyBudget(id: String) async throws -> Budget? { return nil }
+    func deleteMonthlyBudget(_ documentId: String) async throws {}
+    func editMonthlyBudget(_ budget: Budget, id: String) async throws {}
 }

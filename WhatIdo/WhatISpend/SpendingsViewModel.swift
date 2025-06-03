@@ -282,7 +282,7 @@ extension SpendingsViewModel {
         guard budgetAmountTf.isEmpty == false else { return }
         self.isDataUploading = true
         let budget = Budget(month: self.currentMonth, year: self.currentMonthInDateFormat?.components.year ?? 0, budgetAmount: Double(budgetAmountTf) ?? 0.0)
-        AppData.budget = Double(budgetAmountTf) ?? 0.0
+        AppData.budget?[self.currentMonth] = Double(budgetAmountTf) ?? 0.0
         Task {@MainActor in
             try await spendingService.addMonthlyBudget(budget)
             self.isDataUploading = false
@@ -290,12 +290,26 @@ extension SpendingsViewModel {
         }
     }
     func getCurrentMonthBudget() {
-        guard AppData.budget == nil else {return}
+        guard AppData.budget?[currentMonth]  == nil else {return}
         let id = "\(currentMonthInDateFormat?.components.year ?? 0)_\(self.currentMonth)"
         Task {@MainActor in
             let budget = try await spendingService.getMonthlyBudget(id: id)
             self.budgetAmountTf = "\(budget?.budgetAmount)"
-            AppData.budget = budget?.budgetAmount
+            AppData.budget?[self.currentMonth] = budget?.budgetAmount
         }
     }
+    func deleteBudget() {
+        let id = "\(currentMonthInDateFormat?.components.year ?? 0)_\(self.currentMonth)"
+        Task {@MainActor in
+            try await spendingService.deleteMonthlyBudget(id)
+            AppData.budget?[currentMonth]  = nil
+            self.showBudgetSettingSheet = false
+        }
+    }
+
+    func updateBudgetAmount() {
+        AppData.budget?[self.currentMonth] = Double(budgetAmountTf) ?? 0.0
+        // MARK: - Figure out a way to send it on firestore
+    }
+
 }

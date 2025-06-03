@@ -48,7 +48,7 @@ struct SpendsListingView: View {
                                 }
                             }
                             HStack {
-                                if let budget = AppData.budget {
+                                if let budget = AppData.budget?[viewModel.currentMonth]  {
                                     HStack(spacing: 0) {
                                         Text("Budget: ")
                                             .foregroundStyle(Color.white)
@@ -180,7 +180,7 @@ struct SpendsListingView: View {
                 .sheet(isPresented: $viewModel.showBudgetSettingSheet) {
                     SetBudgetView()
                         .environmentObject(viewModel)
-                        .presentationDetents([.height(300)])
+                        .presentationDetents([.height(AppData.budget?[viewModel.currentMonth] == nil ? 250 : 300)])
                  }
             }
         }

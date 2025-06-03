@@ -9,5 +9,5 @@ import Foundation
 
 class AppData {
     @AppStorage(key: "budget", defaultValue: nil)
-    static var budget: Double?
+    static var budget: [String:Double]?
 }
