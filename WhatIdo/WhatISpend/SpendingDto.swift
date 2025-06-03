@@ -14,4 +14,6 @@ struct SpendingDto: Hashable {
     let date: Date
     let type: String
     let created: Date
+    let spendingTypeId: Int
+    let spendingCategoryId: Int
 }

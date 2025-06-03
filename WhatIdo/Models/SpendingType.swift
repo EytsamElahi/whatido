@@ -25,3 +25,8 @@ extension SpendingType {
         name = try values.decodeIfPresent(String.self, forKey: .name)
     }
 }
+
+struct SpendingCategory: Codable {
+    let id: Int
+    let name: String
+}

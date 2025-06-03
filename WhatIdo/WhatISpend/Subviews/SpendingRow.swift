@@ -39,5 +39,5 @@ struct SpendingRow: View {
 }
 
 #Preview {
-    SpendingRow(spending: SpendingDto(id: "", name: "", amount: 0.0, date: Date(), type: "", created: Date()) )
+    SpendingRow(spending: SpendingDto(id: "", name: "", amount: 0.0, date: Date(), type: "", created: Date(),spendingTypeId: 0, spendingCategoryId: 0))
 }
