@@ -53,6 +53,7 @@ extension FirebaseService {
 //        if !Reachability.isConnectedToNetwork() {
 //            throw FirestoreServiceError.noInternet
 //        }
+
         var query: Query = ref.order(by: "date", descending: true)
 
         if let dateFilter = date {
@@ -63,7 +64,7 @@ extension FirebaseService {
         if let params = queryParams {
             query = query.whereField(params.key, isEqualTo: params.value)
         }
-        let querySnapshot = try await query.getDocuments()
+        let querySnapshot = try await query.getDocuments(source: .cache)
         var response: [T] = []
         for document in querySnapshot.documents {
             var data = try FirestoreParser.parse(document.data(), type: T.self)
@@ -80,7 +81,7 @@ extension FirebaseService {
         guard let ref = endpoint.path as? DocumentReference else {
             throw FirestoreServiceError.documentNotFound
         }
-        let document =  try await ref.getDocument()
+        let document =  try await ref.getDocument(source: .cache)
         guard let data = document.data() else {
             throw FirestoreServiceError.documentNotFound
         }
