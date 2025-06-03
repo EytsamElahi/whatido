@@ -214,6 +214,9 @@ extension SpendingsViewModel {
         guard let spendings = self.currentMonthSpendings else {
             return
         }
+        if selectedSortType == nil {
+            selectedSortType = MenuItem(id: 0, name: "Date")
+        }
         let sortedSpendings = sortSpendings(spendings: spendings)
         self.currentMonthSpendings = sortedSpendings
     }
