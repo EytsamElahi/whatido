@@ -19,7 +19,7 @@ struct SetBudgetView: View {
             Spacer()
             VStack {
                 if let _ = AppData.budget?[viewModel.currentMonth]  {
-                    AppPrimaryButton(title: "Remove budget", cornerPadding: 0, buttonColor: .red, disable: .constant(false), isLoading: $viewModel.isDataUploading, action: {
+                    AppPrimaryButton(title: "Remove budget", cornerPadding: 0, buttonColor: .red, disable: .constant(false), isLoading: $viewModel.isBudgetDeleting, action: {
                         viewModel.deleteBudget()
                     })
                 }

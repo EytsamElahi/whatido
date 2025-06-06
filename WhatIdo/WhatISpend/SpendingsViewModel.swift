@@ -40,6 +40,8 @@ class SpendingsViewModel: BaseViewModel {
     @Published var fetchingAllSpendings: Bool = false
     @Published var showMoreMonths: Bool = false
     @Published var showBudgetSettingSheet: Bool = false
+    @Published var isBudgetDeleting: Bool = false
+    @Published var budgetAmount: Double?
     var tempSpending: SpendingDto? // In case of edit
     var spendingToDelete: SpendingDto? // Temporarily holding to be deleting spending
 
@@ -48,7 +50,7 @@ class SpendingsViewModel: BaseViewModel {
         self.spendingService = spendingService
         super.init()
         self.loadSpendingTypes()
-        
+        self.budgetAmount = AppData.budget?[currentMonth]
     }
 
     private func loadSpendingTypes() {
@@ -153,6 +155,7 @@ extension SpendingsViewModel {
             self.currentMonthSpendings?.append(recentAddedSpending!)
             self.updatedSorting()
             self.allSpendings?.append(recentAddedSpending!)
+            self.totalSpending += Int(spending.amount)
             self.isDataUploading = false
             self.showAddNewSpendingSheet = false
             self.resetAddSpendingForm()
@@ -297,15 +300,21 @@ extension SpendingsViewModel {
         let id = "\(currentMonthInDateFormat?.components.year ?? 0)_\(self.currentMonth)"
         Task {@MainActor in
             let budget = try await spendingService.getMonthlyBudget(id: id)
-            self.budgetAmountTf = "\(budget?.budgetAmount)"
+            if AppData.budget == nil {
+                AppData.budget = [String: Double]()
+            }
             AppData.budget?[self.currentMonth] = budget?.budgetAmount
+            self.budgetAmount = budget?.budgetAmount
         }
     }
     func deleteBudget() {
         let id = "\(currentMonthInDateFormat?.components.year ?? 0)_\(self.currentMonth)"
+        self.isBudgetDeleting = true
         Task {@MainActor in
             try await spendingService.deleteMonthlyBudget(id)
-            AppData.budget?[currentMonth]  = nil
+            AppData.budget?[currentMonth] = nil
+            self.budgetAmount = nil
+            self.isBudgetDeleting = false
             self.showBudgetSettingSheet = false
         }
     }
