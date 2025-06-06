@@ -8,6 +8,9 @@
 import Foundation
 
 class SpendingDetailViewModel: BaseViewModel {
+    // MARK: - Data Members
+    @Published var pieChartData: [PieChartModel]?
+
     var spendingService: WhatISpendServiceType
     var currentMonthSpendings: [SpendingDto]?
     var spendingTypes: [SpendingType]?
@@ -26,9 +29,9 @@ class SpendingDetailViewModel: BaseViewModel {
         self.spendingCategories = categories
     }
 
-    private func generatePieChartData() -> [PieChartModel] {
+    func generatePieChartData() {
         guard let spendingCategories = self.spendingCategories, let spendings = currentMonthSpendings else {
-            return []
+            return
         }
         var pieChartData = [PieChartModel]()
         for spending in spendings {
@@ -42,7 +45,11 @@ class SpendingDetailViewModel: BaseViewModel {
                 pieChartData.append(PieChartModel(id: spending.spendingCategoryId, name: categoryName, value: spending.amount))
             }
         }
-        return pieChartData
+        debugPrint(pieChartData)
+        DispatchQueue.main.async {
+            self.pieChartData = pieChartData
+
+        }
     }
 
 }

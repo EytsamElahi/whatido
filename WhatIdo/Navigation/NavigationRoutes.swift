@@ -7,4 +7,5 @@
 
 enum Route: Hashable {
     case spendings(SpendingsViewModel)
+    case SpendingDetails(SpendingDetailViewModel)
 }

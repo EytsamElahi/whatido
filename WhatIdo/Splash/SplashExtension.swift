@@ -15,6 +15,8 @@ extension SplashView {
         switch route {
         case .spendings(let spendingsViewModel):
             SpendsListingView(viewModel: spendingsViewModel)
+        case .SpendingDetails(let viewModel):
+            SpendingDetail(viewModel: viewModel)
         }
     }
 }

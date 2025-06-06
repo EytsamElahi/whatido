@@ -27,5 +27,9 @@ class Helper {
         }
     }
 
+    static func getPercentage(divisor: Double, dividend: Double) -> Double {
+        return ((dividend / divisor) * 100).rounded()
+    }
+
 
 }

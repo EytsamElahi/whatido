@@ -83,7 +83,7 @@ struct PieSlice: Shape {
     }
 }
 
-struct PieChartView: View {
+struct PieChart: View {
     let categories: [PieChartModel]
 
     var total: Double {
@@ -114,29 +114,25 @@ struct PieChartView: View {
     }
 }
 
-struct ContenttView: View {
+struct PieChartView: View {
+    let data: [PieChartModel]
+    var total: Double {
+        data.map(\.self.value).reduce(0, +)
+    }
     var body: some View {
-        let data: [PieChartModel] = [
-//            PieChartModel(name: "Food", value: 30, color: .red),
-//            PieChartModel(name: "Transport", value: 20, color: .blue),
-//            PieChartModel(name: "Shopping", value: 25, color: .green),
-//            PieChartModel(name: "Utils", value: 25, color: .brown),
-//            PieChartModel(name: "Other", value: 25, color: .orange)
-        ]
-
-        HStack(spacing: 20) {
-            PieChartView(categories: data)
+        HStack(spacing: 10) {
+            PieChart(categories: data)
                 .frame(width: 250, height: 250)
 
             // Optional legend
-            VStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: 15) {
                 ForEach(data) { item in
                     HStack {
                         Circle()
                             .fill(item.color)
                             .frame(width: 10, height: 10)
-                        Text("\(item.name): \(Int(item.value))")
-                            .font(.caption)
+                        Text("\(item.name): \(String(format: "%.0f", Helper.getPercentage(divisor: total, dividend: item.value)))%")
+                            .font(.customFont(name: .medium, size: .x12))
                     }
                 }
             }
@@ -146,5 +142,5 @@ struct ContenttView: View {
 }
 
 #Preview{
-    ContenttView()
+    PieChartView(data: [])
 }

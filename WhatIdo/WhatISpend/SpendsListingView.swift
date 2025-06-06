@@ -70,7 +70,7 @@ struct SpendsListingView: View {
                                 }
                                 Spacer()
                                 Button {
-
+                                    navigation.push(screen: .SpendingDetails(SpendingDetailViewModel(spendingService: viewModel.spendingService, currentMonthSpendings: viewModel.currentMonthSpendings, spendingTypes: viewModel.spendingTypes)))
                                 } label: {
                                     HStack {
                                         Text("View more")
