@@ -1,23 +1,13 @@
 [
     {
-        "id": 0,
-        "cat_id": 0,
-        "name": "none"
-    },
-    {
         "id": 1,
         "cat_id": 1,
         "name": "Rent"
     },
     {
-        "id": 18,
-        "cat_id": 1,
-        "name": "Bill"
-    },
-    {
         "id": 2,
         "cat_id": 1,
-        "name": "Utilities"
+        "name": "Utility Bill"
     },
     {
         "id": 3,
@@ -37,7 +27,7 @@
     {
         "id": 6,
         "cat_id": 3,
-        "name": "Dining out"
+        "name": "Food"
     },
     {
         "id": 7,
@@ -79,4 +69,9 @@
         "cat_id": 12,
         "name": "Shopping"
     },
+    {
+        "id": 14,
+        "cat_id": 13,
+        "name": "Allowance"
+    }
 ]

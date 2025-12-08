@@ -40,31 +40,139 @@ struct AppPickerView: View {
     AppPickerView(listing: [], pickedItem: .constant(""))
 }
 
+//struct CustomPickerView: View {
+//    var listing: [String]
+//    @Binding var pickedItem: String
+//
+//    var body: some View {
+//        Menu {
+//            // Picker inside a Menu to show options
+//            Picker("Select an option", selection: $pickedItem) {
+//                ForEach(listing, id: \.self) { option in
+//                    Text(option)
+//                }
+//            }
+//        } label: {
+//            // Your custom view – triggers picker when tapped
+//            HStack {
+//                Text(pickedItem == "" ? "none" : pickedItem)
+//                    .foregroundColor(.primary)
+//                Spacer()
+//                Image(systemName: "chevron.down")
+//                    .foregroundColor(.appPrimaryColor)
+//            }
+//            .padding()
+//            .background( RoundedRectangle(cornerRadius: 10)
+//                .stroke(Color.gray, lineWidth: 1))
+//        }.foregroundColor(.primary)
+//            .tint(.primary)
+//    }
+//}
+
 struct CustomPickerView: View {
     var listing: [String]
     @Binding var pickedItem: String
 
+    var maxFrequent: Int = 8
+
+    @StateObject private var usage = PickerUsageStore()
+
+    private var normalizedListing: [String] {
+        listing
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+    }
+
+    private var frequent: [String] {
+        let sorted = normalizedListing
+            .map { ($0, usage.count(for: $0)) }
+            .filter { $0.1 > 0 }
+            .sorted {
+                if $0.1 != $1.1 { return $0.1 > $1.1 }
+                return $0.0.localizedCaseInsensitiveCompare($1.0) == .orderedAscending
+            }
+            .map(\.0)
+
+        // fallback for first-time user
+        if sorted.isEmpty {
+            return Array(normalizedListing.prefix(min(maxFrequent, normalizedListing.count)))
+        }
+
+        return Array(sorted.prefix(maxFrequent))
+    }
+
+    private var rest: [String] {
+        let frequentSet = Set(frequent)
+        return normalizedListing
+            .filter { !frequentSet.contains($0) }
+            .sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+    }
+
     var body: some View {
         Menu {
-            // Picker inside a Menu to show options
-            Picker("Select an option", selection: $pickedItem) {
-                ForEach(listing, id: \.self) { option in
-                    Text(option)
+            // "None" option if you want to allow clearing
+            Button("none") {
+                pickedItem = ""
+            }
+
+            if !frequent.isEmpty {
+                Divider()
+                // Frequent items right in the main menu
+                ForEach(frequent, id: \.self) { option in
+                    Button {
+                        select(option)
+                    } label: {
+                        labelFor(option)
+                    }
                 }
             }
+
+            if !rest.isEmpty {
+                Divider()
+                Menu("More") {
+                    ForEach(rest, id: \.self) { option in
+                        Button {
+                            select(option)
+                        } label: {
+                            Text(option)
+                        }
+                    }
+                }
+            }
+
         } label: {
-            // Your custom view – triggers picker when tapped
             HStack {
-                Text(pickedItem == "" ? "none" : pickedItem)
+                Text(pickedItem.isEmpty ? "none" : pickedItem)
                     .foregroundColor(.primary)
                 Spacer()
                 Image(systemName: "chevron.down")
                     .foregroundColor(.appPrimaryColor)
             }
             .padding()
-            .background( RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.gray, lineWidth: 1))
-        }.foregroundColor(.primary)
-            .tint(.primary)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.gray, lineWidth: 1)
+            )
+        }
+        .foregroundColor(.primary)
+        .tint(.primary)
+    }
+
+    private func select(_ option: String) {
+        pickedItem = option
+        usage.record(option)
+    }
+
+    @ViewBuilder
+    private func labelFor(_ option: String) -> some View {
+        // Optional: show a subtle checkmark for current selection
+        HStack {
+            Text(option)
+            if pickedItem == option {
+                Spacer()
+                Image(systemName: "checkmark")
+            }
+        }
     }
 }
+
