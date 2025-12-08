@@ -186,6 +186,7 @@ extension SpendingsViewModel {
         self.dateTf = ""
         self.spendingType = nil
          self.spendingTypeName = ""
+         self.showAddNewSpendingSheet = false
     }
 }
 
@@ -293,6 +294,7 @@ extension SpendingsViewModel {
             try await spendingService.addMonthlyBudget(budget)
             self.isDataUploading = false
             self.showBudgetSettingSheet = false
+            self.currentMonth = Date().getMonthName() ?? ""
         }
     }
     func getCurrentMonthBudget() {
