@@ -100,8 +100,19 @@ struct SpendsListingView: View {
                                     .onTapGesture {
                                         viewModel.editSpending(spending)
                                     }
+                                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                        Button(role: .destructive) {
+                                            // Delete Logic: Index dhoond kar delete call karein
+                                            if let index = viewModel.currentMonthSpendings?.firstIndex(of: spending) {
+                                                viewModel.deleteSpending(at: IndexSet(integer: index))
+                                            }
+                                        } label: {
+                                            Image(systemName: "trash")
+                                        }
+                                        .tint(.red)
+                                    }
                             }
-                            .onDelete(perform: viewModel.deleteSpending)
+                           // .onDelete(perform: viewModel.deleteSpending)
                         }
                         .listStyle(.plain)
                         .scrollContentBackground(.hidden) // Removes default List gray
@@ -128,7 +139,7 @@ struct SpendsListingView: View {
             .sheet(isPresented: $viewModel.showAddNewSpendingSheet) {
                 AddSpendingView()
                     .environmentObject(viewModel)
-                    .presentationDetents([.medium])
+                    .presentationDetents([.medium, .large])
             }
             .sheet(isPresented: $viewModel.showBudgetSettingSheet) {
                 SetBudgetView()

@@ -18,11 +18,11 @@ struct SetBudgetView: View {
                 .frame(height: 50)
             Spacer()
             VStack {
-                AppPrimaryButton(title: viewModel.monthlyBudget == nil ? "Set" : "Update", cornerPadding: 0, disable: .constant(false), isLoading: $viewModel.isDataUploading, action: {
+                AppPrimaryButton(title: viewModel.monthlyBudget == nil ? "Set" : "Update", disable: .constant(false), isLoading: $viewModel.isDataUploading, action: {
                     viewModel.setOrUpdateBudget()
                 })
                 if let _ = viewModel.monthlyBudget  {
-                    AppPrimaryButton(title: "Remove budget", cornerPadding: 0, buttonColor: .red, disable: .constant(false), isLoading: $viewModel.isBudgetDeleting, action: {
+                    AppPrimaryButton(title: "Remove budget", disable: .constant(false), isLoading: $viewModel.isBudgetDeleting, action: {
                         viewModel.deleteBudget()
                     })
                 }

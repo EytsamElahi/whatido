@@ -118,11 +118,10 @@ struct CustomPickerView: View {
             if !frequent.isEmpty {
                 Divider()
                 // Frequent items right in the main menu
-                ForEach(frequent, id: \.self) { option in
-                    Button {
-                        select(option)
-                    } label: {
-                        labelFor(option)
+                ForEach(listing, id: \.self) { item in
+                    Button(item) {
+                        pickedItem = item
+                        usage.record(item)
                     }
                 }
             }
@@ -141,21 +140,26 @@ struct CustomPickerView: View {
             }
 
         } label: {
-            HStack {
-                Text(pickedItem.isEmpty ? "none" : pickedItem)
-                    .foregroundColor(.primary)
-                Spacer()
-                Image(systemName: "chevron.down")
-                    .foregroundColor(.appPrimaryColor)
+            ZStack {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white.opacity(0.08)) // Dark fill
+
+                HStack {
+                    Text(pickedItem.isEmpty ? "Select" : pickedItem)
+                        .font(.customFont(name: .medium, size: .x14))
+                        .foregroundColor(pickedItem.isEmpty ? .white.opacity(0.3) : .white)
+
+                    Spacer()
+
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(.appPrimaryColor) // Teal Chevron
+                }
+                .padding(.horizontal, 15)
             }
-            .padding()
-            .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(Color.gray, lineWidth: 1)
-            )
         }
-        .foregroundColor(.primary)
-        .tint(.primary)
+//        .foregroundColor(.primary)
+//        .tint(.primary)
     }
 
     private func select(_ option: String) {

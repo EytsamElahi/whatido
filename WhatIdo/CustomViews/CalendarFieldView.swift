@@ -32,28 +32,28 @@ struct CalendarFieldView: View {
     
     var body: some View {
         ZStack {
-            Rectangle()
-                .stroke(Color.gray, lineWidth: 1)
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.white.opacity(0.08))
                 .frame(height: 50)
-              //  .foregroundColor(Color.fieldbg)
-                .clipShape(RoundedRectangle(cornerRadius: 10)) // Apply rounded corners
                 .overlay(
                     ZStack {
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.gray, lineWidth: 1)
                         HStack {
                             if datePickerPosition == .start {
                                 // MARK: - Calendar Icon
                                 Image(systemName: "calendar")
                                     .resizable()
-                                    .frame(width: 13, height: 14)
+                                    .foregroundStyle(Color.appPrimaryColor)
+                                    .frame(width: 16, height: 16)
                                     .padding(.trailing, 10)
                                     .offset(x: 20)
                             }
                             TextField(text: $fieldInputText) {
                                 Text(placeHolder)
-                                    .font(.customFont(name: .regular, size: .x16))
+                                    .font(.customFont(name: .medium, size: .x16))
+                                    .foregroundColor(fieldInputText.isEmpty ? .white.opacity(0.3) : .white)
+                                    .padding(.leading, 5)
                             }.disabled(true)
+                                .foregroundColor(fieldInputText.isEmpty ? .white.opacity(0.3) : .white)
                                 .font(.customFont(name: .medium, size: .x16))
                                 .frame(maxHeight: .infinity)
                                 .keyboardType(.emailAddress)
@@ -64,7 +64,8 @@ struct CalendarFieldView: View {
                                 // MARK: - Calendar Icon
                                 Image("calendar")
                                     .resizable()
-                                    .frame(width: 13, height: 14)
+                                    .foregroundStyle(Color.appPrimaryColor)
+                                    .frame(width: 16, height: 16)
                                     .padding(.trailing, 10)
                                     .offset(x: -10)
                             }
