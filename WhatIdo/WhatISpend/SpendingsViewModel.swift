@@ -117,6 +117,7 @@ extension SpendingsViewModel {
         self.amountTf = String(Int(spending.amount))
         self.dateTf = spending.date.toDateReturnString()
         spendingTypeName = spending.type
+        self.fundingSName = spending.fundSource?.rawValue ?? "Cash"
         self.spendingType = spendingTypes.first { $0.name == spending.type }
         self.showAddNewSpendingSheet = true
     }
@@ -188,8 +189,9 @@ extension SpendingsViewModel {
         self.amountTf = ""
         self.dateTf = ""
         self.spendingType = nil
-         self.spendingTypeName = ""
-         self.showAddNewSpendingSheet = false
+        self.spendingTypeName = ""
+        self.fundingSName = ""
+        self.showAddNewSpendingSheet = false
     }
 }
 

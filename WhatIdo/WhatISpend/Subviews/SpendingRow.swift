@@ -19,10 +19,15 @@ struct SpendingRow: View {
                     .font(.customFont(name: .medium, size: .x18))
             }
             HStack {
-                HStack {
+                HStack(spacing: 5) {
                     Image(systemName: "tag.fill")
                     Text(spending.type)
                         .font(.customFont(name: .regular, size: .x16))
+                    if let source = spending.fundSource?.rawValue {
+                        Text("•") // Separator
+                        Text(source) // Source
+                            .font(.customFont(name: .regular, size: .x16))
+                    }
                 }
                 Spacer()
                 Text(spending.date.formatDateShort())
