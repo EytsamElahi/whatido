@@ -17,12 +17,12 @@ struct AppHeaderView: View {
             }) {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 22, weight: .semibold))
-                    .foregroundStyle(Color.appPrimaryColor)
+                    .foregroundStyle(Color.textPrimary)
             }
 
             Text(title)
                 .font(.customFont(family: .quicksand, name: .bold, size: .x30))
-                .foregroundStyle(Color.primary)
+                .foregroundStyle(Color.textPrimary)
                 .padding(.leading, 8)
 
             Spacer()

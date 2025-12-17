@@ -11,12 +11,14 @@ struct SpendingsHeroSection: View {
     var budgetProgress: Double
     var progressBarColor: Color
     var viewAnalyticsAction: () -> Void
+
     var body: some View {
         VStack(alignment: .leading, spacing: 15) {
             HStack {
                 Text("Total spendings")
                     .font(.customFont(family: .quicksand, name: .medium, size: .x16))
-                    .foregroundStyle(Color.gray)
+                    // Text on Dark BG must be light
+                    .foregroundStyle(Color.white.opacity(0.7))
                 Spacer()
                 if viewModel.isDataLoading {
                     ProgressView()
@@ -24,15 +26,15 @@ struct SpendingsHeroSection: View {
                 }
             }
 
-            // Big Amount (Inter Font for Numbers)
+            // Big Amount
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text("Rs")
                     .font(.customFont(family: .quicksand, name: .medium, size: .x20))
                     .foregroundStyle(Color.white.opacity(0.7))
 
                 Text("\(Int(viewModel.totalSpending))")
-                    .font(.customFont(family: .inter, name: .bold, size: .x34)) // Numbers pop out
-                    .foregroundStyle(Color.white)
+                    .font(.customFont(family: .inter, name: .bold, size: .x34))
+                    .foregroundStyle(Color.white) // Bright White
             }
 
             // Progress Bar Section
@@ -42,10 +44,12 @@ struct SpendingsHeroSection: View {
                     // Bar
                     GeometryReader { geometry in
                         ZStack(alignment: .leading) {
+                            // Track looks good as subtle white on dark
                             Capsule()
                                 .frame(width: geometry.size.width, height: 6)
-                                .foregroundStyle(Color.white.opacity(0.2))
+                                .foregroundStyle(Color.white.opacity(0.15))
 
+                            // Fill (Green/Orange/Red pops on dark)
                             Capsule()
                                 .frame(width: min(geometry.size.width * budgetProgress, geometry.size.width), height: 6)
                                 .foregroundStyle(progressBarColor)
@@ -53,14 +57,14 @@ struct SpendingsHeroSection: View {
                     }
                     .frame(height: 6)
 
-                    // Footer: Budget & Remaining
+                    // Footer
                     HStack {
                         Button {
                             viewModel.showBudgetSettingSheet.toggle()
                         } label: {
                             Text("Budget: \(Int(budget))")
                                 .font(.customFont(family: .quicksand, name: .medium, size: .x12))
-                                .foregroundStyle(Color.gray)
+                                .foregroundStyle(Color.white.opacity(0.6))
                                 .underline()
                         }
 
@@ -69,45 +73,48 @@ struct SpendingsHeroSection: View {
                         let remaining = Int(budget) - viewModel.totalSpending
                         Text(remaining >= 0 ? "\(Int(remaining)) left" : "Over budget")
                             .font(.customFont(family: .quicksand, name: .semiBold, size: .x12))
-                            .foregroundStyle(remaining >= 0 ? Color.white.opacity(0.8) : Color.red)
+                            // Remaining is white, Over is red
+                            .foregroundStyle(remaining >= 0 ? Color.white.opacity(0.9) : Color.red)
                     }
                 }
             } else {
-                // Setup Budget Button if no budget
+                // Set Budget Button (Teal Accent)
                 Button {
                     viewModel.showBudgetSettingSheet.toggle()
                 } label: {
                     Text("Set a Budget")
                         .font(.customFont(family: .quicksand, name: .semiBold, size: .x14))
-                        .foregroundStyle(Color.black)
+                        .foregroundStyle(Color.appPrimaryColor) // Teal Text
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
-                        .background(Color.white)
+                        .background(Color.white.opacity(0.1)) // Subtle dark button bg
                         .cornerRadius(8)
                 }
             }
 
-            // View More Button (Bottom Right of Card)
+            // View Analytics
             HStack {
                 Spacer()
                 Button {
-                  viewAnalyticsAction()
+                    viewAnalyticsAction()
                 } label: {
                     HStack(spacing: 4) {
                         Text("View Analytics")
                         Image(systemName: "arrow.right")
                     }
                     .font(.customFont(family: .quicksand, name: .medium, size: .x12))
-                    .foregroundStyle(Color.white.opacity(0.6))
+                    .foregroundStyle(Color.appPrimaryColor) // Teal accent
                 }
             }
             .padding(.top, 5)
 
         }
         .padding(20)
-        .background(Color.black)
+        // 🔥 MAIN CHANGE: Use Rich Dark Gray
+        .background(Color.cardBackground)
         .cornerRadius(24)
-        .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
+        // 🔥 SHADOW FIX: Very subtle, soft shadow. Barely noticeable but adds depth.
+        .shadow(color: Color.black.opacity(0.2), radius: 15, x: 0, y: 8)
         .padding(.horizontal)
     }
 }

@@ -51,7 +51,7 @@ struct MenuView: View {
                     }
                     if let icon = icon {
                         Image(systemName: icon)
-                            .foregroundStyle(Color.primary)
+                            .foregroundStyle(Color.appPrimaryColor)
                             .font(.title3)
                             .rotationEffect(.degrees(rotation ?? 0))
                     }
