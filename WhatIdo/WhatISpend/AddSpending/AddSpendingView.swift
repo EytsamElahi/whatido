@@ -86,6 +86,7 @@ struct AddSpendingView: View {
                         .font(.customFont(family: .quicksand, name: .bold, size: .x20))
                         .foregroundStyle(Color.white)
                         .padding(.top, 20)
+                        .padding(.top, 20)
                     // MARK: - 1. Amount Input
                     VStack(spacing: 8) {
                         Text("Amount")

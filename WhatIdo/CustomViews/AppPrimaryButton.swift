@@ -29,7 +29,7 @@ struct AppPrimaryButton: View {
                 }
             }
             .frame(height: 55)
-            .shadow(color: Color.appPrimaryColor.opacity(disable.wrappedValue ? 0 : 0.3), radius: 10, x: 0, y: 5)
+           // .shadow(color: Color.appPrimaryColor.opacity(disable.wrappedValue ? 0 : 0.3), radius: 10, x: 0, y: 5)
         }
         .padding(.horizontal, 20)
         .disabled(disable.wrappedValue || isLoading.wrappedValue)

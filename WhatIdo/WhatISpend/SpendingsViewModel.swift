@@ -291,9 +291,9 @@ extension SpendingsViewModel {
 // MARK: - Set a budget
 extension SpendingsViewModel {
     private func setBudget() {
-        guard budgetAmountTf.isEmpty == false else { return }
+        guard let amount = budgetAmount else { return }
         self.isDataUploading = true
-        let budget = Budget(month: self.currentMonth, year: self.currentMonthInDateFormat?.components.year ?? 0, budgetAmount: budgetAmountTf.toDouble)
+        let budget = Budget(month: self.currentMonth, year: self.currentMonthInDateFormat?.components.year ?? 0, budgetAmount: amount)
        // AppData.budget?[self.currentMonth] = Double(budgetAmountTf) ?? 0.0
         Task {@MainActor in
             let result = await spendingService.addMonthlyBudget(budget)
@@ -307,7 +307,10 @@ extension SpendingsViewModel {
                 debugPrint("")
             }
             self.isDataUploading = false
-            self.showBudgetSettingSheet = false
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {[weak self] in
+                guard let self = self else {return}
+                self.showBudgetSettingSheet = false
+            }
             self.currentMonth = Date().getMonthName()
         }
     }
@@ -336,15 +339,18 @@ extension SpendingsViewModel {
             try await spendingService.deleteMonthlyBudget(budget.id )
             self.budgetAmount = nil
             self.isBudgetDeleting = false
-            self.showBudgetSettingSheet = false
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {[weak self] in
+                guard let self = self else {return}
+                self.showBudgetSettingSheet = false
+            }
         }
     }
 
     private func updateBudgetAmount() {
-        guard budgetAmountTf.isEmpty == false else { return }
+        guard let amount = budgetAmount else { return }
         guard let cBudget = monthlyBudget else {return}
         self.isDataUploading = true
-        cBudget.budgetAmount = budgetAmountTf.toDouble
+        cBudget.budgetAmount = amount
         Task {@MainActor in
             let result = await spendingService.editMonthlyBudget(cBudget, id: cBudget.id)
             if case(.noData) = result {
@@ -353,7 +359,10 @@ extension SpendingsViewModel {
                 debugPrint("Error in fetching budget")
             }
             self.isDataUploading = false
-            self.showBudgetSettingSheet = false
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {[weak self] in
+                guard let self = self else {return}
+                self.showBudgetSettingSheet = false
+            }
         }
     }
 

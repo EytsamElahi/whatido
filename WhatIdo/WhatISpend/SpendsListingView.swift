@@ -143,8 +143,10 @@ struct SpendsListingView: View {
             }
             .sheet(isPresented: $viewModel.showBudgetSettingSheet) {
                 SetBudgetView()
-                    .environmentObject(viewModel)
-                    .presentationDetents([.height(viewModel.monthlyBudget == nil ? 220 : 320)])
+                .environmentObject(viewModel)
+//                        // Sirf itni height khulegi jitni zaroorat hai
+//                        .presentationDetents([.height(350)])
+//                        .presentationDragIndicator(.hidden)
             }
             .alert("Confirm Deletion", isPresented: $viewModel.showConfirmationAlert, presenting: viewModel.spendingToDelete) { spending in
                 Button("Delete", role: .destructive) { viewModel.confirmedDeleteSpending() }
