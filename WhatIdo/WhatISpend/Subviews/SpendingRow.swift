@@ -46,3 +46,66 @@ struct SpendingRow: View {
 #Preview {
     SpendingRow(spending: SpendingDto(id: "", name: "", amount: 0.0, date: Date(), type: "", created: Date(),spendingTypeId: 0, spendingCategoryId: 0, fundSource: .cash))
 }
+
+// MARK: - New Clean Row Design
+struct UpdatedSpendingRow: View {
+    let spending: SpendingDto // Your Spending Model
+
+    // Logic to choose icon based on category (Example)
+    var iconName: String {
+        // Replace with your actual category logic
+        return "tag.fill"
+    }
+
+    var body: some View {
+        HStack(spacing: 15) {
+            // Icon
+            ZStack {
+                Circle()
+                    .fill(Color.gray.opacity(0.1))
+                    .frame(width: 45, height: 45)
+                
+                // Dynamic Icon yahan aa gaya
+                Image(systemName: spending.icon)
+                    .foregroundStyle(Color.black)
+                // .foregroundStyle(spending.iconColor) // Agar icon colored chahiye
+                    .font(.system(size: 18))
+            }
+
+            // Text Info
+            VStack(alignment: .leading, spacing: 4) {
+                Text(spending.name) // Title
+                    .font(.customFont(family: .quicksand, name: .semiBold, size: .x16))
+                    .foregroundStyle(Color.primary)
+                    .lineLimit(1)
+
+                HStack(spacing: 4) {
+                    Text(spending.type) // Category
+                    if let source = spending.fundSource?.rawValue {
+                        Text("•") // Separator
+                        Text(source) // Source
+                    }
+                }
+                .font(.customFont(family: .quicksand, name: .medium, size: .x12))
+                .foregroundStyle(Color.gray)
+            }
+
+            Spacer()
+
+            // Amount & Date
+            VStack(alignment: .trailing, spacing: 4) {
+                Text("Rs \(Int(spending.amount))")
+                    .font(.customFont(family: .inter, name: .bold, size: .x16))
+                    .foregroundStyle(Color.primary)
+
+                // Date formatter needed here
+                Text(spending.date.formatted(.dateTime.day().weekday()))
+                    .font(.customFont(family: .quicksand, name: .medium, size: .x12))
+                    .foregroundStyle(Color.gray)
+            }
+        }
+        .padding(15)
+        .background(Color(uiColor: .systemGray6)) // Light Grey Background
+        .cornerRadius(16)
+    }
+}

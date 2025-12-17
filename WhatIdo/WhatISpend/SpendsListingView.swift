@@ -42,61 +42,96 @@ struct SpendsListingView: View {
                     .padding(.top, 20)
                     .padding(.bottom, 5)
                     if viewModel.isDataLoading {
+                        Spacer()
                         CircularLoadingIndicator()
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        Spacer()
                     } else {
                         List {
                             ForEach(viewModel.currentMonthSpendings ?? [], id: \.self) { spending in
-                                SpendingRow(spending: spending)
+                                UpdatedSpendingRow(spending: spending)
+                                    .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
+                                    .listRowSeparator(.hidden)
+                                    .background(Color.clear)
                                     .onTapGesture {
                                         viewModel.editSpending(spending)
                                     }
-                                    .listRowInsets(EdgeInsets(top: 5, leading: 15, bottom: 10, trailing: 15)) // Customize spacing here
                             }
                             .onDelete(perform: viewModel.deleteSpending)
-                            .listRowSeparator(.hidden)
-                            .listRowSpacing(0)
                         }
-                        .listStyle(PlainListStyle())
+                        .listStyle(.plain)
+                        .scrollContentBackground(.hidden)
                         Spacer()
                     }
                 }
-            }.onAppear(perform: {
-                guard viewModel.currentMonthSpendings == nil else {return}
+            }
+            // MARK: - Modifiers & Lifecycle
+            .onAppear {
+                guard viewModel.currentMonthSpendings == nil else { return }
                 let date = Date().getFirstDateOfMonth()
                 viewModel.fetchCurrentMonthSpendings(date: date)
-            })
-            .navigationBarBackButtonHidden(true)
-            .onChange(of: viewModel.showAddNewSpendingSheet) {old, new in
+            }
+            .navigationBarHidden(true) // Using Custom Header
+            .onChange(of: viewModel.showAddNewSpendingSheet) { old, new in
                 if new == false {
                     viewModel.resetAddSpendingForm()
                     viewModel.tempSpending = nil
                 }
-            }.onChange(of: viewModel.selectedSortType) { _ , _ in
+            }
+            .onChange(of: viewModel.selectedSortType) { _, _ in
                 viewModel.updatedSorting()
             }
-            .alert("Confirm Deletion",
-                     isPresented: $viewModel.showConfirmationAlert,
-                     presenting: viewModel.spendingToDelete) { spending in
-                  Button("Delete", role: .destructive) {
-                      viewModel.confirmedDeleteSpending()
-                  }
-                  Button("Cancel", role: .cancel) {
-                      viewModel.spendingToDelete = nil
-                  }
-              } message: { spending in
-                  Text("Are you sure you want to delete spending?")
-              }
             .sheet(isPresented: $viewModel.showAddNewSpendingSheet) {
                 AddSpendingView()
                     .environmentObject(viewModel)
                     .presentationDetents([.medium])
-             }
+            }
             .sheet(isPresented: $viewModel.showBudgetSettingSheet) {
                 SetBudgetView()
                     .environmentObject(viewModel)
-                    .presentationDetents([.height(viewModel.monthlyBudget == nil ? 200 : 300)])
-             }
+                    .presentationDetents([.height(viewModel.monthlyBudget == nil ? 220 : 320)])
+            }
+            .alert("Confirm Deletion", isPresented: $viewModel.showConfirmationAlert, presenting: viewModel.spendingToDelete) { spending in
+                Button("Delete", role: .destructive) { viewModel.confirmedDeleteSpending() }
+                Button("Cancel", role: .cancel) { viewModel.spendingToDelete = nil }
+            } message: { _ in
+                Text("Are you sure you want to delete this spending?")
+            }
+//            .onAppear(perform: {
+//                guard viewModel.currentMonthSpendings == nil else {return}
+//                let date = Date().getFirstDateOfMonth()
+//                viewModel.fetchCurrentMonthSpendings(date: date)
+//            })
+//            .navigationBarBackButtonHidden(true)
+//            .onChange(of: viewModel.showAddNewSpendingSheet) {old, new in
+//                if new == false {
+//                    viewModel.resetAddSpendingForm()
+//                    viewModel.tempSpending = nil
+//                }
+//            }.onChange(of: viewModel.selectedSortType) { _ , _ in
+//                viewModel.updatedSorting()
+//            }
+//            .alert("Confirm Deletion",
+//                     isPresented: $viewModel.showConfirmationAlert,
+//                     presenting: viewModel.spendingToDelete) { spending in
+//                  Button("Delete", role: .destructive) {
+//                      viewModel.confirmedDeleteSpending()
+//                  }
+//                  Button("Cancel", role: .cancel) {
+//                      viewModel.spendingToDelete = nil
+//                  }
+//              } message: { spending in
+//                  Text("Are you sure you want to delete spending?")
+//              }
+//            .sheet(isPresented: $viewModel.showAddNewSpendingSheet) {
+//                AddSpendingView()
+//                    .environmentObject(viewModel)
+//                    .presentationDetents([.medium])
+//             }
+//            .sheet(isPresented: $viewModel.showBudgetSettingSheet) {
+//                SetBudgetView()
+//                    .environmentObject(viewModel)
+//                    .presentationDetents([.height(viewModel.monthlyBudget == nil ? 200 : 300)])
+//             }
         }
     }
 }
