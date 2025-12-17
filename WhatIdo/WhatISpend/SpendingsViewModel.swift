@@ -20,6 +20,8 @@ class SpendingsViewModel: BaseViewModel {
         }
     }
     @Published var spendingTypes: [SpendingType] = []
+    @Published var fundingSources: [FundSource] = FundSource.allCases
+    @Published var fundingSName: String = ""
     @Published private(set) var totalSpending: Int = 0
     @Published var budgetAmountTf: String = ""
     private(set) var spendingSortTypes: [MenuItem] = [MenuItem(id: 0, name: "Date"), MenuItem(id: 1, name: "Amount")]
@@ -42,6 +44,7 @@ class SpendingsViewModel: BaseViewModel {
     @Published var showBudgetSettingSheet: Bool = false
     @Published var isBudgetDeleting: Bool = false
     @Published var budgetAmount: Double?
+    @Published var monthlyBudget: Budget?
     var tempSpending: SpendingDto? // In case of edit
     var spendingToDelete: SpendingDto? // Temporarily holding to be deleting spending
 
@@ -50,7 +53,7 @@ class SpendingsViewModel: BaseViewModel {
         self.spendingService = spendingService
         super.init()
         self.loadSpendingTypes()
-        self.budgetAmount = AppData.budget?[currentMonth]
+      //  self.budgetAmount = AppData.budget?[currentMonth]
     }
 
     private func loadSpendingTypes() {
@@ -170,7 +173,7 @@ extension SpendingsViewModel {
         }
         let date = dateTf.toTimeStamp(format: "MM/dd/yyyy")
         guard let spendingType = spendingType else {return}
-        newSpending = Spending(name: spendingItemTf, amount: Double(amountTf) ?? 0.0, date: date ?? Date(), spendingType: spendingType, created: self.tempSpending?.created ?? Date())
+        newSpending = Spending(name: spendingItemTf, amount: Double(amountTf) ?? 0.0, date: date ?? Date(), spendingType: spendingType, created: self.tempSpending?.created ?? Date(), source: fundingSName)
     }
 
     private func validateAddSpendingForm() -> Bool {
@@ -285,45 +288,79 @@ extension SpendingsViewModel {
 
 // MARK: - Set a budget
 extension SpendingsViewModel {
-    func setBudget() {
+    private func setBudget() {
         guard budgetAmountTf.isEmpty == false else { return }
         self.isDataUploading = true
-        let budget = Budget(month: self.currentMonth, year: self.currentMonthInDateFormat?.components.year ?? 0, budgetAmount: Double(budgetAmountTf) ?? 0.0)
-        AppData.budget?[self.currentMonth] = Double(budgetAmountTf) ?? 0.0
+        let budget = Budget(month: self.currentMonth, year: self.currentMonthInDateFormat?.components.year ?? 0, budgetAmount: budgetAmountTf.toDouble)
+       // AppData.budget?[self.currentMonth] = Double(budgetAmountTf) ?? 0.0
         Task {@MainActor in
-            try await spendingService.addMonthlyBudget(budget)
+            let result = await spendingService.addMonthlyBudget(budget)
+            switch result {
+            case .data(let budget):
+                self.monthlyBudget = budget
+                self.budgetAmount = budget.budgetAmount
+            case .error(let error):
+                debugPrint("Error in setting budget")
+            default:
+                debugPrint("")
+            }
             self.isDataUploading = false
             self.showBudgetSettingSheet = false
-            self.currentMonth = Date().getMonthName() ?? ""
+            self.currentMonth = Date().getMonthName()
         }
     }
     func getCurrentMonthBudget() {
-        guard AppData.budget?[currentMonth]  == nil else {return}
         let id = "\(currentMonthInDateFormat?.components.year ?? 0)_\(self.currentMonth)"
         Task {@MainActor in
-            let budget = try await spendingService.getMonthlyBudget(id: id)
-            if AppData.budget == nil {
-                AppData.budget = [String: Double]()
+            let result = await spendingService.getMonthlyBudget(id: id)
+            switch result {
+            case .data(let budget):
+                self.monthlyBudget = budget
+                self.budgetAmount = budget.budgetAmount
+            case .error(let error):
+                debugPrint("Error in fetching budget \(error)")
+            case .noData:
+                debugPrint("No budget found")
+            default:
+                debugPrint("Default")
             }
-            AppData.budget?[self.currentMonth] = budget?.budgetAmount
-            self.budgetAmount = budget?.budgetAmount
+
         }
     }
     func deleteBudget() {
-        let id = "\(currentMonthInDateFormat?.components.year ?? 0)_\(self.currentMonth)"
+        guard let budget = monthlyBudget else {return}
         self.isBudgetDeleting = true
         Task {@MainActor in
-            try await spendingService.deleteMonthlyBudget(id)
-            AppData.budget?[currentMonth] = nil
+            try await spendingService.deleteMonthlyBudget(budget.id )
             self.budgetAmount = nil
             self.isBudgetDeleting = false
             self.showBudgetSettingSheet = false
         }
     }
 
-    func updateBudgetAmount() {
-        AppData.budget?[self.currentMonth] = Double(budgetAmountTf) ?? 0.0
-        // MARK: - Figure out a way to send it on firestore
+    private func updateBudgetAmount() {
+        guard budgetAmountTf.isEmpty == false else { return }
+        guard let cBudget = monthlyBudget else {return}
+        self.isDataUploading = true
+        cBudget.budgetAmount = budgetAmountTf.toDouble
+        Task {@MainActor in
+            let result = await spendingService.editMonthlyBudget(cBudget, id: cBudget.id)
+            if case(.noData) = result {
+                self.budgetAmount = cBudget.budgetAmount
+            } else {
+                debugPrint("Error in fetching budget")
+            }
+            self.isDataUploading = false
+            self.showBudgetSettingSheet = false
+        }
+    }
+
+    func setOrUpdateBudget() {
+        if monthlyBudget ==  nil {
+            setBudget()
+        } else {
+            updateBudgetAmount()
+        }
     }
 
 }

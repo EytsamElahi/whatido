@@ -7,11 +7,11 @@
 
 import Foundation
 
-class Budget: FirestoreIdentifiable {
+class Budget: FirestoreIdentifiable, AppDataType {
     var id: String = ""
     let month: String
     let year: Int
-    let budgetAmount: Double
+    var budgetAmount: Double
     let created: Date?
 
     required init(from decoder: any Decoder) throws {

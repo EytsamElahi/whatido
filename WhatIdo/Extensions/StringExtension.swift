@@ -192,4 +192,11 @@ extension String {
         let specialCharacterRegex = "[^a-zA-Z0-9]"
         return self.range(of: specialCharacterRegex, options: .regularExpression) != nil
     }
+
+    var toDouble: Double {
+        let raw = self
+          .replacingOccurrences(of: ",", with: "")
+          .replacingOccurrences(of: " ", with: "")
+        return Double(raw) ?? 0.0
+    }
 }

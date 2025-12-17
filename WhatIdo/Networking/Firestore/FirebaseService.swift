@@ -16,6 +16,7 @@ protocol FirebaseService {
     func request<T: FirestoreIdentifiable>(endpoint: FirestoreEndpoint) async throws -> T
     func delete(endpoint: FirestoreEndpoint) async throws
     func update<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws
+    func postV2<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws -> T
 }
 
 extension FirebaseService {
@@ -33,6 +34,51 @@ extension FirebaseService {
         dict.merge(modelDict) { (_, new) in new }
         try await ref.setData(dict)
         return ref.documentID
+    }
+
+    private func awaitCommittedSnapshot(_ ref: DocumentReference) async throws -> DocumentSnapshot {
+        try await withCheckedThrowingContinuation { continuation in
+            var listener: ListenerRegistration?
+
+            listener = ref.addSnapshotListener(includeMetadataChanges: true) { snapshot, error in
+                if let error = error {
+                    listener?.remove()
+                    continuation.resume(throwing: error)
+                    return
+                }
+                guard let snapshot else { return }
+
+                // ✅ only return when server has acked the write
+                if snapshot.metadata.hasPendingWrites == false {
+                    listener?.remove()
+                    continuation.resume(returning: snapshot)
+                }
+            }
+        }
+    }
+
+    func postV2<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws -> T {
+        guard let ref = endpoint.path as? DocumentReference else {
+            throw FirestoreServiceError.documentNotFound
+        }
+
+        var dict: [String: Any] = [:]
+        dict["created"] = FieldValue.serverTimestamp()
+        dict["updated"] = FieldValue.serverTimestamp()
+
+        dict.merge(data.asDictionary()) { _, new in new }
+
+        try await ref.setData(dict, merge: true)
+
+        let snap = try await awaitCommittedSnapshot(ref)
+
+        guard snap.exists, let snapData = snap.data() else {
+            throw FirestoreServiceError.documentNotFound
+        }
+
+        var parsed = try FirestoreParser.parse(snapData, type: T.self)
+        if parsed.id.isEmpty { parsed.id = snap.documentID }
+        return parsed
     }
     func update<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws {
         guard let ref = endpoint.path as? DocumentReference else {
@@ -83,14 +129,36 @@ extension FirebaseService {
     }
     
     func request<T: FirestoreIdentifiable>(endpoint: FirestoreEndpoint) async throws -> T {
+//        guard let ref = endpoint.path as? DocumentReference else {
+//            throw FirestoreServiceError.documentNotFound
+//        }
+//        var document = try await ref.getDocument(source: .cache)
+//        if document.exists == false {
+//            document = try await ref.getDocument(source: .server)
+//        }
+//        guard let data = document.data() else {
+//            throw FirestoreServiceError.documentNotFound
+//        }
+
         guard let ref = endpoint.path as? DocumentReference else {
             throw FirestoreServiceError.documentNotFound
         }
-        var document = try await ref.getDocument(source: .cache)
-        if document.exists == false {
-            document = try await ref.getDocument(source: .server)
+        let document: DocumentSnapshot
+        do {
+            // Try cache first (fast)
+            document = try await ref.getDocument(source: .cache)
+        } catch {
+            // Cache miss (or cache unavailable) -> try server
+            do {
+                document = try await ref.getDocument(source: .server)
+            } catch {
+                // If you're offline, server can fail too; .default will use cache if possible
+                document = try await ref.getDocument(source: .default)
+            }
         }
-        guard let data = document.data() else {
+//        // If you're offline, server can fail too; .default will use cache if possible
+//        document = try await ref.getDocument(source: .default)
+        guard document.exists, let data = document.data() else {
             throw FirestoreServiceError.documentNotFound
         }
         var parsedData = try FirestoreParser.parse(data, type: T.self)

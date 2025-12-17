@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct SpendingDto: Hashable {
+struct SpendingDto: Hashable, AppDataType {
     let id: String
     let name: String
     let amount: Double
@@ -16,4 +16,5 @@ struct SpendingDto: Hashable {
     let created: Date
     let spendingTypeId: Int
     let spendingCategoryId: Int
+    let fundSource: FundSource?
 }

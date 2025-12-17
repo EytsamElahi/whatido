@@ -7,6 +7,12 @@
 
 import Foundation
 
+protocol AppDataType {}
+enum AppResult<T: AppDataType> {
+    case data(_ data: T)
+    case error(_ error: String)
+    case noData
+}
 protocol WhatISpendServiceType {
     func getAllSpendings() async throws -> [SpendingDto]
     func getSpendingsOfMonth(_ month: Date) async throws -> [SpendingDto]
@@ -15,10 +21,10 @@ protocol WhatISpendServiceType {
     func addNewSpending(_ spending: Spending) async throws -> String
     func editSpending(_ spending: Spending, id: String) async throws
     func deleteSpending(_ documentId: String) async throws
-    func addMonthlyBudget(_ budget: Budget) async throws
-    func getMonthlyBudget(id: String) async throws -> Budget?
+    func addMonthlyBudget(_ budget: Budget) async -> AppResult<Budget>
+    func getMonthlyBudget(id: String) async -> AppResult<Budget>?
     func deleteMonthlyBudget(_ documentId: String) async throws
-    func editMonthlyBudget(_ budget: Budget, id: String) async throws
+    func editMonthlyBudget(_ budget: Budget, id: String) async -> AppResult<Budget>
 }
 
 final class WhatISpendService: WhatISpendServiceType, FirebaseService {
@@ -88,22 +94,26 @@ final class WhatISpendService: WhatISpendServiceType, FirebaseService {
         }
     }
 
-    func addMonthlyBudget(_ budget: Budget) async throws {
+    func addMonthlyBudget(_ budget: Budget) async  -> AppResult<Budget> {
         do {
             let endpoint = FirestoreEndpoints.addBudget(year: budget.year, month: budget.month)
-            try await post(data: budget, endpoint: endpoint)
+            let budget = try await postV2(data: budget, endpoint: endpoint)
+            return .data(budget)
         } catch {
-            debugPrint("Error in Adding budget", error.localizedDescription)
+            return .error(error.localizedDescription)
         }
     }
 
-    func getMonthlyBudget(id: String) async throws -> Budget? {
+    func getMonthlyBudget(id: String) async -> AppResult<Budget>? {
         do {
             let endpoint = FirestoreEndpoints.getBudget(id: id)
-            return try await request(endpoint: endpoint)
+            let budget: Budget = try await request(endpoint: endpoint)
+            return .data(budget)
         } catch {
-            throw error
-            debugPrint("Error in fetching budget", error.localizedDescription)
+            if let error = error as? FirestoreServiceError, error == .documentNotFound {
+                return .noData
+            }
+            return .error(error.localizedDescription)
         }
     }
     func deleteMonthlyBudget(_ documentId: String) async throws {
@@ -114,12 +124,13 @@ final class WhatISpendService: WhatISpendServiceType, FirebaseService {
             debugPrint("Error in deleting data", error.localizedDescription)
         }
     }
-    func editMonthlyBudget(_ budget: Budget, id: String) async throws {
+    func editMonthlyBudget(_ budget: Budget, id: String) async -> AppResult<Budget> {
         do {
             let endpoint = FirestoreEndpoints.editBudget(id: id)
             try await update(data: budget, endpoint: endpoint)
+            return .noData
         } catch {
-            debugPrint("Error in posting data", error.localizedDescription)
+            return .error(error.localizedDescription)
         }
     }
 
@@ -133,8 +144,8 @@ final class WhatISpendServiceStub: WhatISpendServiceType {
     func getSpendingById(_ id: String) async throws -> SpendingDto? { return nil }
     func deleteSpending(_ documentId: String) async throws {}
     func getSpendingsOfMonth(_ month: Date) async throws -> [SpendingDto] {return []}
-    func addMonthlyBudget(_ budget: Budget) async throws {  }
-    func getMonthlyBudget(id: String) async throws -> Budget? { return nil }
+    func addMonthlyBudget(_ budget: Budget) async  -> AppResult<Budget> {  return .noData }
+    func getMonthlyBudget(id: String) async -> AppResult<Budget>? { return nil }
     func deleteMonthlyBudget(_ documentId: String) async throws {}
-    func editMonthlyBudget(_ budget: Budget, id: String) async throws {}
+    func editMonthlyBudget(_ budget: Budget, id: String) async -> AppResult<Budget>{return .noData}
 }

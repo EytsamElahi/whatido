@@ -23,8 +23,12 @@ struct AddSpendingView: View {
                 CalendarFieldView(fieldInputText: $viewModel.dateTf, placeHolder: "Date", datePickerPosition: .start, datePickerRange: .past, month: viewModel.currentMonthInDateFormat ?? Date())
                     .frame(height: 50)
             }
-            CustomPickerView(listing: viewModel.spendingTypes.compactMap {$0.name ?? ""}, pickedItem: $viewModel.spendingTypeName)
-                .frame(height: 50)
+            HStack {
+                CustomPickerView(listing: viewModel.spendingTypes.compactMap {$0.name ?? ""}, pickedItem: $viewModel.spendingTypeName)
+                    .frame(height: 50)
+                CustomPickerView(listing: viewModel.fundingSources.compactMap {$0.rawValue}, pickedItem: $viewModel.fundingSName)
+                    .frame(height: 50)
+            }
             Spacer()
             AppPrimaryButton(title: viewModel.tempSpending == nil ? "Add" : "Update", cornerPadding: 0, disable: .constant(false), isLoading: $viewModel.isDataUploading, action: {
                 viewModel.addSpendingSheetAction()

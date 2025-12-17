@@ -180,7 +180,7 @@ struct SpendsListingView: View {
                 .sheet(isPresented: $viewModel.showBudgetSettingSheet) {
                     SetBudgetView()
                         .environmentObject(viewModel)
-                        .presentationDetents([.height(AppData.budget?[viewModel.currentMonth] == nil ? 200 : 300)])
+                        .presentationDetents([.height(viewModel.monthlyBudget == nil ? 200 : 300)])
                  }
             }
         }
