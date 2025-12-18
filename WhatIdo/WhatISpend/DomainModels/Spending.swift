@@ -51,7 +51,7 @@ class Spending: FirestoreIdentifiable {
     }
 
      func convertToDto() -> SpendingDto {
-         return SpendingDto(id: self.id, name: self.name, amount: self.amount, date: self.date, type: self.spendingType?.name ?? "", created: self.created ?? Date(), spendingTypeId: spendingType?.id ?? -1, spendingCategoryId: spendingType?.catId ?? -1, fundSource: FundSource(rawValue: self.source ?? "Cash"), projectName: projectInfo?.name, projectIcon: projectInfo?.icon)
+         return SpendingDto(id: self.id, name: self.name, amount: self.amount, date: self.date, type: self.spendingType?.name ?? "", created: self.created ?? Date(), spendingTypeId: spendingType?.id ?? -1, spendingCategoryId: spendingType?.catId ?? -1, fundSource: FundSource(rawValue: self.source ?? "Cash"), project: SpendingProjectDto(id: projectInfo?.id, projectName: projectInfo?.name, projectIcon: projectInfo?.icon))
     }
 
 }

@@ -30,6 +30,7 @@ protocol WhatISpendServiceType {
     func addProject(_ project: ProjectSpending) async -> AppResult<ProjectDto>
     func editProject(_ project: ProjectSpending) async -> AppResult<ProjectDto>
     func deleteProject(_ id: String) async -> AppResult<ProjectDto>
+    func getProjectSpendings(_ projectId: String) async -> AppResult<[SpendingDto]>
 }
 
 final class WhatISpendService: WhatISpendServiceType, FirebaseService {
@@ -142,7 +143,7 @@ final class WhatISpendService: WhatISpendServiceType, FirebaseService {
     func getProjects() async -> AppResult<[ProjectDto]> {
         do {
             let endpoint = FirestoreEndpoints.getAllProjects
-            let projects: [ProjectSpending] = try await request(endpoint: endpoint)
+            let projects: [ProjectSpending] = try await request(orderBy: "created",endpoint: endpoint)
             let dto = projects.compactMap { $0.convertToDto() }
             return .data(dto)
         } catch {
@@ -179,6 +180,18 @@ final class WhatISpendService: WhatISpendServiceType, FirebaseService {
         }
     }
 
+    func getProjectSpendings(_ projectId: String) async -> AppResult<[SpendingDto]> {
+        let param = FirestoreQueryParam(key: "projectInfo.id", value: projectId)
+        do {
+            let endpoint = FirestoreEndpoints.getAllSpendings
+            let spendingsData: [Spending] = try await request(param, endpoint: endpoint)
+            let dto = spendingsData.map { $0.convertToDto() }
+            return .data(dto)
+        } catch {
+            return .error(error.localizedDescription)
+        }
+    }
+
 }
 
 
@@ -197,4 +210,5 @@ final class WhatISpendServiceStub: WhatISpendServiceType {
     func addProject(_ project: ProjectSpending) async  -> AppResult<ProjectDto> {return .noData}
     func editProject(_ project: ProjectSpending) async -> AppResult<ProjectDto> {return .noData}
     func deleteProject(_ id: String) async -> AppResult<ProjectDto> {return .noData}
+    func getProjectSpendings(_ projectId: String) async -> AppResult<[SpendingDto]> { return .noData}
 }

@@ -52,12 +52,15 @@ class SpendingsViewModel: BaseViewModel {
     @Published var projects: [ProjectDto]? // array of projects containing spendings that belongs to a project
     @Published var selectedProject: ProjectDto? 
     @Published var showAddProjectSheet: Bool = false
+    @Published var projectSpendings: [SpendingDto]?
+    @Published private(set) var totalProjectSpending: Int = 0
 
     var spendingService: WhatISpendServiceType
     init(spendingService: WhatISpendServiceType) {
         self.spendingService = spendingService
         super.init()
         self.loadSpendingTypes()
+        self.fetchProjects()
       //  self.budgetAmount = AppData.budget?[currentMonth]
     }
 
@@ -124,6 +127,7 @@ extension SpendingsViewModel {
         spendingTypeName = spending.type
         self.fundingSName = spending.fundSource?.rawValue ?? "Cash"
         self.spendingType = spendingTypes.first { $0.name == spending.type }
+        self.selectedProject = projects?.first {$0.id == spending.project?.id}
         self.showAddNewSpendingSheet = true
     }
 
@@ -179,7 +183,7 @@ extension SpendingsViewModel {
         }
         let date = dateTf.toTimeStamp(format: "MM/dd/yyyy")
         guard let spendingType = spendingType else {return}
-        newSpending = Spending(name: spendingItemTf, amount: amountTf, date: date ?? Date(), spendingType: spendingType, created: self.tempSpending?.created ?? Date(), source: fundingSName)
+        newSpending = Spending(name: spendingItemTf, amount: amountTf, date: date ?? Date(), spendingType: spendingType, created: self.tempSpending?.created ?? Date(), source: fundingSName, projectType: ProjectInfo(id: selectedProject?.id, name: selectedProject?.name, icon: selectedProject?.icon))
     }
 
     private func validateAddSpendingForm() -> Bool {
@@ -306,7 +310,7 @@ extension SpendingsViewModel {
             case .data(let budget):
                 self.monthlyBudget = budget
                 self.budgetAmount = budget.budgetAmount
-            case .error(let error):
+            case .error:
                 debugPrint("Error in setting budget")
             default:
                 debugPrint("")
@@ -383,7 +387,7 @@ extension SpendingsViewModel {
 
 extension SpendingsViewModel {
     func fetchProjects() {
-        isDataLoading = true
+     //   isDataLoading = true
         Task {@MainActor in
             let result = await spendingService.getProjects()
             switch result {
@@ -394,7 +398,7 @@ extension SpendingsViewModel {
             case .noData:
                 debugPrint("No projects found")
             }
-            isDataLoading = false
+           // isDataLoading = false
         }
     }
 
@@ -456,6 +460,24 @@ extension SpendingsViewModel {
                 debugPrint("Deletion Succesful")
             }
             self.isBudgetDeleting = false
+        }
+    }
+
+    func fetchProjectSpendings(_ id: String) {
+        Task { @MainActor in
+            isDataLoading = true
+            let result = await spendingService.getProjectSpendings(id)
+            switch result {
+            case .data(let spendings):
+                self.projectSpendings = spendings
+                self.totalProjectSpending = self.projectSpendings?.reduce(0) { $0 + Int($1.amount) } ?? 0
+            case .error(let error):
+                debugPrint("error")
+            case .noData:
+                debugPrint("")
+
+            }
+            self.isDataLoading = false
         }
     }
 }

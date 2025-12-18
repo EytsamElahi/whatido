@@ -12,7 +12,7 @@ import FirebaseFirestore
 protocol FirebaseService {
     @discardableResult
     func post<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws -> String
-    func request<T: FirestoreIdentifiable>(_ queryParams: FirestoreQueryParam?, filter date: FirestoreDateFilter?, endpoint: FirestoreEndpoint) async throws -> [T]
+    func request<T: FirestoreIdentifiable>(_ queryParams: FirestoreQueryParam?, filter date: FirestoreDateFilter?, orderBy: String?, endpoint: FirestoreEndpoint) async throws -> [T]
     func request<T: FirestoreIdentifiable>(endpoint: FirestoreEndpoint) async throws -> T
     func delete(endpoint: FirestoreEndpoint) async throws
     func update<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws
@@ -92,7 +92,7 @@ extension FirebaseService {
         try await ref.setData(dict)
     }
 
-    func request<T: FirestoreIdentifiable>(_ queryParams: FirestoreQueryParam? = nil, filter date: FirestoreDateFilter? = nil, endpoint: FirestoreEndpoint) async throws -> [T] {
+    func request<T: FirestoreIdentifiable>(_ queryParams: FirestoreQueryParam? = nil, filter date: FirestoreDateFilter? = nil, orderBy: String? = nil, endpoint: FirestoreEndpoint) async throws -> [T] {
         guard let ref = endpoint.path as? CollectionReference else {
             throw FirestoreServiceError.collectionNotFound
         }
@@ -100,7 +100,7 @@ extension FirebaseService {
 //            throw FirestoreServiceError.noInternet
 //        }
 
-        var query: Query = ref.order(by: "created", descending: true)
+        var query: Query = ref.order(by: orderBy ?? "date", descending: true)
 
         if let dateFilter = date {
             query = query.whereField(dateFilter.key, isGreaterThanOrEqualTo: Timestamp(date: dateFilter.from))

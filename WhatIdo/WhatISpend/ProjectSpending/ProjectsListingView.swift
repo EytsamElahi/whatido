@@ -9,8 +9,7 @@ import SwiftUI
 
 struct ProjectsListingView: View {
     @StateObject var viewModel: SpendingsViewModel
-    //@State private var projectToEdit: ProjectDto?
-
+    @EnvironmentObject var navigation: NavigationManager
 
     // Grid Layout (2 Columns)
     let columns = [
@@ -26,7 +25,7 @@ struct ProjectsListingView: View {
             VStack(alignment: .leading, spacing: 20) {
                 // MARK: - Header
                 AppHeaderView(title: "My Projects", backAction: {
-                    print("Button tapped!")
+                    navigation.pop()
                 })
 
                 if viewModel.isDataLoading {
@@ -47,7 +46,7 @@ struct ProjectsListingView: View {
                                          viewModel.deleteProject(project.id)
                                     })
                                         .onTapGesture {
-                                            // Future: Navigate to Project Detail
+                                            navigation.push(screen: .projectSpendingsList(project, viewModel))
                                         }
                                 }
                             }
@@ -91,8 +90,6 @@ struct ProjectsListingView: View {
                     .padding(.bottom)
                 }
 
-            }.onAppear {
-                viewModel.fetchProjects()
             }
         }   .navigationBarHidden(true)
 //        // Sheet for Adding New Project

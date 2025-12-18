@@ -83,9 +83,28 @@ struct UpdatedSpendingRow: View {
                         Text("•")
                         Text(source)
                     }
+
                 }
                 .font(.customFont(family: .quicksand, name: .medium, size: .x12))
                 .foregroundStyle(Color.textSecondary) // ✅ Grey Text
+                // Note: Assuming SpendingDto has optional `projectName`
+                if let projName = spending.project?.projectName, !projName.isEmpty {
+                    // Project Tag
+                    HStack(spacing: 3) {
+                        if let icon = spending.project?.projectIcon {
+                            Image(systemName: icon)
+                                .font(.system(size: 8))
+                        }
+                        Text(projName)
+                            .font(.customFont(family: .quicksand, name: .bold, size: .x10))
+                            .lineLimit(1)
+                    }
+                    .foregroundStyle(Color.appPrimaryColor) // Teal Color Pop
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.appPrimaryColor.opacity(0.1))
+                    .cornerRadius(4)
+                }
             }
 
             Spacer()

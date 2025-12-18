@@ -9,4 +9,5 @@ enum Route: Hashable {
     case spendings(SpendingsViewModel)
     case SpendingDetails(SpendingDetailViewModel)
     case projectListing(SpendingsViewModel)
+    case projectSpendingsList(ProjectDto,SpendingsViewModel)
 }

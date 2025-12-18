@@ -19,6 +19,8 @@ extension SplashView {
             SpendingDetail(viewModel: viewModel)
         case .projectListing(let viewModel):
             ProjectsListingView(viewModel: viewModel)
+        case .projectSpendingsList(let dto, let viewModel):
+            ProjectSpendingsListView(project: dto, viewModel: viewModel)
         }
     }
 }

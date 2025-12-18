@@ -73,7 +73,6 @@ struct AddSpendingView: View {
         default: return "tag.fill"
         }
     }
-
     var body: some View {
         ZStack {
             // Background Color
@@ -114,12 +113,6 @@ struct AddSpendingView: View {
                             .frame(height: 50)
 
                         HStack(spacing: 12) {
-//                            CalendarFieldView(fieldInputText: $viewModel.dateTf,
-//                                              placeHolder: "Date",
-//                                              datePickerPosition: .start,
-//                                              datePickerRange: .past,
-//                                              month: viewModel.currentMonthInDateFormat ?? Date())
-//                                .frame(height: 50)
                             CalendarFieldView(fieldInputText: $viewModel.dateTf, placeHolder: "Date", datePickerPosition: .start, datePickerRange: .past, month: viewModel.currentMonthInDateFormat ?? Date())
                                 .frame(height: 50)
 
@@ -170,55 +163,56 @@ struct AddSpendingView: View {
 
                     // MARK: - 4. Project Link (NEW ADDITION 🚀)
                     // Sirf tab dikhayein agar projects exist karte hain
-                    if let projects = viewModel.projects, !projects.isEmpty {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Link Project (Optional)")
-                                .font(.customFont(family: .quicksand, name: .bold, size: .x16))
-                                .foregroundStyle(Color.white)
-                                .padding(.leading)
 
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 12) {
-                                    // Option: None
-                                    Button {
-                                        withAnimation { viewModel.selectedProject = nil }
-                                    } label: {
-                                        Text("None")
-                                            .font(.customFont(family: .quicksand, name: .medium, size: .x14))
-                                            .foregroundStyle(viewModel.selectedProject == nil ? Color.black : Color.white)
-                                            .padding(.horizontal, 20)
-                                            .padding(.vertical, 10)
-                                            .background(
-                                                Capsule()
-                                                    .fill(viewModel.selectedProject == nil ? Color.appPrimaryColor : Color.white.opacity(0.1))
-                                            )
-                                    }
-
-                                    // Option: Projects
-                                    ForEach(projects, id: \.id) { project in
-                                        let isSelected = viewModel.selectedProject?.id == project.id
+                        if let projects = viewModel.projects, !projects.isEmpty {
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("Link Project (Optional)")
+                                    .font(.customFont(family: .quicksand, name: .bold, size: .x16))
+                                    .foregroundStyle(Color.white)
+                                    .padding(.leading)
+                                
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 12) {
+                                        // Option: None
                                         Button {
-                                            withAnimation { viewModel.selectedProject = project }
+                                            withAnimation { viewModel.selectedProject = nil }
                                         } label: {
-                                            HStack(spacing: 6) {
-                                                Image(systemName: project.icon)
-                                                Text(project.name)
+                                            Text("None")
+                                                .font(.customFont(family: .quicksand, name: .medium, size: .x14))
+                                                .foregroundStyle(viewModel.selectedProject == nil ? Color.black : Color.white)
+                                                .padding(.horizontal, 20)
+                                                .padding(.vertical, 10)
+                                                .background(
+                                                    Capsule()
+                                                        .fill(viewModel.selectedProject == nil ? Color.appPrimaryColor : Color.white.opacity(0.1))
+                                                )
+                                        }
+                                        
+                                        // Option: Projects
+                                        ForEach(projects, id: \.id) { project in
+                                            let isSelected = viewModel.selectedProject?.id == project.id
+                                            Button {
+                                                withAnimation { viewModel.selectedProject = project }
+                                            } label: {
+                                                HStack(spacing: 6) {
+                                                    Image(systemName: project.icon)
+                                                    Text(project.name)
+                                                }
+                                                .font(.customFont(family: .quicksand, name: .medium, size: .x14))
+                                                .foregroundStyle(isSelected ? Color.black : Color.white)
+                                                .padding(.horizontal, 16)
+                                                .padding(.vertical, 10)
+                                                .background(
+                                                    Capsule()
+                                                        .fill(isSelected ? Color.appPrimaryColor : Color.white.opacity(0.1))
+                                                )
                                             }
-                                            .font(.customFont(family: .quicksand, name: .medium, size: .x14))
-                                            .foregroundStyle(isSelected ? Color.black : Color.white)
-                                            .padding(.horizontal, 16)
-                                            .padding(.vertical, 10)
-                                            .background(
-                                                Capsule()
-                                                    .fill(isSelected ? Color.appPrimaryColor : Color.white.opacity(0.1))
-                                            )
                                         }
                                     }
+                                    .padding(.horizontal)
                                 }
-                                .padding(.horizontal)
                             }
                         }
-                    }
                     // MARK: - 5. Action Button
                     AppPrimaryButton(title: viewModel.tempSpending == nil ? "Save" : "Update",
                                      disable: .constant(false),
@@ -228,8 +222,7 @@ struct AddSpendingView: View {
                     .padding(.horizontal)
                     .padding(.bottom, 30) // Extra padding for safe area
                 }
-            }
-            .scrollDismissesKeyboard(.interactively) // iOS 16 feature: Scroll to dismiss keyboard
+            }.scrollDismissesKeyboard(.interactively) // iOS 16 feature: Scroll to dismiss keyboard
         }
          .hideKeyboardOnTapAround()
         .alert(isPresented: $viewModel.showErrorAlert) {
