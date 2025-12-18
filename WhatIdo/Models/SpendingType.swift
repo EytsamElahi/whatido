@@ -26,6 +26,28 @@ extension SpendingType {
     }
 }
 
+struct ProjectInfo: Codable {
+    let id: Int?
+    let name: String?
+    let icon: String?
+}
+
+extension ProjectInfo {
+    enum CodingKeys: String, CodingKey {
+        case id = "id"
+        case name = "name"
+        case icon = "icon"
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decodeIfPresent(Int.self, forKey: .id)
+        name = try values.decodeIfPresent(String.self, forKey: .name)
+        icon = try values.decodeIfPresent(String.self, forKey: .icon)
+    }
+}
+
+
 struct SpendingCategory: Codable {
     let id: Int
     let name: String

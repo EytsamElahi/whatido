@@ -9,7 +9,9 @@ import SwiftUI
 
 struct AppHeaderView: View {
     var title: String
+    var trailingButtonIcon: String? = nil
     var backAction: () -> Void
+    var trailingButtonAction: (() -> Void)? = nil
     var body: some View {
         HStack {
             Button(action: {
@@ -26,8 +28,21 @@ struct AppHeaderView: View {
                 .padding(.leading, 8)
 
             Spacer()
+            if let icon = trailingButtonIcon {
+                Button(action: {
+                    trailingButtonAction?()
+                }) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.white.opacity(0.1))
+                            .frame(width: 45, height: 45)
 
-            // Optional: Profile Icon or Empty
+                        Image(systemName: icon) // 📂
+                            .font(.system(size: 20))
+                            .foregroundStyle(Color.appPrimaryColor) // Teal Icon
+                    }
+                }
+            }
         }
         .padding(.horizontal)
         .padding(.top, 10)

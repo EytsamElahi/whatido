@@ -18,6 +18,8 @@ struct SpendingDto: Hashable, AppDataType {
     let spendingTypeId: Int
     let spendingCategoryId: Int
     let fundSource: FundSource?
+    let projectName: String?
+    let projectIcon: String?
 }
 
 extension SpendingDto {

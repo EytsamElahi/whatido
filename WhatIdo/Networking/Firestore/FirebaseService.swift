@@ -100,7 +100,7 @@ extension FirebaseService {
 //            throw FirestoreServiceError.noInternet
 //        }
 
-        var query: Query = ref.order(by: "date", descending: true)
+        var query: Query = ref.order(by: "created", descending: true)
 
         if let dateFilter = date {
             query = query.whereField(dateFilter.key, isGreaterThanOrEqualTo: Timestamp(date: dateFilter.from))

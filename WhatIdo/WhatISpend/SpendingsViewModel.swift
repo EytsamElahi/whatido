@@ -48,6 +48,11 @@ class SpendingsViewModel: BaseViewModel {
     var tempSpending: SpendingDto? // In case of edit
     var spendingToDelete: SpendingDto? // Temporarily holding to be deleting spending
 
+    //MARK: - Projects related members
+    @Published var projects: [ProjectDto]? // array of projects containing spendings that belongs to a project
+    @Published var selectedProject: ProjectDto? 
+    @Published var showAddProjectSheet: Bool = false
+
     var spendingService: WhatISpendServiceType
     init(spendingService: WhatISpendServiceType) {
         self.spendingService = spendingService
@@ -374,4 +379,47 @@ extension SpendingsViewModel {
         }
     }
 
+}
+
+extension SpendingsViewModel {
+    func fetchProjects() {
+        isDataLoading = true
+        Task {@MainActor in
+            let result = await spendingService.getProjects()
+            switch result {
+            case .data(let projects):
+                self.projects = projects
+            case .error(let error):
+                debugPrint("Error in fetching budget \(error)")
+            case .noData:
+                debugPrint("No projects found")
+            }
+            isDataLoading = false
+        }
+    }
+
+    func createProject(name: String, icon: String, budget: Double? = nil) {
+        let projectId = UUID().uuidString
+        let project: ProjectSpending = ProjectSpending(id: projectId, name: name, budget: budget, icon: icon, status: "Active")
+        self.isDataUploading = true
+        Task {@MainActor in
+            let result = await spendingService.addProject(project)
+            switch result {
+            case .data(let project):
+                if self.projects.isNil {
+                    self.projects = []
+                }
+                self.projects?.insert(project, at: 0)
+            case .error(let error):
+                debugPrint("Error in adding project \(error)")
+            case .noData:
+                debugPrint("No Data")
+            }
+            self.isDataUploading = false
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+                guard let self = self else {return}
+                self.showAddProjectSheet = false
+            }
+        }
+    }
 }

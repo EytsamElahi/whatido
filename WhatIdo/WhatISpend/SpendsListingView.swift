@@ -70,8 +70,10 @@ struct SpendsListingView: View {
 
                 VStack(alignment: .leading) {
                     // MARK: - 1. Custom Header
-                    AppHeaderView(title: viewModel.currentMonth, backAction: {
+                    AppHeaderView(title: viewModel.currentMonth, trailingButtonIcon: "folder.fill", backAction: {
                         print("Button tapped!")
+                    }, trailingButtonAction: {
+                        navigation.push(screen: .projectListing(viewModel))
                     })
 
                     // MARK: - 2. Smart Hero Card
@@ -87,9 +89,8 @@ struct SpendsListingView: View {
                         .padding(.bottom, 5)
 
                     if viewModel.isDataLoading {
-                        Spacer()
                         ProgressView().tint(Color.appPrimaryColor) // Loading is now Purple
-                        Spacer()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else {
                         List {
                             ForEach(viewModel.currentMonthSpendings ?? [], id: \.self) { spending in

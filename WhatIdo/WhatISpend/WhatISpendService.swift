@@ -13,6 +13,7 @@ enum AppResult<T: AppDataType> {
     case error(_ error: String)
     case noData
 }
+extension Array: AppDataType where Element: AppDataType {}
 protocol WhatISpendServiceType {
     func getAllSpendings() async throws -> [SpendingDto]
     func getSpendingsOfMonth(_ month: Date) async throws -> [SpendingDto]
@@ -25,6 +26,8 @@ protocol WhatISpendServiceType {
     func getMonthlyBudget(id: String) async -> AppResult<Budget>?
     func deleteMonthlyBudget(_ documentId: String) async throws
     func editMonthlyBudget(_ budget: Budget, id: String) async -> AppResult<Budget>
+    func getProjects() async -> AppResult<[ProjectDto]>
+    func addProject(_ project: ProjectSpending) async -> AppResult<ProjectDto>
 }
 
 final class WhatISpendService: WhatISpendServiceType, FirebaseService {
@@ -134,6 +137,27 @@ final class WhatISpendService: WhatISpendServiceType, FirebaseService {
         }
     }
 
+    func getProjects() async -> AppResult<[ProjectDto]> {
+        do {
+            let endpoint = FirestoreEndpoints.getAllProjects
+            let projects: [ProjectSpending] = try await request(endpoint: endpoint)
+            let dto = projects.compactMap { $0.convertToDto() }
+            return .data(dto)
+        } catch {
+            return .error(error.localizedDescription)
+        }
+    }
+
+    func addProject(_ project: ProjectSpending) async -> AppResult<ProjectDto> {
+        do {
+            let endpoint = FirestoreEndpoints.addProject(id: project.id)
+            let project = try await postV2(data: project, endpoint: endpoint)
+            return .data(project.convertToDto())
+        } catch {
+            return .error(error.localizedDescription)
+        }
+    }
+
 }
 
 
@@ -148,4 +172,6 @@ final class WhatISpendServiceStub: WhatISpendServiceType {
     func getMonthlyBudget(id: String) async -> AppResult<Budget>? { return nil }
     func deleteMonthlyBudget(_ documentId: String) async throws {}
     func editMonthlyBudget(_ budget: Budget, id: String) async -> AppResult<Budget>{return .noData}
+    func getProjects() async -> AppResult<[ProjectDto]> {return .noData}
+    func addProject(_ project: ProjectSpending) async  -> AppResult<ProjectDto> {return .noData}
 }

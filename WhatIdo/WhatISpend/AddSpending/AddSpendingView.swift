@@ -168,7 +168,58 @@ struct AddSpendingView: View {
                         .padding(.horizontal)
                     }
 
-                    // MARK: - 4. Action Button
+                    // MARK: - 4. Project Link (NEW ADDITION 🚀)
+                    // Sirf tab dikhayein agar projects exist karte hain
+                    if let projects = viewModel.projects, !projects.isEmpty {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Link Project (Optional)")
+                                .font(.customFont(family: .quicksand, name: .bold, size: .x16))
+                                .foregroundStyle(Color.white)
+                                .padding(.leading)
+
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 12) {
+                                    // Option: None
+                                    Button {
+                                        withAnimation { viewModel.selectedProject = nil }
+                                    } label: {
+                                        Text("None")
+                                            .font(.customFont(family: .quicksand, name: .medium, size: .x14))
+                                            .foregroundStyle(viewModel.selectedProject == nil ? Color.black : Color.white)
+                                            .padding(.horizontal, 20)
+                                            .padding(.vertical, 10)
+                                            .background(
+                                                Capsule()
+                                                    .fill(viewModel.selectedProject == nil ? Color.appPrimaryColor : Color.white.opacity(0.1))
+                                            )
+                                    }
+
+                                    // Option: Projects
+                                    ForEach(projects, id: \.id) { project in
+                                        let isSelected = viewModel.selectedProject?.id == project.id
+                                        Button {
+                                            withAnimation { viewModel.selectedProject = project }
+                                        } label: {
+                                            HStack(spacing: 6) {
+                                                Image(systemName: project.icon)
+                                                Text(project.name)
+                                            }
+                                            .font(.customFont(family: .quicksand, name: .medium, size: .x14))
+                                            .foregroundStyle(isSelected ? Color.black : Color.white)
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 10)
+                                            .background(
+                                                Capsule()
+                                                    .fill(isSelected ? Color.appPrimaryColor : Color.white.opacity(0.1))
+                                            )
+                                        }
+                                    }
+                                }
+                                .padding(.horizontal)
+                            }
+                        }
+                    }
+                    // MARK: - 5. Action Button
                     AppPrimaryButton(title: viewModel.tempSpending == nil ? "Save" : "Update",
                                      disable: .constant(false),
                                      isLoading: $viewModel.isDataUploading) {
