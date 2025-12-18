@@ -422,4 +422,40 @@ extension SpendingsViewModel {
             }
         }
     }
+
+    func updateProject(name: String, icon: String, budget: Double? = nil) {
+        guard let existingProject = selectedProject else {return}
+        let project: ProjectSpending = ProjectSpending(id: existingProject.id, name: name, budget: budget ?? existingProject.budget, icon: icon, status: existingProject.status, created: existingProject.createdAt)
+        self.isDataUploading = true
+        Task {@MainActor in
+            let result = await spendingService.editProject(project)
+            if case(.noData) = result {
+                guard let index = projects?.firstIndex(where: {$0.id == existingProject.id}) else { return }
+                projects?[index] = project.convertToDto()
+                self.selectedProject = nil
+            } else {
+                debugPrint("Error in fetching budget")
+            }
+            self.isDataUploading = false
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {[weak self] in
+                guard let self = self else {return}
+                self.showAddProjectSheet = false
+            }
+        }
+    }
+
+    func deleteProject(_ id: String) {
+        self.isBudgetDeleting = true
+        Task {@MainActor in
+            let result = await spendingService.deleteProject(id)
+            switch result {
+            case .error(let error):
+                debugPrint("Error in deleting of Project \(error)")
+            default:
+                self.projects?.removeAll(where: {$0.id == id})
+                debugPrint("Deletion Succesful")
+            }
+            self.isBudgetDeleting = false
+        }
+    }
 }

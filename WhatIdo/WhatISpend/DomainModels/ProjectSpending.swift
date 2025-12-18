@@ -10,9 +10,9 @@ import Foundation
 
 class ProjectSpending: FirestoreIdentifiable, AppDataType {
     var id: String = ""
-    let name: String
-    let budget: Double?
-    let icon: String
+    var name: String
+    var budget: Double?
+    var icon: String
     let created: Date?
     var status: String
 
@@ -31,14 +31,15 @@ class ProjectSpending: FirestoreIdentifiable, AppDataType {
         name: String,
         budget: Double?,
         icon: String,
-        status: String
+        status: String,
+         created: Date? = nil
     ) {
         self.id = id
         self.name = name
         self.budget = budget
         self.icon = icon
         self.status = status
-        self.created = nil
+        self.created = created
     }
 
     public static func == (lhs: ProjectSpending, rhs: ProjectSpending) -> Bool {

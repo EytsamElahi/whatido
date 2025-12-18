@@ -9,7 +9,6 @@ import SwiftUI
 
 struct AddProjectView: View {
     @EnvironmentObject var viewModel: SpendingsViewModel
-    @Environment(\.dismiss) var dismiss
 
     @State private var projectName = ""
     @State private var selectedIcon = "house.fill"
@@ -40,7 +39,7 @@ struct AddProjectView: View {
             Color.cardBackground.ignoresSafeArea()
 
             VStack(spacing: 25) {
-                Text("New Project")
+                Text(viewModel.selectedProject == nil ? "New Project" : "Edit Project")
                     .font(.customFont(family: .quicksand, name: .bold, size: .x20))
                     .foregroundStyle(Color.white)
                     .padding(.top, 20)
@@ -77,17 +76,27 @@ struct AddProjectView: View {
                     .background(Color.black.opacity(0.3)) // Grid ke peeche halka sa dark box
                     .cornerRadius(16)
                 }
-               // Spacer(minLength: 10)
+                // Spacer(minLength: 10)
 
-                // Save Button
-                AppPrimaryButton(title: "Create Project", disable: .constant(projectName.isEmpty), isLoading: .constant(false)) {
-                    // Call ViewModel to save
-                     viewModel.createProject(name: projectName, icon: selectedIcon)
-                }
-                .padding(.bottom, 20)
+                AppPrimaryButton(title: viewModel.selectedProject == nil ? "Create Project" : "Update Project",
+                                 disable: .constant(projectName.isEmpty),
+                                 isLoading: $viewModel.isDataUploading) {
+
+                    if let _ = viewModel.selectedProject {
+                        viewModel.updateProject(name: projectName, icon: selectedIcon)
+                    } else {
+                        viewModel.createProject(name: projectName, icon: selectedIcon)
+                    }
+                }.padding(.bottom, 20)
             }
             .padding(.horizontal)
             .padding(.vertical, 10)
+        }.interactiveDismissDisabled(viewModel.isDataUploading)
+        .onAppear {
+            if let project = viewModel.selectedProject {
+                projectName = project.name
+                selectedIcon = project.icon
+            }
         }
     }
 }

@@ -28,6 +28,8 @@ protocol WhatISpendServiceType {
     func editMonthlyBudget(_ budget: Budget, id: String) async -> AppResult<Budget>
     func getProjects() async -> AppResult<[ProjectDto]>
     func addProject(_ project: ProjectSpending) async -> AppResult<ProjectDto>
+    func editProject(_ project: ProjectSpending) async -> AppResult<ProjectDto>
+    func deleteProject(_ id: String) async -> AppResult<ProjectDto>
 }
 
 final class WhatISpendService: WhatISpendServiceType, FirebaseService {
@@ -158,6 +160,25 @@ final class WhatISpendService: WhatISpendServiceType, FirebaseService {
         }
     }
 
+    func editProject(_ project: ProjectSpending) async -> AppResult<ProjectDto> {
+        do {
+            let endpoint = FirestoreEndpoints.editOrDeleteProject(id: project.id)
+            try await update(data: project, endpoint: endpoint)
+            return .noData
+        } catch {
+            return .error(error.localizedDescription)
+        }
+    }
+    func deleteProject(_ id: String) async -> AppResult<ProjectDto> {
+        do {
+            let endpoint = FirestoreEndpoints.editOrDeleteProject(id: id)
+            try await delete(endpoint: endpoint)
+            return .noData
+        } catch {
+            return .error(error.localizedDescription)
+        }
+    }
+
 }
 
 
@@ -174,4 +195,6 @@ final class WhatISpendServiceStub: WhatISpendServiceType {
     func editMonthlyBudget(_ budget: Budget, id: String) async -> AppResult<Budget>{return .noData}
     func getProjects() async -> AppResult<[ProjectDto]> {return .noData}
     func addProject(_ project: ProjectSpending) async  -> AppResult<ProjectDto> {return .noData}
+    func editProject(_ project: ProjectSpending) async -> AppResult<ProjectDto> {return .noData}
+    func deleteProject(_ id: String) async -> AppResult<ProjectDto> {return .noData}
 }
