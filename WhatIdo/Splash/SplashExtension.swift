@@ -13,14 +13,18 @@ extension SplashView {
     @ViewBuilder
     func destinationView(for route: Route) -> some View {
         switch route {
-        case .spendings(let spendingsViewModel):
-            SpendsListingView(viewModel: spendingsViewModel)
-        case .SpendingDetails(let viewModel):
-            SpendingDetail(viewModel: viewModel)
-        case .projectListing(let viewModel):
-            ProjectsListingView(viewModel: viewModel)
-        case .projectSpendingsList(let dto, let viewModel):
-            ProjectSpendingsListView(project: dto, viewModel: viewModel)
+        case .spendings:
+            SpendsListingView(viewModel: container.makeDashboardViewModel())
+                .environment(\.dependencyContainer, container)
+        case .SpendingDetails:
+            EmptyView()
+           // SpendingDetail(viewModel: viewModel)
+        case .projectListing:
+            ProjectsListingView(viewModel: container.makeProjectsViewModel())
+
+        case .projectSpendingsList(let dto):
+            ProjectSpendingsListView(project: dto, viewModel: container.makeProjectsViewModel())
+                .environment(\.dependencyContainer, container)
         }
     }
 }

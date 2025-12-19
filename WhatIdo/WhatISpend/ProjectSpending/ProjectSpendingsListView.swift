@@ -11,8 +11,9 @@ import SwiftUI
 struct ProjectSpendingsListView: View {
     @EnvironmentObject var navigation: NavigationManager
     let project: ProjectDto
-    @StateObject var viewModel: SpendingsViewModel // ObservedObject bhi use kar sakte hain agar parent se pass ho raha hai
-    
+    @StateObject var viewModel: ProjectsViewModel // ObservedObject bhi use kar sakte hain agar parent se pass ho raha hai
+    @Environment(\.dependencyContainer) var container
+
     var body: some View {
         ZStack {
             // 1. Background
@@ -43,8 +44,6 @@ struct ProjectSpendingsListView: View {
                     Spacer()
                     // 👇 NEW: Add Spending Button
                     Button {
-                        // 1. Reset Form
-                        viewModel.resetAddSpendingForm()
                         viewModel.selectedProject = project
                         viewModel.showAddNewSpendingSheet = true
                     } label: {
@@ -78,7 +77,7 @@ struct ProjectSpendingsListView: View {
                     Spacer()
                     ProgressView().tint(Color.appPrimaryColor)
                     Spacer()
-                } else if let spendings = viewModel.projectSpendings, spendings.isEmpty {
+                } else if viewModel.projectSpendings.isEmpty {
                     Spacer()
                     VStack(spacing: 15) {
                         Image(systemName: "tray")
@@ -92,9 +91,14 @@ struct ProjectSpendingsListView: View {
                 } else {
                     ScrollView {
                         LazyVStack(spacing: 15) {
-                            ForEach(viewModel.projectSpendings ?? [], id: \.id) { spending in
+                            ForEach(viewModel.projectSpendings, id: \.id) { spending in
                                 // 🔥 Reusing your existing Card
                                 UpdatedSpendingRow(spending: spending)
+                                    .onTapGesture {
+                                        viewModel.spendingToEdit = spending
+                                        viewModel.selectedProject = project
+                                        viewModel.showAddNewSpendingSheet = true
+                                    }
                             }
                         }
                         .padding(.horizontal)
@@ -109,8 +113,17 @@ struct ProjectSpendingsListView: View {
             viewModel.fetchProjectSpendings(project.id)
         }
         .sheet(isPresented: $viewModel.showAddNewSpendingSheet) {
-            AddSpendingView()
-                .environmentObject(viewModel)
+            AddSpendingView(viewModel: container.makeTransactionFormViewModel(spendingToEdit: viewModel.spendingToEdit), selectedProject: viewModel.selectedProject,onSpendingAdded: { updatedSpending in
+                viewModel.showAddNewSpendingSheet = false
+                guard let updatedSpending = updatedSpending else {return}
+                if let index = viewModel.projectSpendings.firstIndex(where: { $0.id == updatedSpending.id }) {
+                    viewModel.projectSpendings[index] = updatedSpending
+                } else {
+                    viewModel.projectSpendings.insert(updatedSpending, at: 0)
+                }
+                viewModel.updateTotalSpending()
+            }).environmentObject(viewModel)
+                
                 .presentationDetents([.medium, .large])
         }
     }

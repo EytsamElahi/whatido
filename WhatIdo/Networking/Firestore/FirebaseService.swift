@@ -11,30 +11,31 @@ import FirebaseFirestore
 
 protocol FirebaseService {
     @discardableResult
-    func post<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws -> String
+   // func post<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws -> String
     func request<T: FirestoreIdentifiable>(_ queryParams: FirestoreQueryParam?, filter date: FirestoreDateFilter?, orderBy: String?, endpoint: FirestoreEndpoint) async throws -> [T]
     func request<T: FirestoreIdentifiable>(endpoint: FirestoreEndpoint) async throws -> T
     func delete(endpoint: FirestoreEndpoint) async throws
     func update<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws
-    func postV2<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws -> T
+    func post<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws -> T
+    func deleteAtomic(documentEndpoint: FirestoreEndpoint, dependentCollectionEndpoint: FirestoreEndpoint, dependencyParam: FirestoreQueryParam) async throws
 }
 
 extension FirebaseService {
-    @discardableResult
-    func post<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws -> String {
-        guard let ref = endpoint.path as? DocumentReference else {
-            throw FirestoreServiceError.documentNotFound
-        }
-        debugPrint("New document id:",ref.documentID)
-        var dict: [String: Any] = [
-            "created": Timestamp(date: Date()),
-            "updated": Timestamp(date: Date()),
-        ]
-        let modelDict = data.asDictionary()
-        dict.merge(modelDict) { (_, new) in new }
-        try await ref.setData(dict)
-        return ref.documentID
-    }
+    //    @discardableResult
+    //    func post<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws -> String {
+    //        guard let ref = endpoint.path as? DocumentReference else {
+    //            throw FirestoreServiceError.documentNotFound
+    //        }
+    //        debugPrint("New document id:",ref.documentID)
+    //        var dict: [String: Any] = [
+    //            "created": Timestamp(date: Date()),
+    //            "updated": Timestamp(date: Date()),
+    //        ]
+    //        let modelDict = data.asDictionary()
+    //        dict.merge(modelDict) { (_, new) in new }
+    //        try await ref.setData(dict)
+    //        return ref.documentID
+    //    }
 
     private func awaitCommittedSnapshot(_ ref: DocumentReference) async throws -> DocumentSnapshot {
         try await withCheckedThrowingContinuation { continuation in
@@ -57,7 +58,7 @@ extension FirebaseService {
         }
     }
 
-    func postV2<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws -> T {
+    func post<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws -> T {
         guard let ref = endpoint.path as? DocumentReference else {
             throw FirestoreServiceError.documentNotFound
         }
@@ -96,9 +97,9 @@ extension FirebaseService {
         guard let ref = endpoint.path as? CollectionReference else {
             throw FirestoreServiceError.collectionNotFound
         }
-//        if !Reachability.isConnectedToNetwork() {
-//            throw FirestoreServiceError.noInternet
-//        }
+        //        if !Reachability.isConnectedToNetwork() {
+        //            throw FirestoreServiceError.noInternet
+        //        }
 
         var query: Query = ref.order(by: orderBy ?? "date", descending: true)
 
@@ -127,18 +128,18 @@ extension FirebaseService {
         }
         return response
     }
-    
+
     func request<T: FirestoreIdentifiable>(endpoint: FirestoreEndpoint) async throws -> T {
-//        guard let ref = endpoint.path as? DocumentReference else {
-//            throw FirestoreServiceError.documentNotFound
-//        }
-//        var document = try await ref.getDocument(source: .cache)
-//        if document.exists == false {
-//            document = try await ref.getDocument(source: .server)
-//        }
-//        guard let data = document.data() else {
-//            throw FirestoreServiceError.documentNotFound
-//        }
+        //        guard let ref = endpoint.path as? DocumentReference else {
+        //            throw FirestoreServiceError.documentNotFound
+        //        }
+        //        var document = try await ref.getDocument(source: .cache)
+        //        if document.exists == false {
+        //            document = try await ref.getDocument(source: .server)
+        //        }
+        //        guard let data = document.data() else {
+        //            throw FirestoreServiceError.documentNotFound
+        //        }
 
         guard let ref = endpoint.path as? DocumentReference else {
             throw FirestoreServiceError.documentNotFound
@@ -156,8 +157,8 @@ extension FirebaseService {
                 document = try await ref.getDocument(source: .default)
             }
         }
-//        // If you're offline, server can fail too; .default will use cache if possible
-//        document = try await ref.getDocument(source: .default)
+        //        // If you're offline, server can fail too; .default will use cache if possible
+        //        document = try await ref.getDocument(source: .default)
         guard document.exists, let data = document.data() else {
             throw FirestoreServiceError.documentNotFound
         }
@@ -173,5 +174,42 @@ extension FirebaseService {
             throw FirestoreServiceError.collectionNotFound
         }
         try await ref.delete()
+    }
+
+    func deleteAtomic(documentEndpoint: FirestoreEndpoint, dependentCollectionEndpoint: FirestoreEndpoint, dependencyParam: FirestoreQueryParam) async throws {
+
+        // 1. Parent Document Reference (e.g., Project)
+        guard let docRef = documentEndpoint.path as? DocumentReference else {
+            throw FirestoreServiceError.documentNotFound
+        }
+
+        // 2. Child Collection Reference (e.g., Spendings)
+        guard let colRef = dependentCollectionEndpoint.path as? CollectionReference else {
+            throw FirestoreServiceError.collectionNotFound
+        }
+
+        // 3. Query to find children (e.g., spendings where projectId == xyz)
+        let query = colRef.whereField(dependencyParam.key, isEqualTo: dependencyParam.value)
+
+        // 4. Fetch snapshots (Network call)
+        let snapshot = try await query.getDocuments()
+
+        // 5. Initialize Batch
+        // Hum docRef se firestore instance le rahe hain taake batch bana sakein
+        let batch = docRef.firestore.batch()
+
+        // 6. Add all children to delete batch
+        // NOTE: Firestore batch limit is 500 operations.
+        // Agar 500 se zyada spendings hain to loop lagana parega,
+        // lekin normal usage mein yeh kafi hai.
+        for document in snapshot.documents {
+            batch.deleteDocument(document.reference)
+        }
+
+        // 7. Add parent document to delete batch
+        batch.deleteDocument(docRef)
+
+        // 8. Commit Atomic Write
+        try await batch.commit()
     }
 }

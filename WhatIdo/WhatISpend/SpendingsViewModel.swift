@@ -333,7 +333,7 @@ extension SpendingsViewModel {
                 self.budgetAmount = budget.budgetAmount
             case .error(let error):
                 debugPrint("Error in fetching budget \(error)")
-            case .noData:
+            case .success:
                 debugPrint("No budget found")
             default:
                 debugPrint("Default")
@@ -362,7 +362,7 @@ extension SpendingsViewModel {
         cBudget.budgetAmount = amount
         Task {@MainActor in
             let result = await spendingService.editMonthlyBudget(cBudget, id: cBudget.id)
-            if case(.noData) = result {
+            if case(.success) = result {
                 self.budgetAmount = cBudget.budgetAmount
             } else {
                 debugPrint("Error in fetching budget")
@@ -395,7 +395,7 @@ extension SpendingsViewModel {
                 self.projects = projects
             case .error(let error):
                 debugPrint("Error in fetching budget \(error)")
-            case .noData:
+            case .success:
                 debugPrint("No projects found")
             }
            // isDataLoading = false
@@ -416,7 +416,7 @@ extension SpendingsViewModel {
                 self.projects?.insert(project, at: 0)
             case .error(let error):
                 debugPrint("Error in adding project \(error)")
-            case .noData:
+            case .success:
                 debugPrint("No Data")
             }
             self.isDataUploading = false
@@ -433,7 +433,7 @@ extension SpendingsViewModel {
         self.isDataUploading = true
         Task {@MainActor in
             let result = await spendingService.editProject(project)
-            if case(.noData) = result {
+            if case(.success) = result {
                 guard let index = projects?.firstIndex(where: {$0.id == existingProject.id}) else { return }
                 projects?[index] = project.convertToDto()
                 self.selectedProject = nil
@@ -473,7 +473,7 @@ extension SpendingsViewModel {
                 self.totalProjectSpending = self.projectSpendings?.reduce(0) { $0 + Int($1.amount) } ?? 0
             case .error(let error):
                 debugPrint("error")
-            case .noData:
+            case .success:
                 debugPrint("")
 
             }

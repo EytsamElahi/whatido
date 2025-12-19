@@ -7,42 +7,13 @@
 
 import SwiftUI
 
-//struct SetBudgetView: View {
-//    @EnvironmentObject var viewModel: SpendingsViewModel
-//    var body: some View {
-//        VStack(alignment: .leading, spacing: 20) {
-//            Text(viewModel.monthlyBudget ==  nil ? "Set budget for the month" : "Update budget")
-//                .foregroundStyle(Color.black)
-//                .font(.customFont(name: .bold, size: .x20))
-//            AppTextfield(inputText: $viewModel.budgetAmountTf, placeHolder: "Amount", keyboardType: .numberPad)
-//                .frame(height: 50)
-//            Spacer()
-//            VStack {
-//                AppPrimaryButton(title: viewModel.monthlyBudget == nil ? "Set" : "Update", disable: .constant(false), isLoading: $viewModel.isDataUploading, action: {
-//                    viewModel.setOrUpdateBudget()
-//                })
-//                if let _ = viewModel.monthlyBudget  {
-//                    AppPrimaryButton(title: "Remove budget", disable: .constant(false), isLoading: $viewModel.isBudgetDeleting, action: {
-//                        viewModel.deleteBudget()
-//                    })
-//                }
-//            }
-//        }.padding()
-//            .onAppear {
-//                if let budget = viewModel.monthlyBudget {
-//                    viewModel.budgetAmountTf = budget.budgetAmount.formatted()
-//                }
-//            }
-//    }
-//}
-
 struct SetBudgetView: View {
-    @EnvironmentObject var viewModel: SpendingsViewModel
-
+    @StateObject var viewModel: BudgetViewModel
     // Local state for the input to keep it responsive
     @State private var budgetInput: Double = 0
     // Dynamic Sheet Height ke liye variable
     @State private var sheetHeight: CGFloat = .zero
+    var onGetBudget: (Budget?) -> ()
 
     var body: some View {
         ZStack {
@@ -88,7 +59,7 @@ struct SetBudgetView: View {
 
                 // MARK: - 2. Action Buttons
                 VStack(spacing: 15) {
-                    if viewModel.isDataUploading {
+                    if viewModel.isUploading {
                         CircularLoadingIndicator(indicatorColor: .white)
                     } else {
                         AppPrimaryButton(title: viewModel.monthlyBudget == nil ? "Set Budget" : "Update Budget", disable: .constant(false), isLoading: .constant(false)) {
@@ -116,6 +87,8 @@ struct SetBudgetView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.bottom, 20)
+            }.onChange(of: viewModel.budgetUpdated) {
+                onGetBudget(viewModel.monthlyBudget)
             }
             // MARK: - Magic Logic 🪄
             .readHeight { height in
@@ -129,7 +102,7 @@ struct SetBudgetView: View {
                 budgetInput = currentBudget
             }
         }
-        .interactiveDismissDisabled(viewModel.isDataUploading)
+        .interactiveDismissDisabled(viewModel.isUploading)
         .presentationDetents([.height(sheetHeight > 0 ? sheetHeight : 200)])
         .presentationDragIndicator(.hidden)
         .hideKeyboardOnTapAround()
@@ -138,8 +111,8 @@ struct SetBudgetView: View {
 }
 
 #Preview {
-    SetBudgetView()
-        .environmentObject(SpendingsViewModel(spendingService: WhatISpendServiceStub()))
+//    SetBudgetView()
+//        .environmentObject(SpendingsViewModel(spendingService: WhatISpendServiceStub()))
 }
 
 

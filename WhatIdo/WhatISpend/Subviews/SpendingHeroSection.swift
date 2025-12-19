@@ -7,7 +7,7 @@
 
 import SwiftUI
 struct SpendingsHeroSection: View {
-    @EnvironmentObject var viewModel: SpendingsViewModel
+    @EnvironmentObject var viewModel: DashboardViewModel
     var budgetProgress: Double
     var progressBarColor: Color
     var viewAnalyticsAction: () -> Void
@@ -38,7 +38,7 @@ struct SpendingsHeroSection: View {
             }
 
             // Progress Bar Section
-            if let budget = viewModel.budgetAmount {
+            if let budget = viewModel.monthlyBudget {
                 VStack(alignment: .leading, spacing: 8) {
 
                     // Bar
@@ -60,9 +60,9 @@ struct SpendingsHeroSection: View {
                     // Footer
                     HStack {
                         Button {
-                            viewModel.showBudgetSettingSheet.toggle()
+                            viewModel.showBudgetSheet.toggle()
                         } label: {
-                            Text("Budget: \(Int(budget))")
+                            Text("Budget: \(Int(budget.budgetAmount))")
                                 .font(.customFont(family: .quicksand, name: .medium, size: .x12))
                                 .foregroundStyle(Color.white.opacity(0.6))
                                 .underline()
@@ -70,7 +70,7 @@ struct SpendingsHeroSection: View {
 
                         Spacer()
 
-                        let remaining = Int(budget) - viewModel.totalSpending
+                        let remaining = Int(budget.budgetAmount) - viewModel.totalSpending
                         Text(remaining >= 0 ? "\(Int(remaining)) left" : "Over budget")
                             .font(.customFont(family: .quicksand, name: .semiBold, size: .x12))
                             // Remaining is white, Over is red
@@ -80,7 +80,7 @@ struct SpendingsHeroSection: View {
             } else {
                 // Set Budget Button (Teal Accent)
                 Button {
-                    viewModel.showBudgetSettingSheet.toggle()
+                    viewModel.showBudgetSheet.toggle()
                 } label: {
                     Text("Set a Budget")
                         .font(.customFont(family: .quicksand, name: .semiBold, size: .x14))

@@ -29,10 +29,11 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 struct WhatIdoApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject private var navManager = NavigationManager()
+    private let appContainer = AppDependencyContainer()
 
     var body: some Scene {
         WindowGroup {
-            SplashView()
+            SplashView(container: appContainer)
                 .environmentObject(navManager)
         }
     }

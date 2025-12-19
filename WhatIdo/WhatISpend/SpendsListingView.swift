@@ -9,12 +9,13 @@ import SwiftUI
 
 struct SpendsListingView: View {
     @EnvironmentObject var navigation: NavigationManager
-    @StateObject var viewModel: SpendingsViewModel
+    @StateObject var viewModel: DashboardViewModel
+    @Environment(\.dependencyContainer) var container
 
     // Progress Bar Logic
     var budgetProgress: Double {
-        guard let budget = viewModel.budgetAmount, budget > 0 else { return 0 }
-        return Double(viewModel.totalSpending) / budget
+        guard let budget = viewModel.monthlyBudget, budget.budgetAmount > 0 else { return 0 }
+        return Double(viewModel.totalSpending) / budget.budgetAmount
     }
 
     var progressBarColor: Color {
@@ -73,12 +74,12 @@ struct SpendsListingView: View {
                     AppHeaderView(title: viewModel.currentMonth, trailingButtonIcon: "folder.fill", backAction: {
                         print("Button tapped!")
                     }, trailingButtonAction: {
-                        navigation.push(screen: .projectListing(viewModel))
+                        navigation.push(screen: .projectListing)
                     })
 
                     // MARK: - 2. Smart Hero Card
                     SpendingsHeroSection(budgetProgress: budgetProgress, progressBarColor: progressBarColor){
-                        navigation.push(screen: .SpendingDetails(SpendingDetailViewModel(spendingService: viewModel.spendingService, currentMonthSpendings: viewModel.currentMonthSpendings, spendingTypes: viewModel.spendingTypes)))
+                      //  navigation.push(screen: .SpendingDetails(SpendingDetailViewModel(spendingService: viewModel.spendingService, currentMonthSpendings: viewModel.currentMonthSpendings, spendingTypes: viewModel.spendingTypes)))
                     }
                     .environmentObject(viewModel)
 
@@ -99,13 +100,15 @@ struct SpendsListingView: View {
                                     .listRowSeparator(.hidden)
                                     .listRowBackground(Color.clear) // Important for Gray BG
                                     .onTapGesture {
-                                        viewModel.editSpending(spending)
+                                        viewModel.prepareEdit(spending: spending)
                                     }
                                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                         Button(role: .destructive) {
+                                            // TODO: - Check Deletion is working
                                             // Delete Logic: Index dhoond kar delete call karein
                                             if let index = viewModel.currentMonthSpendings?.firstIndex(of: spending) {
-                                                viewModel.deleteSpending(at: IndexSet(integer: index))
+                                                viewModel.spendingToDeleteIndex = index
+                                                viewModel.showDeleteConfirmationAlert = true
                                             }
                                         } label: {
                                             Image(systemName: "trash")
@@ -124,34 +127,37 @@ struct SpendsListingView: View {
             // MARK: - Modifiers & Lifecycle
             .onAppear {
                 guard viewModel.currentMonthSpendings == nil else { return }
-                let date = Date().getFirstDateOfMonth()
-                viewModel.fetchCurrentMonthSpendings(date: date)
+                viewModel.fetchDashboardData()
             }
             .navigationBarHidden(true) // Using Custom Header
-            .onChange(of: viewModel.showAddNewSpendingSheet) { old, new in
+            .onChange(of: viewModel.showAddSheet) { old, new in
                 if new == false {
-                    viewModel.resetAddSpendingForm()
-                    viewModel.tempSpending = nil
+//                    viewModel.resetAddSpendingForm()
+//                    viewModel.tempSpending = nil
+                    // TODO: - Reload Data
                 }
             }
             .onChange(of: viewModel.selectedSortType) { _, _ in
                 viewModel.updatedSorting()
             }
-            .sheet(isPresented: $viewModel.showAddNewSpendingSheet) {
-                AddSpendingView()
-                    .environmentObject(viewModel)
+            .sheet(isPresented: $viewModel.showAddSheet) {
+                AddSpendingView(viewModel: container.makeTransactionFormViewModel(spendingToEdit: viewModel.spendingToEdit), selectedProject: nil,onSpendingAdded: { updatedSpending in
+                    guard let updatedSpending = updatedSpending else {return}
+                    if let index = viewModel.currentMonthSpendings?.firstIndex(where: { $0.id == updatedSpending.id }) {
+                        viewModel.currentMonthSpendings?[index] = updatedSpending
+                    }
+                })
                     .presentationDetents([.medium, .large])
             }
-            .sheet(isPresented: $viewModel.showBudgetSettingSheet) {
-                SetBudgetView()
-                .environmentObject(viewModel)
-//                        // Sirf itni height khulegi jitni zaroorat hai
-//                        .presentationDetents([.height(350)])
-//                        .presentationDragIndicator(.hidden)
+            .sheet(isPresented: $viewModel.showBudgetSheet) {
+                SetBudgetView(viewModel: container.makeBudgetViewModel(budgetToEdit: viewModel.monthlyBudget), onGetBudget: { budget in
+                    guard let budget = budget else {return}
+                    viewModel.monthlyBudget = budget
+                })
             }
-            .alert("Confirm Deletion", isPresented: $viewModel.showConfirmationAlert, presenting: viewModel.spendingToDelete) { spending in
-                Button("Delete", role: .destructive) { viewModel.confirmedDeleteSpending() }
-                Button("Cancel", role: .cancel) { viewModel.spendingToDelete = nil }
+            .alert("Confirm Deletion", isPresented: $viewModel.showDeleteConfirmationAlert, presenting: viewModel.spendingToDeleteIndex) { spending in
+                Button("Delete", role: .destructive) { viewModel.deleteSpending() }
+                Button("Cancel", role: .cancel) { viewModel.spendingToDeleteIndex = nil }
             } message: { _ in
                 Text("Are you sure you want to delete this spending?")
             }
@@ -160,11 +166,11 @@ struct SpendsListingView: View {
 }
 
 #Preview {
-    SpendsListingView(viewModel: SpendingsViewModel(spendingService: WhatISpendServiceStub()))
+   // SpendsListingView(viewModel: SpendingsViewModel(spendingService: WhatISpendServiceStub()))
 }
 
 struct AddSpendingRow: View {
-    @EnvironmentObject var viewModel: SpendingsViewModel
+    @EnvironmentObject var viewModel: DashboardViewModel
     var body: some View {
         HStack {
             Text("Transactions")
@@ -175,7 +181,7 @@ struct AddSpendingRow: View {
 
             // Add Button
             Button {
-                viewModel.showAddNewSpendingSheet.toggle()
+                viewModel.showAddSheet.toggle()
             } label: {
                 Image(systemName: "plus.circle.fill")
                     .font(.system(size: 30))

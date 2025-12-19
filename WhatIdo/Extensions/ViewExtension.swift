@@ -20,6 +20,11 @@ extension View {
             hideKeyboard()
         }
     }
+
+    func loadingIndicator(_ isLoading: Binding<Bool>) -> some View {
+        modifier(AppLoadingIndicator(isLoading: isLoading))
+    }
+
 }
 
 struct RoundedCorner: Shape {
@@ -30,5 +35,25 @@ struct RoundedCorner: Shape {
     func path(in rect: CGRect) -> Path {
         let path = UIBezierPath(roundedRect: rect, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
         return Path(path.cgPath)
+    }
+}
+
+struct AppLoadingIndicator: ViewModifier {
+    @Binding var isLoading: Bool
+
+    func body(content: Content) -> some View {
+        ZStack {
+            content
+        }.overlay {
+            if isLoading {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 0)
+                        .fill(Color.appBackground.opacity(0.3))
+                    Spacer()
+                    ProgressView().tint(Color.appPrimaryColor)
+                    Spacer()
+                }
+            }
+        }
     }
 }

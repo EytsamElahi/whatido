@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ProjectsListingView: View {
-    @StateObject var viewModel: SpendingsViewModel
+    @StateObject var viewModel: ProjectsViewModel
     @EnvironmentObject var navigation: NavigationManager
 
     // Grid Layout (2 Columns)
@@ -34,20 +34,20 @@ struct ProjectsListingView: View {
                 } else {
                     // MARK: - Projects Grid
                     ScrollView {
-                        if let projects = viewModel.projects, !projects.isEmpty {
+                        if !viewModel.projects.isEmpty {
                             LazyVGrid(columns: columns, spacing: 15) {
-                                ForEach(projects, id: \.id) { project in
+                                ForEach(viewModel.projects, id: \.id) { project in
                                     ProjectCardView(project: project,onEdit: {
                                         // Set project to edit -> Trigger Sheet
                                         viewModel.selectedProject = project
                                         viewModel.showAddProjectSheet = true
                                     },
-                                    onDelete: {
-                                         viewModel.deleteProject(project.id)
+                                                    onDelete: {
+                                        viewModel.deleteProject(project.id)
                                     })
-                                        .onTapGesture {
-                                            navigation.push(screen: .projectSpendingsList(project, viewModel))
-                                        }
+                                    .onTapGesture {
+                                        navigation.push(screen: .projectSpendingsList(project))
+                                    }
                                 }
                             }
                             .padding(.horizontal)
@@ -90,9 +90,11 @@ struct ProjectsListingView: View {
                     .padding(.bottom)
                 }
 
-            }
+            }.onAppear {
+                viewModel.fetchProjects()
+            } .loadingIndicator($viewModel.dataIsDeleting)
         }   .navigationBarHidden(true)
-//        // Sheet for Adding New Project
+        //        // Sheet for Adding New Project
             .sheet(isPresented: $viewModel.showAddProjectSheet) {
                 AddProjectView()
                     .environmentObject(viewModel)

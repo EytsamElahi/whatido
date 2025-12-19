@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct AddProjectView: View {
-    @EnvironmentObject var viewModel: SpendingsViewModel
+    @EnvironmentObject var viewModel: ProjectsViewModel
 
     @State private var projectName = ""
     @State private var selectedIcon = "house.fill"
@@ -87,6 +87,7 @@ struct AddProjectView: View {
                     } else {
                         viewModel.createProject(name: projectName, icon: selectedIcon)
                     }
+
                 }.padding(.bottom, 20)
             }
             .padding(.horizontal)
