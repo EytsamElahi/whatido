@@ -126,4 +126,12 @@ class AddSpendingViewModel: ObservableObject {
             }
         }
     }
+//    private func resetAddSpendingForm() {
+//        self.spendingItemTf = ""
+//        self.amountTf = 0.0
+//        self.dateTf = ""
+//        self.spendingType = nil
+//        self.spendingTypeName = ""
+//        self.fundingSName = ""
+//    }
 }

@@ -7,6 +7,7 @@
 
 
 import SwiftUI
+import Combine
 
 @MainActor
 class ProjectsViewModel: BaseViewModel {
@@ -26,10 +27,14 @@ class ProjectsViewModel: BaseViewModel {
     @Published var showAddNewSpendingSheet: Bool = false
     @Published var dataIsDeleting: Bool = false
 
+    private let eventBus: PassthroughSubject<AppGlobalEvent, Never>
+
     init(projectService: ProjectsServiceProtocol = ProjectsService(), 
-         spendingService: SpendingsServiceProtocol = SpendingsService()) {
+         spendingService: SpendingsServiceProtocol = SpendingsService(),
+         eventBus: PassthroughSubject<AppGlobalEvent, Never>) {
         self.projectService = projectService
         self.spendingService = spendingService
+        self.eventBus = eventBus
     }
     
     // MARK: - CRUD
@@ -113,6 +118,7 @@ class ProjectsViewModel: BaseViewModel {
             let result = await projectService.deleteProject(id)
             if case .success = result {
                 projects.removeAll(where: {$0.id == id})
+                self.eventBus.send(.reloadDashboard)
             }
             self.dataIsDeleting = false
         }

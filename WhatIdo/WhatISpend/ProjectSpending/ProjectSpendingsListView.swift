@@ -56,28 +56,8 @@ struct ProjectSpendingsListView: View {
                 .padding(.horizontal)
                 .padding(.top, 10)
                 .padding(.bottom, 20)
-                
-                // MARK: - Summary Card (Total Spent)
-                VStack(spacing: 5) {
-                    Text("Total Spent")
-                        .font(.customFont(family: .quicksand, name: .medium, size: .x14))
-                        .foregroundStyle(Color.gray)
-                    
-                    Text("Rs \(viewModel.totalProjectSpending)")
-                        .font(.customFont(family: .inter, name: .bold, size: .x30))
-                        .foregroundStyle(Color.white)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 20)
-                .background(Color.cardBackground)
-                .padding(.bottom, 20) // Separation from list
-                
-                // MARK: - Spendings List
-                if viewModel.isDataLoading {
-                    Spacer()
-                    ProgressView().tint(Color.appPrimaryColor)
-                    Spacer()
-                } else if viewModel.projectSpendings.isEmpty {
+
+                if viewModel.projectSpendings.isEmpty && !viewModel.isDataLoading {
                     Spacer()
                     VStack(spacing: 15) {
                         Image(systemName: "tray")
@@ -89,20 +69,42 @@ struct ProjectSpendingsListView: View {
                     }
                     Spacer()
                 } else {
-                    ScrollView {
-                        LazyVStack(spacing: 15) {
-                            ForEach(viewModel.projectSpendings, id: \.id) { spending in
-                                // 🔥 Reusing your existing Card
-                                UpdatedSpendingRow(spending: spending)
-                                    .onTapGesture {
-                                        viewModel.spendingToEdit = spending
-                                        viewModel.selectedProject = project
-                                        viewModel.showAddNewSpendingSheet = true
-                                    }
-                            }
+                    // MARK: - Spendings List
+                    if viewModel.isDataLoading {
+                        Spacer()
+                        ProgressView().tint(Color.appPrimaryColor)
+                        Spacer()
+                    } else {
+                        // MARK: - Summary Card (Total Spent)
+                        VStack(spacing: 5) {
+                            Text("Total Spent")
+                                .font(.customFont(family: .quicksand, name: .medium, size: .x14))
+                                .foregroundStyle(Color.gray)
+
+                                Text("Rs \(viewModel.totalProjectSpending)")
+                                    .font(.customFont(family: .inter, name: .bold, size: .x30))
+                                    .foregroundStyle(Color.white)
                         }
-                        .padding(.horizontal)
-                        .padding(.bottom, 20)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 20)
+                        .background(Color.cardBackground)
+                        .padding(.bottom, 20) // Separation from list
+                        
+                        ScrollView {
+                            LazyVStack(spacing: 15) {
+                                ForEach(viewModel.projectSpendings, id: \.id) { spending in
+                                    // 🔥 Reusing your existing Card
+                                    UpdatedSpendingRow(spending: spending, hideProject: true)
+                                        .onTapGesture {
+                                            viewModel.spendingToEdit = spending
+                                            viewModel.selectedProject = project
+                                            viewModel.showAddNewSpendingSheet = true
+                                        }
+                                }
+                            }
+                            .padding(.horizontal)
+                            .padding(.bottom, 20)
+                        }
                     }
                 }
             }

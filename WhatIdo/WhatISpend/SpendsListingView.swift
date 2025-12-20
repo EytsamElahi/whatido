@@ -130,21 +130,19 @@ struct SpendsListingView: View {
                 viewModel.fetchDashboardData()
             }
             .navigationBarHidden(true) // Using Custom Header
-            .onChange(of: viewModel.showAddSheet) { old, new in
-                if new == false {
-//                    viewModel.resetAddSpendingForm()
-//                    viewModel.tempSpending = nil
-                    // TODO: - Reload Data
-                }
-            }
             .onChange(of: viewModel.selectedSortType) { _, _ in
                 viewModel.updatedSorting()
             }
             .sheet(isPresented: $viewModel.showAddSheet) {
-                AddSpendingView(viewModel: container.makeTransactionFormViewModel(spendingToEdit: viewModel.spendingToEdit), selectedProject: nil,onSpendingAdded: { updatedSpending in
+                let addSpendingVM = container.makeTransactionFormViewModel(spendingToEdit: viewModel.spendingToEdit)
+                AddSpendingView(viewModel: addSpendingVM, selectedProject: nil,onSpendingAdded: { updatedSpending in
+                    self.viewModel.showAddSheet = false
                     guard let updatedSpending = updatedSpending else {return}
                     if let index = viewModel.currentMonthSpendings?.firstIndex(where: { $0.id == updatedSpending.id }) {
                         viewModel.currentMonthSpendings?[index] = updatedSpending
+                    } else {
+                        viewModel.currentMonthSpendings?.append(updatedSpending)
+                        viewModel.updatedSorting()
                     }
                 })
                     .presentationDetents([.medium, .large])
@@ -181,6 +179,7 @@ struct AddSpendingRow: View {
 
             // Add Button
             Button {
+                viewModel.spendingToEdit = nil
                 viewModel.showAddSheet.toggle()
             } label: {
                 Image(systemName: "plus.circle.fill")

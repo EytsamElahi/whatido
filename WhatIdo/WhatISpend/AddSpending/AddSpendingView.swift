@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct AddSpendingView: View {
-    @StateObject var viewModel: AddSpendingViewModel
+    @ObservedObject var viewModel: AddSpendingViewModel
     var selectedProject: ProjectDto?
     @Environment(\.dismiss) var dismiss
     var onSpendingAdded: (SpendingDto?) -> ()

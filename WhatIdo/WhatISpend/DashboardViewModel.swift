@@ -7,6 +7,7 @@
 
 
 import SwiftUI
+import Combine
 
 @MainActor
 class DashboardViewModel: ObservableObject {
@@ -41,11 +42,24 @@ class DashboardViewModel: ObservableObject {
 
     // Edit State
     var spendingToEdit: SpendingDto? // Isay use kar ke hum TransactionFormViewModel init karenge
-    
+    private var cancellables = Set<AnyCancellable>()
+
     init(spendingService: SpendingsServiceProtocol = SpendingsService(),
-         budgetService: BudgetsServiceProtocol = BudgetsService()) {
+         budgetService: BudgetsServiceProtocol = BudgetsService(),
+         eventBus: PassthroughSubject<AppGlobalEvent, Never>) {
         self.spendingService = spendingService
         self.budgetService = budgetService
+
+        // 👂 LISTENER (SUBSCRIBER)
+        eventBus
+            .receive(on: DispatchQueue.main) // UI Update hamesha Main thread par
+            .sink { [weak self] _ in
+                // Jab bhi signal aye, Data refresh karo!
+                print("♻️ Data Change Detected: Refreshing Dashboard...")
+                self?.fetchDashboardData()
+            }
+            .store(in: &cancellables)
+
     }
     
     // MARK: - Fetch Logic

@@ -6,6 +6,15 @@
 //
 
 import Foundation
+import Combine
+
+// AppEvents.swift
+enum AppGlobalEvent {
+    case reloadDashboard              // Simple reload
+    case projectDeleted(id: String)   // Data ke sath event
+    case budgetUpdated(newAmount: Double)
+    case userLoggedOut
+}
 
 class AppDependencyContainer {
 
@@ -14,6 +23,8 @@ class AppDependencyContainer {
     private let spendingsService: SpendingsServiceProtocol
     private let projectsService: ProjectsServiceProtocol
     private let budgetsService: BudgetsServiceProtocol
+    // 🔥 THE EVENT BUS (Signal)
+    let eventBus = PassthroughSubject<AppGlobalEvent, Never>()
 
     init() {
         // Initialize Core Services
@@ -29,7 +40,8 @@ class AppDependencyContainer {
     func makeDashboardViewModel() -> DashboardViewModel {
         return DashboardViewModel(
             spendingService: spendingsService,
-            budgetService: budgetsService
+            budgetService: budgetsService,
+            eventBus: eventBus
         )
     }
 
@@ -38,7 +50,8 @@ class AppDependencyContainer {
     func makeProjectsViewModel() -> ProjectsViewModel {
         return ProjectsViewModel(
             projectService: projectsService,
-            spendingService: spendingsService // Needed to fetch project details/stats
+            spendingService: spendingsService,
+            eventBus: eventBus
         )
     }
 
