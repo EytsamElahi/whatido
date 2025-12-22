@@ -81,8 +81,9 @@ class DashboardViewModel: ObservableObject {
             } else {
                 self.monthlyBudget = nil
             }
-            
-            isDataLoading = false
+            withAnimation(.easeOut(duration: 0.4)) {
+                self.isDataLoading = false
+            }
         }
     }
     
