@@ -52,6 +52,14 @@ struct SetBudgetView: View {
                             .multilineTextAlignment(.center)
                             .fixedSize(horizontal: true, vertical: true)
                             .tint(Color.appPrimaryColor)
+                            .onChange(of: budgetInput) { newValue in
+                                if newValue > 999_999_9 {
+                                    budgetInput = 999_999_9
+                                }
+                                if newValue < 0 {
+                                    budgetInput = 0
+                                }
+                            }
                     }
                 }
 
@@ -63,6 +71,7 @@ struct SetBudgetView: View {
                         CircularLoadingIndicator(indicatorColor: .white)
                     } else {
                         AppPrimaryButton(title: viewModel.monthlyBudget == nil ? "Set Budget" : "Update Budget", disable: .constant(false), isLoading: .constant(false)) {
+                            hideKeyboard()
                             viewModel.budgetAmount = budgetInput
                             viewModel.setOrUpdateBudget()
                         }
@@ -70,8 +79,7 @@ struct SetBudgetView: View {
                         // Remove Button (Only if budget exists)
                         if viewModel.monthlyBudget != nil {
                             Button {
-                                viewModel.budgetAmount = nil
-                                viewModel.monthlyBudget = nil
+                                hideKeyboard()
                                 viewModel.deleteBudget()
                             } label: {
                                 HStack {
@@ -98,7 +106,7 @@ struct SetBudgetView: View {
         }
         .onAppear {
             // Load existing budget into local state
-            if let currentBudget = viewModel.budgetAmount {
+            if let currentBudget = viewModel.monthlyBudget?.budgetAmount {
                 budgetInput = currentBudget
             }
         }

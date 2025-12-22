@@ -75,7 +75,10 @@ struct UpdatedSpendingRow: View {
                 Text(spending.name)
                     .font(.customFont(family: .quicksand, name: .semiBold, size: .x16))
                     .foregroundStyle(Color.textPrimary) // ✅ White Text
-                    .lineLimit(1)
+                    .lineLimit(2) // ✅ Allow up to 2 lines
+                    .multilineTextAlignment(.leading)
+                    .minimumScaleFactor(0.9) // ✅ Thora sa shrink allow karo taake fit ho jaye
+                    .fixedSize(horizontal: false, vertical: true)
 
                 HStack(spacing: 4) {
                     Text(spending.type)

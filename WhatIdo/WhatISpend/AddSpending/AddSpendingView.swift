@@ -78,18 +78,26 @@ struct AddSpendingView: View {
                                 .foregroundStyle(Color.appPrimaryColor)
 
                             TextField("0", value: $viewModel.amountTf, format: .number)
-                                .keyboardType(.numberPad)
+                                .keyboardType(.decimalPad)
                                 .font(.customFont(family: .inter, name: .bold, size: .x50))
                                 .foregroundStyle(Color.white)
                                 .multilineTextAlignment(.center)
                                 .fixedSize(horizontal: true, vertical: true)
                                 .tint(Color.appPrimaryColor)
+                                .onChange(of: viewModel.amountTf) { newValue in
+                                    if newValue > 999_999_9 {
+                                        viewModel.amountTf = 999_999_9
+                                    }
+                                    if newValue < 0 {
+                                        viewModel.amountTf = 0
+                                    }
+                                }
                         }
                     }
 
                     // MARK: - 2. Metadata (Note, Date, Source)
                     VStack(spacing: 15) {
-                        AppTextfield(inputText: $viewModel.spendingItemTf, placeHolder: "What is this for?")
+                        AppTextfield(inputText: $viewModel.spendingItemTf, placeHolder: "What is this for?", maxLength: 40)
                             .frame(height: 50)
 
                         HStack(spacing: 12) {

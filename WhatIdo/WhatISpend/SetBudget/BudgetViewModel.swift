@@ -45,10 +45,12 @@ class BudgetViewModel: ObservableObject {
     
     func deleteBudget() {
         guard let id = monthlyBudget?.id else { return }
+        isUploading = true
         Task {
             _ = await service.deleteMonthlyBudget(id)
             self.budgetAmount = nil
             self.monthlyBudget = nil
+            isUploading = false
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {[weak self] in
                 guard let self = self else {return}
                 self.budgetUpdated = true

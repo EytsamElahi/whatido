@@ -12,6 +12,7 @@ struct AddProjectView: View {
 
     @State private var projectName = ""
     @State private var selectedIcon = "house.fill"
+    private let characterLimit = 25
 
     // 🔥 Refined Categories (Essential Only)
     let icons = [
@@ -45,7 +46,7 @@ struct AddProjectView: View {
                     .padding(.top, 20)
 
                 // Name Input
-                AppTextfield(inputText: $projectName, placeHolder: "Project Name (e.g. Dubai Trip)")
+                AppTextfield(inputText: $projectName, placeHolder: "Project Name (e.g. Dubai Trip)", maxLength: characterLimit)
                     .frame(height: 50)
                 // 2. Icon Grid (The Main Change 🎨)
                 VStack(alignment: .leading, spacing: 15) {

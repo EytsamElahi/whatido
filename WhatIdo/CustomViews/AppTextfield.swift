@@ -32,6 +32,7 @@ struct AppTextfield: View {
     @Binding var inputText: String
     var placeHolder: String
     var keyboardType: UIKeyboardType = .default
+    var maxLength: Int? = nil
 
     var body: some View {
         ZStack(alignment: .leading) {
@@ -54,6 +55,7 @@ struct AppTextfield: View {
                 .padding(.horizontal, 15)
                 .keyboardType(keyboardType)
                 .tint(Color.appPrimaryColor)
+                .limitInputLength($inputText, maxLength: maxLength ?? 200)
         }
     }
 }

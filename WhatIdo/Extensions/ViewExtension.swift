@@ -7,6 +7,7 @@
 
 import SwiftUI
 import UIKit
+import Combine
 
 extension View {
     func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
@@ -23,6 +24,10 @@ extension View {
 
     func loadingIndicator(_ isLoading: Binding<Bool>) -> some View {
         modifier(AppLoadingIndicator(isLoading: isLoading))
+    }
+
+    func limitInputLength(_ field: Binding<String>, maxLength: Int) -> some View {
+        modifier(TextLengthModifier(field: field, maxLength: maxLength))
     }
 
 }
@@ -55,5 +60,28 @@ struct AppLoadingIndicator: ViewModifier {
                 }
             }
         }
+    }
+}
+
+struct TextLengthModifier: ViewModifier {
+    @Binding var field: String
+    let maxLength: Int
+
+    func body(content: Content) -> some View {
+        content
+            .onReceive(Just(field), perform: { _ in
+                let updatedField = String(
+                    field
+                        // do other things here like limiting to number etc...
+                        .enumerated()
+                        .filter { $0.offset < maxLength }
+                        .map { $0.element }
+                )
+
+                // ensure no infinite loop
+                if updatedField != field {
+                    field = updatedField
+                }
+            })
     }
 }

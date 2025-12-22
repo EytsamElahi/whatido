@@ -149,8 +149,10 @@ struct SpendsListingView: View {
             }
             .sheet(isPresented: $viewModel.showBudgetSheet) {
                 SetBudgetView(viewModel: container.makeBudgetViewModel(budgetToEdit: viewModel.monthlyBudget), onGetBudget: { budget in
-                    guard let budget = budget else {return}
                     viewModel.monthlyBudget = budget
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        self.viewModel.showBudgetSheet = false
+                    }
                 })
             }
             .alert("Confirm Deletion", isPresented: $viewModel.showDeleteConfirmationAlert, presenting: viewModel.spendingToDeleteIndex) { spending in
