@@ -40,6 +40,8 @@ class DashboardViewModel: ObservableObject {
     // Loading State
     @Published var isDataLoading: Bool = false
 
+    private let overlayManager = OverlayManager.shared
+
     // Edit State
     var spendingToEdit: SpendingDto? // Isay use kar ke hum TransactionFormViewModel init karenge
     private var cancellables = Set<AnyCancellable>()
