@@ -74,17 +74,18 @@ class DashboardViewModel: ObservableObject {
                 self.currentMonthSpendings = spendings
                 self.calculateTotal()
             }
-            
+            if case .error(let string) = spendingResult {
+                self.overlayManager.showToast(message: string, style: .error)
+            }
+            withAnimation(.easeOut(duration: 0.4)) {
+                self.isDataLoading = false
+            }
+
             // 2. Fetch Budget
             let budgetId = "\(currentMonthDate?.components.year ?? 0)_\(currentMonth)"
             let budgetResult = await budgetService.getMonthlyBudget(id: budgetId)
             if case .data(let budget) = budgetResult {
                 self.monthlyBudget = budget
-            } else {
-                self.monthlyBudget = nil
-            }
-            withAnimation(.easeOut(duration: 0.4)) {
-                self.isDataLoading = false
             }
         }
     }
@@ -96,8 +97,11 @@ class DashboardViewModel: ObservableObject {
         
         Task {
             let result = await spendingService.deleteSpending(spending.id)
+            if case .success = result {
+                self.overlayManager.showToast(message: "Spending deleted successfully", style: .success)
+            }
             if case(.error(let string)) = result {
-                debugPrint("Error in deleting spending \(string)")
+                self.overlayManager.showToast(message: string, style: .error)
             }
             currentMonthSpendings?.remove(at: index)
             calculateTotal()

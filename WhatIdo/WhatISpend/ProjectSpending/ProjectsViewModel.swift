@@ -28,6 +28,7 @@ class ProjectsViewModel: BaseViewModel {
     @Published var dataIsDeleting: Bool = false
 
     private let eventBus: PassthroughSubject<AppGlobalEvent, Never>
+    private let overlayManager = OverlayManager.shared
 
     init(projectService: ProjectsServiceProtocol = ProjectsService(), 
          spendingService: SpendingsServiceProtocol = SpendingsService(),
@@ -71,59 +72,94 @@ class ProjectsViewModel: BaseViewModel {
 
     func createProject(name: String, icon: String, budget: Double? = nil) {
         let projectId = UUID().uuidString
-        let project: ProjectSpending = ProjectSpending(id: projectId, name: name, budget: budget, icon: icon, status: "Active")
+        let project = ProjectSpending(id: projectId, name: name, budget: budget, icon: icon, status: "Active")
+
         self.isDataUploading = true
-        Task {@MainActor in
-            let result = await projectService.addProject(project)
-            if case .data(let newProject) = result {
-                projects.insert(newProject, at: 0)
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
-                    guard let self = self else {return}
-                    self.showAddProjectSheet = false
-                }
-                return
+        Task { [weak self] in 
+            guard let self = self else { return }
+            defer {
+                self.isDataUploading = false
             }
-            if case .error(let error) = result {
-                debugPrint("Error in uploading project")
+            let result = await projectService.addProject(project)
+            switch result {
+            case .data(let newProject):
+                self.projects.insert(newProject, at: 0)
+                OverlayManager.shared.showToast(message: PopupMessages.dataAddedMessage("Project"), style: .success)
+                self.showAddProjectSheet = false
+
+            case .error(let errorMessage):
+                OverlayManager.shared.showToast(message: errorMessage, style: .error)
+            default:
+                debugPrint("")
             }
         }
     }
 
     func updateProject(name: String, icon: String, budget: Double? = nil) {
-        guard let existingProject = selectedProject else {return}
-        let project: ProjectSpending = ProjectSpending(id: existingProject.id, name: name, budget: budget ?? existingProject.budget, icon: icon, status: existingProject.status, created: existingProject.createdAt)
+        guard let existingProject = selectedProject else { return }
+        // Prepare Object
+        let project = ProjectSpending(
+            id: existingProject.id,
+            name: name,
+            budget: budget ?? existingProject.budget,
+            icon: icon,
+            status: existingProject.status,
+            created: existingProject.createdAt
+        )
+
         self.isDataUploading = true
-        Task {@MainActor in
+        Task { [weak self] in
+            guard let self = self else { return }
+            defer {
+                self.isDataUploading = false
+            }
             let result = await projectService.editProject(project)
-            if case(.success) = result {
-                guard let index = projects.firstIndex(where: {$0.id == existingProject.id}) else { return }
-                projects[index] = project.convertToDto()
-                self.selectedProject = nil
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {[weak self] in
-                    guard let self = self else {return}
-                    self.showAddProjectSheet = false
+
+            switch result {
+            case .success, .data:
+                if let index = projects.firstIndex(where: { $0.id == existingProject.id }) {
+                    projects[index] = project.convertToDto()
                 }
 
-            } else {
-                debugPrint("Error in fetching budget")
-            }
-            self.isDataUploading = false
+                OverlayManager.shared.showToast(message: PopupMessages.dataUpdatedMessage("Project"), style: .success)
 
+                self.selectedProject = nil
+                self.showAddProjectSheet = false
+
+            case .error(let errorMessage):
+                OverlayManager.shared.showToast(message: errorMessage, style: .error)
+            }
         }
     }
 
+    // TODO: - Add confirmation popup
     func deleteProject(_ id: String) {
-        Task {
-            self.dataIsDeleting = true
-            let result = await projectService.deleteProject(id)
-            if case .success = result {
-                projects.removeAll(where: {$0.id == id})
-                self.eventBus.send(.reloadDashboard)
+        self.dataIsDeleting = true
+
+        Task { [weak self] in
+            guard let self = self else { return }
+
+            defer {
+                self.dataIsDeleting = false
             }
-            self.dataIsDeleting = false
+
+            let result = await projectService.deleteProject(id)
+
+            // 4. Handle Result
+            switch result {
+            case .success, .data:
+                withAnimation {
+                    self.projects.removeAll(where: { $0.id == id })
+                }
+                self.eventBus.send(.reloadDashboard)
+                OverlayManager.shared.showToast(message: "Project deleted successfully", style: .success)
+
+            case .error(let errorMessage):
+                OverlayManager.shared.showToast(message: errorMessage, style: .error)
+            }
         }
     }
-    
+
     // MARK: - Fetch Details
     func fetchProjectSpendings(_ id: String) {
         isDataLoading = true

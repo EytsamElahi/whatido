@@ -42,6 +42,7 @@ class AddSpendingViewModel: ObservableObject {
     // Edit Mode Helper
     var spendingIdToEdit: String?
     private var created: Date?
+    private let overlayManager = OverlayManager.shared
 
     init(service: SpendingsServiceProtocol = SpendingsService(), projectSerivce: ProjectsServiceProtocol = ProjectsService(), spendingToEdit: SpendingDto? = nil) {
         self.service = service
@@ -86,30 +87,33 @@ class AddSpendingViewModel: ObservableObject {
         )
         Task {
             self.isDataUploading = true
-            // API Call
+            defer {
+                self.isDataUploading = false
+            }
+            let result: AppResult<SpendingDto>
             if let id = spendingIdToEdit {
-                // Edit
                 spending.id = id
-                let result = await service.editSpending(spending, id: id)
-                if case .error(let string) = result {
-                    // TODO: - Show Error
-                    return
-                } else {
-                    self.spending = spending.convertToDto()
-                }
+                let apiResult = await service.editSpending(spending, id: id)
+                 if case .error(let error) = apiResult {
+                     self.overlayManager.showToast(message: error, style: .error)
+                     return
+                 }
+                self.overlayManager.showToast(message: PopupMessages.dataUpdatedMessage("Spending"), style: .success)
+                self.spending = spending.convertToDto()
 
             } else {
-                // Add
-                let result = await service.addSpending(spending)
-                if case .error(let string) = result {
-                    // TODO: - Show Error
+                let apiResult = await service.addSpending(spending)
+                switch apiResult {
+                case .data(let newSpending):
+                    self.spending = newSpending
+                    self.overlayManager.showToast(message: PopupMessages.dataAddedMessage("Spending"), style: .success)
+                case .error(let error):
+                    self.overlayManager.showToast(message: error, style: .error)
                     return
-                }
-                if case .data(let spending) = result {
-                    self.spending = spending
+                default:
+                    debugPrint("")
                 }
             }
-            self.isDataUploading = false
             dismissSheet = true
         }
     }

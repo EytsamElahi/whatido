@@ -42,7 +42,25 @@ struct SplashView: View {
                 }
                 .transition(.opacity)
             }
-            // 3. TOAST OVERLAY
+
+            if let popup = overlayManager.popup {
+                // Dim Background for Popup
+                Color.black.opacity(0.6)
+                    .ignoresSafeArea()
+                    .zIndex(20)
+                    .onTapGesture {
+                        // Optional: Background tap pe close karna hai ya nahi
+                       // overlayManager.dismissPopup()
+                    }
+
+                // The Popup Card
+                PopupView(popup: popup)
+                    .padding(.horizontal, 30)
+                    .transition(.scale.combined(with: .opacity))
+                    .zIndex(21)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            }
+
             if let toast = overlayManager.toast {
                 ToastView(toast: toast)
                     .padding(.bottom, 50) // TabBar se thora upar
@@ -51,7 +69,8 @@ struct SplashView: View {
                     .id(toast.message)
             }
         }.animation(.spring(response: 0.5, dampingFraction: 0.7), value: overlayManager.toast) // Smooth Animation
-         .animation(.easeInOut, value: overlayManager.isLoading)
+            .animation(.spring(response: 0.4, dampingFraction: 0.7), value: overlayManager.popup)
+            .animation(.easeInOut, value: overlayManager.isLoading)
     }
 }
 
