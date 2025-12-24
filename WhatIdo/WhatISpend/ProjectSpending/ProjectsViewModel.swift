@@ -134,8 +134,21 @@ class ProjectsViewModel: BaseViewModel {
 
     // TODO: - Add confirmation popup
     func deleteProject(_ id: String) {
-        self.dataIsDeleting = true
+        overlayManager.showPopup(
+                title: "Delete Project?",
+                message: "This will delete all spendings inside the project. Cannot be undone.",
+                style: .warning,
+                primaryAction: PopupAction(title: "Delete", role: .destructive) {
+                    self.performDelete(id: id)
+                },
+                secondaryAction: PopupAction(title: "Cancel", role: .cancel) {
+                    // Cancel logic (auto dismiss)
+                }
+            )
+    }
 
+    private func performDelete(id: String) {
+        self.dataIsDeleting = true
         Task { [weak self] in
             guard let self = self else { return }
 
@@ -159,7 +172,6 @@ class ProjectsViewModel: BaseViewModel {
             }
         }
     }
-
     // MARK: - Fetch Details
     func fetchProjectSpendings(_ id: String) {
         isDataLoading = true
