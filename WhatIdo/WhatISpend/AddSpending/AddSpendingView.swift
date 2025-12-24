@@ -12,6 +12,7 @@ struct AddSpendingView: View {
     var selectedProject: ProjectDto?
     @Environment(\.dismiss) var dismiss
     var onSpendingAdded: (SpendingDto?) -> ()
+    @State private var showAllCategories = false // Default: Collapsed
 
     // Grid Layout for Categories
     let columns = [
@@ -24,18 +25,57 @@ struct AddSpendingView: View {
     // Helper for Icons
     func getIcon(for name: String) -> String {
         switch name.lowercased() {
-        case "rent", "housing": return "house.fill"
-        case "utility bill", "bills": return "bolt.fill"
-        case "fuel", "transport": return "fuelpump.fill"
-        case "travel": return "airplane"
-        case "groceries": return "cart.fill"
-        case "food", "dining": return "fork.knife"
-        case "health", "medicine": return "cross.case.fill"
-        case "debt": return "creditcard.fill"
-        case "savings": return "banknote.fill"
-        case "subscription": return "arrow.triangle.2.circlepath"
-        case "education": return "book.fill"
-        default: return "tag.fill"
+        // 🏠 Housing & Utilities
+        case "rent", "housing":
+            return "house.fill"
+        case "utility bills", "bills", "utility bill", "maintenance":
+            return "bolt.fill"
+        // 🚗 Transport
+        case "fuel", "petrol":
+            return "fuelpump.fill"
+        case "public transit / taxi", "travel", "transport":
+            return "car.fill"
+        // 🍔 Food
+        case "groceries":
+            return "cart.fill"
+        case "dining out", "food", "dining":
+            return "fork.knife"
+        // 🏥 Health
+        case "doctor & checkups", "health":
+            return "stethoscope"
+        case "pharmacy / meds", "medicine":
+            return "pills.fill"
+        // 💰 Finance
+        case "loan repayment", "debt":
+            return "banknote.fill"
+        case "emergency fund", "savings":
+            return "lock.shield.fill"
+        // 🎬 Entertainment & Subs
+        case "subscriptions", "subscription":
+            return "repeat.circle.fill"
+        case "movies & outings", "entertainment":
+            return "popcorn.fill"
+        // 📚 Education
+        case "course & books", "education":
+            return "book.closed.fill"
+        // 💇‍♂️ Personal Care & Clothing (New)
+        case "salon & grooming", "grooming":
+            return "scissors"
+        case "clothing & tailor", "shopping":
+            return "tshirt.fill"
+        // 🛍️ Shopping items
+        case "electronics & gadgets":
+            return "laptopcomputer"
+        case "household items":
+            return "lamp.floor.fill"
+        // 🎁 Family & Gifts
+        case "gifts / donations":
+            return "gift.fill"
+        case "family support", "allowance":
+            return "figure.2.and.child.holdinghands"
+
+        default:
+            return "tag.fill"
         }
     }
     fileprivate func ProjectCapsule(project: ProjectDto, isSelected: Bool) -> some View {
@@ -119,33 +159,57 @@ struct AddSpendingView: View {
                             .padding(.leading)
 
                         LazyVGrid(columns: columns, spacing: 20) {
-                            ForEach(viewModel.spendingTypes, id: \.id) { type in
-                                let isSelected = viewModel.selectedType?.name == type.name
 
-                                VStack(spacing: 8) {
-                                    ZStack {
-                                        Circle()
-                                            .fill(isSelected ? Color.appPrimaryColor : Color.white.opacity(0.05))
-                                            .frame(width: 55, height: 55)
+                                // 🔥 LOGIC: Agar expanded hai to sab dikhao, warna sirf pehle 8
+                            let categoriesToShow = showAllCategories ? viewModel.spendingTypes : Array(viewModel.spendingTypes.prefix(8))
 
-                                        Image(systemName: getIcon(for: type.name ?? ""))
-                                            .font(.system(size: 20))
-                                            .foregroundStyle(isSelected ? Color.black : Color.white)
+                                ForEach(categoriesToShow, id: \.id) { category in
+                                    VStack {
+                                        // 1. Icon Circle
+                                        ZStack {
+                                            Circle()
+                                                .fill(viewModel.selectedType?.id == category.id ? Color.appPrimaryColor : Color.gray.opacity(0.2))
+                                                .frame(width: 60, height: 60)
+
+                                            Image(systemName: getIcon(for: category.name ?? "")) // Tumhara Helper Function
+                                                .font(.system(size: 24))
+                                                .foregroundStyle(viewModel.selectedType?.id == category.id ? .black : .white)
+                                        }
+
+                                        Text(category.name ?? "")
+                                            .font(.caption)
+                                            .foregroundStyle(.white)
+                                            .multilineTextAlignment(.center)
+                                            .lineLimit(2)
+                                            .minimumScaleFactor(0.8)
+                                            .frame(height: 35, alignment: .top)
                                     }
-
-                                    Text(type.name ?? "")
-                                        .font(.customFont(family: .quicksand, name: .medium, size: .x10))
-                                        .foregroundStyle(isSelected ? Color.appPrimaryColor : Color.gray)
-                                        .lineLimit(1)
-                                }
-                                .onTapGesture {
-                                    withAnimation(.spring()) {
-                                        viewModel.selectedType = type
+                                    .onTapGesture {
+                                        withAnimation(.spring()) {
+                                            viewModel.selectedType = category
+                                        }
                                     }
                                 }
                             }
-                        }
-                        .padding(.horizontal)
+                            .padding(.horizontal)
+                        if viewModel.spendingTypes.count > 8 {
+                                Button(action: {
+                                    withAnimation(.easeInOut) {
+                                        showAllCategories.toggle()
+                                    }
+                                }) {
+                                    HStack {
+                                        Text(showAllCategories ? "Show Less" : "See All Categories")
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+
+                                        Image(systemName: showAllCategories ? "chevron.up" : "chevron.down")
+                                    }
+                                    .foregroundStyle(Color.appPrimaryColor) // Tumhara yellow/brand color
+                                    .padding(.top, 10)
+                                }
+                                .frame(maxWidth: .infinity) // Center align button
+                            }
                     }
 
                     // MARK: - 4. Project Link (NEW ADDITION 🚀)

@@ -7,7 +7,12 @@
     {
         "id": 2,
         "cat_id": 1,
-        "name": "Utility Bill"
+        "name": "Utility Bills"
+    },
+    {
+        "id": 18,
+        "cat_id": 1,
+        "name": "Maintenance"
     },
     {
         "id": 3,
@@ -17,7 +22,7 @@
     {
         "id": 4,
         "cat_id": 2,
-        "name": "Travel"
+        "name": "Public Transit / Taxi"
     },
     {
         "id": 5,
@@ -27,51 +32,71 @@
     {
         "id": 6,
         "cat_id": 3,
-        "name": "Food"
+        "name": "Dining Out"
     },
     {
         "id": 7,
         "cat_id": 4,
-        "name": "Health"
+        "name": "Doctor & Checkups"
+    },
+    {
+        "id": 19,
+        "cat_id": 4,
+        "name": "Pharmacy / Meds"
     },
     {
         "id": 9,
         "cat_id": 5,
-        "name": "Debt"
+        "name": "Loan Repayment"
     },
     {
         "id": 10,
         "cat_id": 6,
-        "name": "Savings"
+        "name": "Emergency Fund"
     },
     {
         "id": 11,
         "cat_id": 7,
-        "name": "Subscription"
+        "name": "Subscriptions"
+    },
+    {
+        "id": 20,
+        "cat_id": 7,
+        "name": "Movies & Outings"
     },
     {
         "id": 13,
         "cat_id": 8,
-        "name": "Education"
-    },
-    {
-        "id": 15,
-        "cat_id": 10,
-        "name": "Miscellaneous"
+        "name": "Course & Books"
     },
     {
         "id": 16,
         "cat_id": 11,
-        "name": "Grooming"
+        "name": "Salon & Grooming"
+    },
+    {
+        "id": 21,
+        "cat_id": 11,
+        "name": "Clothing & Tailor"
     },
     {
         "id": 17,
         "cat_id": 12,
-        "name": "Shopping"
+        "name": "Electronics & Gadgets"
     },
     {
-        "id": 14,
-        "cat_id": 13,
-        "name": "Allowance"
+        "id": 22,
+        "cat_id": 12,
+        "name": "Household Items"
+    },
+    {
+        "id": 23,
+        "cat_id": 14,
+        "name": "Gifts / Donations"
+    },
+    {
+        "id": 24,
+        "cat_id": 14,
+        "name": "Family Support"
     }
 ]

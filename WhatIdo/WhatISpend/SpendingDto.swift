@@ -29,47 +29,63 @@ struct SpendingProjectDto: Hashable, AppDataType {
 
 extension SpendingDto {
 
-    // 1. Icon Name Logic
     var icon: String {
-        // Safe comparison ke liye lowercased use kar rahe hain
-        switch type.lowercased() {
-        case "food", "dining", "restaurants", "sweets":
-            return "fork.knife"
-        case "shopping", "clothes", "accessories":
-            return "bag.fill"
-        case "transport", "fuel", "uber", "taxi":
-            return "car.fill"
-        case "grocery", "groceries", "supermarket":
-            return "cart.fill"
-        case "health", "medicine", "doctor", "hospital":
-            return "cross.case.fill"
-        case "entertainment", "movies", "netflix", "games":
-            return "popcorn.fill" // ya "gamecontroller.fill"
-        case "bills", "utilities", "electricity", "internet":
-            return "bolt.fill" // ya "wifi"
-        case "education", "books", "courses":
-            return "book.fill"
-        case "housing", "rent":
-            return "house.fill"
-        case "salary", "income":
-            return "banknote.fill"
-        case "subscription":
-             return "repeat"
-        default:
-            return "tag.fill" // Default icon agar koi match na ho
-        }
-    }
+            // IDs match karein (User ke naye JSON ke mutabiq)
+            switch spendingTypeId {
 
-    // 2. (Optional) Icon Background Color Logic
-    // Har category ka apna color ho to UI bohot pyara lagta hai
+            // 🏠 HOUSING (1: Rent, 2: Utility, 18: Maintenance)
+            case 1, 18: return "house.fill"
+            case 2: return "bolt.fill"
+
+            // 🚗 TRANSPORT (3: Fuel, 4: Public Transit)
+            case 3: return "fuelpump.fill"
+            case 4: return "car.fill"
+
+            // 🍔 FOOD (5: Groceries, 6: Dining Out)
+            case 5: return "cart.fill"
+            case 6: return "fork.knife"
+
+            // 🏥 HEALTH (7: Doctor, 19: Pharmacy)
+            case 7: return "stethoscope"
+            case 19: return "pills.fill"
+
+            // 💰 DEBT & FINANCE (9: Loan, 10: Emergency Fund)
+            case 9: return "banknote.fill"
+            case 10: return "lock.shield.fill"
+
+            // 🎬 ENTERTAINMENT (11: Subs, 20: Movies)
+            case 11: return "repeat.circle.fill"
+            case 20: return "popcorn.fill"
+
+            // 📚 EDUCATION (13: Courses)
+            case 13: return "book.closed.fill"
+
+            // 💇‍♂️ PERSONAL CARE (16: Salon, 21: Clothing)
+            case 16: return "scissors"
+            case 21: return "tshirt.fill"
+
+            // 🛍️ SHOPPING (17: Electronics, 22: Household)
+            case 17: return "laptopcomputer"
+            case 22: return "lamp.floor.fill"
+
+            // 🎁 GIVING (23: Gifts, 24: Family)
+            case 23: return "gift.fill"
+            case 24: return "figure.2.and.child.holdinghands"
+
+            default: return "tag.fill"
+            }
+        }
+
+    // Optional: Colors ko bhi match karwa sakte ho agar chaho
     var iconColor: Color {
         switch type.lowercased() {
-        case "food": return .orange
-        case "shopping": return .blue
-        case "transport": return .yellow
-        case "health": return .red
-        case "salary": return .green
-        default: return .gray.opacity(0.2) // Default grey
+        case "rent", "housing": return .blue
+        case "food", "dining out": return .orange
+        case "groceries": return .green
+        case "health", "doctor & checkups", "pharmacy / meds": return .red
+        case "savings", "emergency fund": return .purple
+        case "fuel", "transport": return .yellow
+        default: return .gray
         }
     }
 }
