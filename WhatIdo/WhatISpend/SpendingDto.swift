@@ -76,20 +76,22 @@ extension SpendingDto {
             }
         }
 
-    // Optional: Colors ko bhi match karwa sakte ho agar chaho
     var iconColor: Color {
             switch type.lowercased() {
+
             // 🏠 HOUSING (Blue/Cyan)
+            // Fixed: "utility bill" (Singular) added
             case "rent", "housing": return Color.blue
-            case "utility bills", "bills", "electricity", "maintenance": return Color.cyan
+            case "utility bill", "utility bills", "bills", "electricity", "maintenance": return Color.cyan
 
             // 🚗 TRANSPORT (Yellow/Orange)
+            // Fixed: "travel" added
             case "fuel", "petrol", "gas": return Color.yellow
-            case "public transit / taxi", "transport", "uber": return Color.orange
+            case "travel", "public transit / taxi", "transport", "uber", "taxi": return Color.orange
 
             // 🍔 FOOD (Green/Mint)
             case "groceries", "grocery": return Color.green
-            case "dining out", "food", "restaurants": return Color.mint
+            case "dining out", "food", "dining", "restaurants": return Color.mint
 
             // 🏥 HEALTH (Red/Pink)
             case "doctor & checkups", "health": return Color.red
@@ -99,21 +101,23 @@ extension SpendingDto {
             case "loan repayment", "debt": return Color.purple
             case "emergency fund", "savings": return Color.indigo
 
-            // 🛍️ SHOPPING & PERSONAL (Teal/Lavender)
+            // 🛍️ SHOPPING (Teal/Blue)
             case "shopping", "clothing & tailor", "clothes": return Color.teal
             case "electronics & gadgets": return Color.blue.opacity(0.8)
             case "household items": return Color.brown
-            case "salon & grooming", "grooming": return Color("Lavender") // Ya Color.purple.opacity(0.7)
 
-            // 🎁 FAMILY & OTHERS (Gold/Multi)
-            case "allowance", "family support": return Color.orange.opacity(0.8) // 🔥 Allowance Fixed
-            case "gifts / donations": return Color.pink.opacity(0.7)
+            // 🎁 PERSONAL & GIFTS (Lavender/Pink)
+            // Fixed: "subscription" (Singular) added
+            case "salon & grooming", "grooming": return Color("Lavender") // Ya Color.purple.opacity(0.6)
+            case "subscriptions", "subscription": return Color.indigo.opacity(0.8)
+            case "gifts / donations", "gifts": return Color.pink.opacity(0.7)
+            case "allowance", "family support": return Color.orange.opacity(0.8)
 
-            // 🎬 ENTERTAINMENT
-            case "movies & outings", "subscriptions": return Color.indigo.opacity(0.8)
-            case "course & books", "education": return Color.blue
+            // 📂 MISC (Dark Grey - Intentional)
+            case "miscellaneous": return Color.gray
 
-            default: return Color.gray // Sirf unknown ke liye gray
+            // 🏷️ DEFAULT (Light Grey - Fallback)
+            default: return Color.gray.opacity(0.5)
             }
         }
 }
