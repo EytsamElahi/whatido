@@ -79,7 +79,7 @@ struct SpendsListingView: View {
 
                     // MARK: - 2. Smart Hero Card
                     SpendingsHeroSection(budgetProgress: budgetProgress, progressBarColor: progressBarColor){
-                      //  navigation.push(screen: .SpendingDetails(SpendingDetailViewModel(spendingService: viewModel.spendingService, currentMonthSpendings: viewModel.currentMonthSpendings, spendingTypes: viewModel.spendingTypes)))
+                        navigation.push(screen: .spendingAnalytics)
                     }
                     .environmentObject(viewModel)
 

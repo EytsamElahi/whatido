@@ -70,4 +70,9 @@ class AppDependencyContainer {
     func makeBudgetViewModel(budgetToEdit: Budget? = nil) -> BudgetViewModel {
         return BudgetViewModel(service: budgetsService, budgetToEdit: budgetToEdit)
     }
+
+    @MainActor
+    func makeAnalyticsViewModel() -> AnalyticsViewModel {
+        return AnalyticsViewModel(service: spendingsService)
+    }
 }

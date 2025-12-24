@@ -25,6 +25,8 @@ extension SplashView {
         case .projectSpendingsList(let dto):
             ProjectSpendingsListView(project: dto, viewModel: container.makeProjectsViewModel())
                 .environment(\.dependencyContainer, container)
+        case .spendingAnalytics:
+            AnalyticsView(viewModel: container.makeAnalyticsViewModel())
         }
     }
 }

@@ -78,14 +78,42 @@ extension SpendingDto {
 
     // Optional: Colors ko bhi match karwa sakte ho agar chaho
     var iconColor: Color {
-        switch type.lowercased() {
-        case "rent", "housing": return .blue
-        case "food", "dining out": return .orange
-        case "groceries": return .green
-        case "health", "doctor & checkups", "pharmacy / meds": return .red
-        case "savings", "emergency fund": return .purple
-        case "fuel", "transport": return .yellow
-        default: return .gray
+            switch type.lowercased() {
+            // 🏠 HOUSING (Blue/Cyan)
+            case "rent", "housing": return Color.blue
+            case "utility bills", "bills", "electricity", "maintenance": return Color.cyan
+
+            // 🚗 TRANSPORT (Yellow/Orange)
+            case "fuel", "petrol", "gas": return Color.yellow
+            case "public transit / taxi", "transport", "uber": return Color.orange
+
+            // 🍔 FOOD (Green/Mint)
+            case "groceries", "grocery": return Color.green
+            case "dining out", "food", "restaurants": return Color.mint
+
+            // 🏥 HEALTH (Red/Pink)
+            case "doctor & checkups", "health": return Color.red
+            case "pharmacy / meds", "medicine": return Color.pink
+
+            // 💰 FINANCE (Purple/Indigo)
+            case "loan repayment", "debt": return Color.purple
+            case "emergency fund", "savings": return Color.indigo
+
+            // 🛍️ SHOPPING & PERSONAL (Teal/Lavender)
+            case "shopping", "clothing & tailor", "clothes": return Color.teal
+            case "electronics & gadgets": return Color.blue.opacity(0.8)
+            case "household items": return Color.brown
+            case "salon & grooming", "grooming": return Color("Lavender") // Ya Color.purple.opacity(0.7)
+
+            // 🎁 FAMILY & OTHERS (Gold/Multi)
+            case "allowance", "family support": return Color.orange.opacity(0.8) // 🔥 Allowance Fixed
+            case "gifts / donations": return Color.pink.opacity(0.7)
+
+            // 🎬 ENTERTAINMENT
+            case "movies & outings", "subscriptions": return Color.indigo.opacity(0.8)
+            case "course & books", "education": return Color.blue
+
+            default: return Color.gray // Sirf unknown ke liye gray
+            }
         }
-    }
 }
