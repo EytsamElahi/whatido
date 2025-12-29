@@ -13,6 +13,7 @@ struct AddSpendingView: View {
     @Environment(\.dismiss) var dismiss
     var onSpendingAdded: (SpendingDto?) -> ()
     @State private var showAllCategories = false // Default: Collapsed
+    @ObservedObject var currencyManager = CurrencyManager.shared
 
     // Grid Layout for Categories
     let columns = [
@@ -113,7 +114,10 @@ struct AddSpendingView: View {
                             .foregroundStyle(Color.gray)
 
                         HStack(alignment: .firstTextBaseline, spacing: 5) {
-                            Text("Rs")
+//                            Text("Rs")
+//                                .font(.customFont(family: .quicksand, name: .bold, size: .x24))
+//                                .foregroundStyle(Color.appPrimaryColor)
+                            Text(currencyManager.currencyCode)
                                 .font(.customFont(family: .quicksand, name: .bold, size: .x24))
                                 .foregroundStyle(Color.appPrimaryColor)
 

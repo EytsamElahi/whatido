@@ -8,6 +8,7 @@
 import SwiftUI
 struct SpendingsHeroSection: View {
     @EnvironmentObject var viewModel: DashboardViewModel
+    @EnvironmentObject var currencyManager: CurrencyManager
     var budgetProgress: Double
     var progressBarColor: Color
     var viewAnalyticsAction: () -> Void
@@ -28,7 +29,7 @@ struct SpendingsHeroSection: View {
                 }
                 // Big Amount
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    Text("Rs")
+                    Text(currencyManager.symbol ?? "")
                         .font(.customFont(family: .quicksand, name: .medium, size: .x20))
                         .foregroundStyle(Color.white.opacity(0.7))
 

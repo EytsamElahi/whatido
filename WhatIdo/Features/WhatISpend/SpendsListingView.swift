@@ -11,6 +11,8 @@ struct SpendsListingView: View {
     @EnvironmentObject var navigation: NavigationManager
     @StateObject var viewModel: DashboardViewModel
     @Environment(\.dependencyContainer) var container
+    @ObservedObject var currencyManager = CurrencyManager.shared
+    @State private var showCurrencySettingScreen: Bool = false
 
     // Progress Bar Logic
     var budgetProgress: Double {
@@ -82,6 +84,7 @@ struct SpendsListingView: View {
                         navigation.push(screen: .spendingAnalytics)
                     }
                     .environmentObject(viewModel)
+                    .environmentObject(currencyManager)
 
                     AddSpendingRow()
                         .environmentObject(viewModel)
@@ -96,6 +99,7 @@ struct SpendsListingView: View {
                         List {
                             ForEach(viewModel.currentMonthSpendings ?? [], id: \.self) { spending in
                                 UpdatedSpendingRow(spending: spending)
+                                    .environmentObject(currencyManager)
                                     .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
                                     .listRowSeparator(.hidden)
                                     .listRowBackground(Color.clear) // Important for Gray BG
@@ -126,6 +130,11 @@ struct SpendsListingView: View {
             }
             // MARK: - Modifiers & Lifecycle
             .onAppear {
+                if AppData.prefCurrency == nil {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        showCurrencySettingScreen.toggle()
+                    }
+                }
                 guard viewModel.currentMonthSpendings == nil else { return }
                 viewModel.fetchDashboardData()
             }
@@ -147,6 +156,10 @@ struct SpendsListingView: View {
                 })
                     .presentationDetents([.medium, .large])
             }
+            .sheet(isPresented: $showCurrencySettingScreen) {
+                SettingsView()
+                    .presentationDetents([.medium, .large])
+            }.interactiveDismissDisabled()
             .sheet(isPresented: $viewModel.showBudgetSheet) {
                 SetBudgetView(viewModel: container.makeBudgetViewModel(budgetToEdit: viewModel.monthlyBudget), onGetBudget: { budget in
                     viewModel.monthlyBudget = budget

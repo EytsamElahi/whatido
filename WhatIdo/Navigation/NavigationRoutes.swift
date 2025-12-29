@@ -11,4 +11,5 @@ enum Route: Hashable {
     case projectListing
     case projectSpendingsList(ProjectDto)
     case spendingAnalytics
+    case currencySettings
 }

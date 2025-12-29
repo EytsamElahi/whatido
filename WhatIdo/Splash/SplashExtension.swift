@@ -27,6 +27,8 @@ extension SplashView {
                 .environment(\.dependencyContainer, container)
         case .spendingAnalytics:
             AnalyticsView(viewModel: container.makeAnalyticsViewModel())
+        case .currencySettings:
+            SettingsView()
         }
     }
 }

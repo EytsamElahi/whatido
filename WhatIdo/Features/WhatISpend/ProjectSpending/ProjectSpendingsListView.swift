@@ -11,8 +11,9 @@ import SwiftUI
 struct ProjectSpendingsListView: View {
     @EnvironmentObject var navigation: NavigationManager
     let project: ProjectDto
-    @StateObject var viewModel: ProjectsViewModel // ObservedObject bhi use kar sakte hain agar parent se pass ho raha hai
+    @StateObject var viewModel: ProjectsViewModel
     @Environment(\.dependencyContainer) var container
+    @ObservedObject var currencyManager = CurrencyManager.shared
 
     var body: some View {
         ZStack {
@@ -45,6 +46,7 @@ struct ProjectSpendingsListView: View {
                     // 👇 NEW: Add Spending Button
                     Button {
                         viewModel.selectedProject = project
+                        viewModel.spendingToEdit = nil
                         viewModel.showAddNewSpendingSheet = true
                     } label: {
                         Image(systemName: "plus.circle.fill")
@@ -81,7 +83,7 @@ struct ProjectSpendingsListView: View {
                                 .font(.customFont(family: .quicksand, name: .medium, size: .x14))
                                 .foregroundStyle(Color.gray)
 
-                                Text("Rs \(viewModel.totalProjectSpending)")
+                            Text("\(currencyManager.symbol) \(viewModel.totalProjectSpending)")
                                     .font(.customFont(family: .inter, name: .bold, size: .x30))
                                     .foregroundStyle(Color.white)
                         }
@@ -95,6 +97,7 @@ struct ProjectSpendingsListView: View {
                                 ForEach(viewModel.projectSpendings, id: \.id) { spending in
                                     // 🔥 Reusing your existing Card
                                     UpdatedSpendingRow(spending: spending, hideProject: true)
+                                        .environmentObject(currencyManager)
                                         .onTapGesture {
                                             viewModel.spendingToEdit = spending
                                             viewModel.selectedProject = project
@@ -125,7 +128,6 @@ struct ProjectSpendingsListView: View {
                 }
                 viewModel.updateTotalSpending()
             }).environmentObject(viewModel)
-                
                 .presentationDetents([.medium, .large])
         }
     }

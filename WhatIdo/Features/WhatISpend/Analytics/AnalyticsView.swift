@@ -99,7 +99,7 @@ extension AnalyticsView {
                 .font(.customFont(family: .quicksand, name: .medium, size: .x16))
                 .foregroundStyle(Color.gray)
 
-            Text("$\(String(format: "%.0f", viewModel.totalSpent))")
+            Text(viewModel.totalSpent.toCurrency)
                 .font(.customFont(family: .quicksand, name: .bold, size: .x34))
                 .foregroundStyle(Color.appPrimaryColor)
         }
@@ -177,7 +177,7 @@ extension AnalyticsView {
 
                     // Amount & Percentage Logic
                     VStack(alignment: .trailing, spacing: 4) {
-                        Text("$\(String(format: "%.0f", data.totalAmount))")
+                        Text("\(AppData.prefCurrency?.symbol ?? "$") \(String(format: "%.0f", data.totalAmount))")
                             .font(.customFont(family: .inter, name: .bold, size: .x16))
                             .foregroundStyle(.white)
 

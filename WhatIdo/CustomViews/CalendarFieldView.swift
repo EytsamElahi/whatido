@@ -88,6 +88,9 @@ struct CalendarFieldView: View {
             if let date = fieldInputDate {
                 self.selectedDate = date
             }
+            if fieldInputText == "" {
+                self.fieldInputText = "Today"
+            }
         })
     }
     

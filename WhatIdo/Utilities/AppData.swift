@@ -10,4 +10,8 @@ import Foundation
 class AppData {
     @AppStorage(key: "budget", defaultValue: nil)
     static var budget: [String:Double]?
+
+    @AppStorageObject(key: "preferredCurrency", defaultValue: nil)
+    static var prefCurrency: CurrencyOption?
+
 }

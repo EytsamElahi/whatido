@@ -61,7 +61,8 @@ class AppDependencyContainer {
     func makeTransactionFormViewModel(spendingToEdit: SpendingDto? = nil) -> AddSpendingViewModel {
         return AddSpendingViewModel(
             service: spendingsService,
-            spendingToEdit: spendingToEdit
+            spendingToEdit: spendingToEdit,
+            eventBus: eventBus
         )
     }
 

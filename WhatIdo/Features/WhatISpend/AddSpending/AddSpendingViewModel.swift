@@ -7,6 +7,7 @@
 
 
 import SwiftUI
+import Combine
 
 @MainActor
 class AddSpendingViewModel: ObservableObject {
@@ -43,14 +44,15 @@ class AddSpendingViewModel: ObservableObject {
     var spendingIdToEdit: String?
     private var created: Date?
     private let overlayManager = OverlayManager.shared
+    private let eventBus: PassthroughSubject<AppGlobalEvent, Never>
 
-    init(service: SpendingsServiceProtocol = SpendingsService(), projectSerivce: ProjectsServiceProtocol = ProjectsService(), spendingToEdit: SpendingDto? = nil) {
+    init(service: SpendingsServiceProtocol = SpendingsService(), projectSerivce: ProjectsServiceProtocol = ProjectsService(), spendingToEdit: SpendingDto? = nil, eventBus: PassthroughSubject<AppGlobalEvent, Never>) {
         self.service = service
         self.projectService = projectSerivce
+        self.eventBus = eventBus
         self.loadSpendingTypes()
         self.getProjects()
 
-        // Agar Edit mode hai to form fill karo
         if let spending = spendingToEdit {
             self.spendingIdToEdit = spending.id
             self.spendingItemTf = spending.name
@@ -99,6 +101,7 @@ class AddSpendingViewModel: ObservableObject {
                      return
                  }
                 self.overlayManager.showToast(message: PopupMessages.dataUpdatedMessage("Spending"), style: .success)
+                eventBus.send(.reloadDashboard)
                 self.spending = spending.convertToDto()
 
             } else {
@@ -106,6 +109,7 @@ class AddSpendingViewModel: ObservableObject {
                 switch apiResult {
                 case .data(let newSpending):
                     self.spending = newSpending
+                    eventBus.send(.reloadDashboard)
                     self.overlayManager.showToast(message: PopupMessages.dataAddedMessage("Spending"), style: .success)
                 case .error(let error):
                     self.overlayManager.showToast(message: error, style: .error)

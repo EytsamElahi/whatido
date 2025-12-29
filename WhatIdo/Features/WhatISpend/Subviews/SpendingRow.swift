@@ -15,7 +15,7 @@ struct SpendingRow: View {
                 Text(spending.name)
                     .font(.customFont(name: .regular, size: .x18))
                 Spacer()
-                Text("Rs \(Int(spending.amount))")
+                Text(spending.amount.toCurrency)
                     .font(.customFont(name: .medium, size: .x18))
             }
             HStack {
@@ -52,6 +52,7 @@ struct UpdatedSpendingRow: View {
     let spending: SpendingDto
     var iconName: String { return spending.icon }
     var hideProject: Bool? = nil
+    @EnvironmentObject var currencyManager: CurrencyManager
 
     var body: some View {
         HStack(spacing: 15) {
@@ -119,7 +120,7 @@ struct UpdatedSpendingRow: View {
 
             // Amount & Date
             VStack(alignment: .trailing, spacing: 4) {
-                Text("Rs \(Int(spending.amount))")
+                Text("\(currencyManager.symbol ?? "") \(Int(spending.amount))")
                     .font(.customFont(family: .inter, name: .bold, size: .x16))
                     .foregroundStyle(Color.textPrimary) // ✅ White Text
 
