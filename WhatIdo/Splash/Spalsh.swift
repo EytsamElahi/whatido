@@ -22,7 +22,7 @@ struct SplashView: View {
                 }.frame(maxWidth: .infinity, maxHeight: .infinity)
                     .onAppear {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
-                            navManager.push(screen: .spendings)
+                            navManager.push(screen: .login)
                         })
                     }
                     .navigationDestination(for: Route.self) { routes in

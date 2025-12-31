@@ -29,6 +29,8 @@ extension SplashView {
             AnalyticsView(viewModel: container.makeAnalyticsViewModel())
         case .currencySettings:
             SettingsView()
+        case .login:
+            AuthenticationView(viewModel: container.makeLoginViewModel())
         }
     }
 }
