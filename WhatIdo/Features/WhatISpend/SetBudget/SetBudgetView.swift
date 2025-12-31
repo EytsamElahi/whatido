@@ -14,6 +14,7 @@ struct SetBudgetView: View {
     // Dynamic Sheet Height ke liye variable
     @State private var sheetHeight: CGFloat = .zero
     var onGetBudget: (Budget?) -> ()
+    @ObservedObject var currencyManager = CurrencyManager.shared
 
     var body: some View {
         ZStack {
@@ -41,7 +42,7 @@ struct SetBudgetView: View {
                         .foregroundStyle(Color.gray)
 
                     HStack(alignment: .firstTextBaseline, spacing: 5) {
-                        Text("Rs")
+                        Text(currencyManager.currencyCode)
                             .font(.customFont(family: .quicksand, name: .bold, size: .x24))
                             .foregroundStyle(Color.appPrimaryColor)
 
