@@ -57,14 +57,14 @@ struct AppSecondaryButton: View {
                 CircularLoadingIndicator(indicatorColor: .white)
             } else {
                 Text(title)
-                    .foregroundColor(.primary)
+                    .foregroundColor(.appPrimaryColor)
                     .font(.customFont(name: .medium, size: fontSize ?? .x18))
             }
             Spacer()
         }.frame(height: height ?? 51)
             .background(
                 RoundedRectangle(cornerRadius: 10.0)
-                    .stroke(disable ? Color.primary.opacity(0.5) : Color.primary.opacity(1), lineWidth: 2.0)
+                    .stroke(disable ? Color.appPrimaryColor.opacity(0.5) : Color.appPrimaryColor.opacity(1), lineWidth: 2.0)
             )
             .cornerRadius(10.0, corners: .allCorners)
             .padding([.leading, .trailing], cornerPadding ?? 20)

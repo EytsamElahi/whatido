@@ -130,11 +130,11 @@ struct SpendsListingView: View {
             }
             // MARK: - Modifiers & Lifecycle
             .onAppear {
-                if AppData.prefCurrency == nil {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                        showCurrencySettingScreen.toggle()
-                    }
-                }
+//                if AppData.prefCurrency == nil {
+//                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+//                        showCurrencySettingScreen.toggle()
+//                    }
+//                }
                 guard viewModel.currentMonthSpendings == nil else { return }
                 viewModel.fetchDashboardData()
             }
@@ -156,10 +156,10 @@ struct SpendsListingView: View {
                 })
                     .presentationDetents([.medium, .large])
             }
-            .sheet(isPresented: $showCurrencySettingScreen) {
-                SettingsView()
-                    .presentationDetents([.medium, .large])
-            }.interactiveDismissDisabled()
+//            .sheet(isPresented: $showCurrencySettingScreen) {
+//                SettingsView()
+//                    .presentationDetents([.medium, .large])
+//            }.interactiveDismissDisabled()
             .sheet(isPresented: $viewModel.showBudgetSheet) {
                 SetBudgetView(viewModel: container.makeBudgetViewModel(budgetToEdit: viewModel.monthlyBudget), onGetBudget: { budget in
                     viewModel.monthlyBudget = budget

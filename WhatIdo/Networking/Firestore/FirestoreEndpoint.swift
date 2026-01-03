@@ -34,6 +34,8 @@ enum FirestoreEndpoints: FirestoreEndpoint {
     case getAllProjects
     case addProject(id: String)
     case editOrDeleteProject(id: String)
+    case addUser(id: String)
+    case editUser(id: String)
 
     var path: FirestoreReference {
         switch self {
@@ -61,6 +63,10 @@ enum FirestoreEndpoints: FirestoreEndpoint {
             return firestore.collection("projects").document(documentId)
         case .editOrDeleteProject(let documentId):
             return firestore.collection("projects").document(documentId)
+        case .addUser(let documentId):
+            return firestore.collection("users").document(documentId)
+        case .editUser(let documentId):
+            return firestore.collection("users").document(documentId)
         }
     }
 }

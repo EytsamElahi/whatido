@@ -11,7 +11,11 @@ protocol AuthModelType {}
 public struct AuthModel: AuthModelType {
     let userId: String
     let email: String?
-    let name: String?
+    var name: String?
+
+    func toUserDto() -> UserDto {
+        return UserDto(id: userId, name: name, email: email)
+    }
 }
 
 

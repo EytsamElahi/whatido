@@ -14,4 +14,7 @@ class AppData {
     @AppStorageObject(key: "preferredCurrency", defaultValue: nil)
     static var prefCurrency: CurrencyOption?
 
+    @AppStorageObject(key: "user", defaultValue: nil)
+    static var user: UserDto?
+
 }

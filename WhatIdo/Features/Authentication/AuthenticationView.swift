@@ -10,14 +10,14 @@ import AuthenticationServices
 
 struct AuthenticationView: View {
     @StateObject var viewModel: AuthenticationViewModel
-    // Tumhara App Theme Color (Yellow)
+    @EnvironmentObject var navManager: NavigationManager
     let appPrimary = Color.appPrimaryColor
 
     @State private var isAnimating = false
     var body: some View {
         ZStack {
             // 1. BACKGROUND
-            Color.black.ignoresSafeArea()
+            Color.appBackground.ignoresSafeArea()
 
             // 2. AMBIENT GLOW (Yellow Effect peeche)
             Circle()
@@ -57,10 +57,10 @@ struct AuthenticationView: View {
                 VStack(spacing: 16) {
                     SocialButtonView(image: .google, title: "Continue with Google", backgroundColor: .googleBackground, fontColor: .black, imageWidth: 20, imageHeight: 20, action: {
                         viewModel.authenticate(.google)
-                    })
+                    }).padding(.horizontal)
                     SocialButtonView(image: .apple, title: "Continue with Apple", backgroundColor: .black, fontColor: .white,imageWidth: 18, imageHeight: 22, action: {
                         viewModel.authenticate(.apple)
-                    })
+                    }).padding(.horizontal)
 
                 }
                 .padding(.horizontal, 24)
@@ -81,7 +81,14 @@ struct AuthenticationView: View {
             withAnimation(.easeOut(duration: 1.0)) {
                 isAnimating = true
             }
+        }.onChange(of: viewModel.navigateToCurrency) {
+            navManager.push(screen: .currencySettings)
         }
+        .sheet(isPresented: $viewModel.showUsernameSheet) {
+            UsernameView()
+                .environmentObject(viewModel)
+                .presentationDetents([.height(300)])
+        }.interactiveDismissDisabled()
     }
 }
 

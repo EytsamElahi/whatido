@@ -27,7 +27,7 @@ struct SocialButtonView: View {
                     .resizable()
                     .frame(width: imageWidth,height: imageHeight)
                 Text(title)
-                    .font(.customFont(family: .quicksand, name: .semiBold, size: .x12))
+                    .font(.customFont(family: .quicksand, name: .bold, size: .x14))
                     .foregroundStyle(fontColor)
                
             }

@@ -10,6 +10,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @StateObject var currencyManager = CurrencyManager.shared
+    @EnvironmentObject var navigation: NavigationManager
     @Environment(\.dismiss) var dismiss
 
     var body: some View {
@@ -17,9 +18,9 @@ struct SettingsView: View {
             Color.appBackground.ignoresSafeArea()
             VStack {
                 //                // Header
-                //                AppHeaderView(title: "Settings", backAction: {
-                //                    navigation.pop()
-                //                })
+                AppHeaderView(title: "Settings", backAction: {
+                    navigation.pop()
+                })
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
@@ -32,7 +33,8 @@ struct SettingsView: View {
                             ForEach(currencyManager.currencies, id: \.code) { (currency: CurrencyOption) in
                                 Button {
                                     currencyManager.updateCurrency(option: currency)
-                                    dismiss.callAsFunction()
+//                                    dismiss.callAsFunction()
+                                    navigation.push(screen: .spendings)
                                 } label: {
                                     HStack {
                                         Text(currency.symbol)
