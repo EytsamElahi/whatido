@@ -12,6 +12,22 @@ struct AddSourceSheet: View {
     @State private var name = ""
     @State private var liveIcon = "banknote.fill" // Default Icon
 
+    private var title: String {
+        if viewModel.selectedIncomeSource == nil {
+            return "New Source"
+        } else {
+            return "Edit Source"
+        }
+    }
+
+    private var actionBtnTitle: String {
+        if viewModel.selectedIncomeSource == nil {
+            return "Add"
+        } else {
+            return "Update"
+        }
+    }
+
     var body: some View {
         ZStack {
             Color.cardBackground.ignoresSafeArea()
@@ -21,7 +37,7 @@ struct AddSourceSheet: View {
                     .foregroundStyle(Color.gray.opacity(0.3))
                     .padding(.top, 10)
 
-                Text("New Income Source")
+                Text(title)
                     .font(.customFont(family: .quicksand, name: .bold, size: .x20))
                     .foregroundStyle(Color.white)
                 HStack {
@@ -41,19 +57,32 @@ struct AddSourceSheet: View {
                             } catch {}
                         }
                 }.frame(height: 50)
-                AppPrimaryButton(title: "Add", disable: .constant(name == ""), isLoading: $viewModel.isLoading) {
+                AppPrimaryButton(title: actionBtnTitle, disable: .constant(name == ""), isLoading: $viewModel.isLoading) {
                     guard name != "" else {return}
                     hideKeyboard()
-                    viewModel.createSource(name: name)
+                    actionButton()
                 }.padding(.bottom, 20)
                     .disabled(viewModel.isLoading)
             }.padding()
-        }
+        }.onAppear(perform: {
+            if let source = viewModel.selectedIncomeSource {
+                self.name = source.name
+                self.liveIcon = source.icon
+            }
+        })
         .interactiveDismissDisabled(viewModel.isLoading)
         .presentationDetents([.height(250)])
         .presentationDragIndicator(.hidden)
         .hideKeyboardOnTapAround()
 
+    }
+
+    private func actionButton() {
+        if viewModel.selectedIncomeSource == nil {
+            viewModel.createSource(name: name)
+        } else {
+            viewModel.updateSource(name: name)
+        }
     }
 }
 

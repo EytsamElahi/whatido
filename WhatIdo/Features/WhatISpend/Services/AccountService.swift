@@ -12,6 +12,10 @@ protocol AccountServiceProtocol {
     func addAccount(_ account: Account) async -> AppResult<AccountDto>
     func getAllIncomeSources() async -> AppResult<[IncomeSourceDto]>
     func addIncomeSource(_ source: IncomeSource) async -> AppResult<IncomeSourceDto>
+    func deleteAccount(_ id: String) async -> AppResult<Void>
+    func deleteIncomeSource(_ id: String) async -> AppResult<Void>
+    func editAccount(_ account: Account) async -> AppResult<Void>
+    func editIncomeSource(_ source: IncomeSource) async -> AppResult<Void>
 }
 
 final class AccountService: FirebaseService, AccountServiceProtocol {
@@ -57,4 +61,43 @@ final class AccountService: FirebaseService, AccountServiceProtocol {
             return .error(error.localizedDescription)
         }
     }
+
+    func deleteAccount(_ id: String) async -> AppResult<Void> {
+        let endPoint = FirestoreEndpoints.createAccount(id: id)
+        do {
+            try await delete(endpoint: endPoint)
+            return .success
+        } catch {
+            return .error(error.localizedDescription)
+        }
+    }
+
+    func deleteIncomeSource(_ id: String) async -> AppResult<Void> {
+        let endpoint = FirestoreEndpoints.createIncomeSource(id: id)
+        do {
+            try await delete(endpoint: endpoint)
+            return .success
+        } catch {
+            return .error(error.localizedDescription)
+        }
+    }
+
+    func editAccount(_ account: Account) async -> AppResult<Void> {
+        do {
+            let _ = try await update(data: account, endpoint: FirestoreEndpoints.createAccount(id: account.id))
+            return .success
+        } catch {
+            return .error(error.localizedDescription)
+        }
+    }
+
+    func editIncomeSource(_ source: IncomeSource) async -> AppResult<Void> {
+        do {
+            let _ = try await update(data: source, endpoint: FirestoreEndpoints.createIncomeSource(id: source.id))
+            return .success
+        } catch {
+            return .error(error.localizedDescription)
+        }
+    }
+
 }

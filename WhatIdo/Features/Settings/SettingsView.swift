@@ -55,7 +55,6 @@ struct SettingsView: View {
                                         }
 
                                         Spacer()
-
                                         if currencyManager.currencyCode == currency.code {
                                             Image(systemName: "checkmark.circle.fill")
                                                 .foregroundStyle(Color.appPrimaryColor)

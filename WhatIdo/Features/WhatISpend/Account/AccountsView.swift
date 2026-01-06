@@ -46,25 +46,46 @@ struct AccountsView: View {
                     }
 
                     // 3. LIST CONTENT
-                    ScrollView {
+                    //  ScrollView {
                         if selectedTab == 0 {
                             ScrollView {
                                 VStack(spacing: 20) {
                                     ForEach(viewModel.accounts, id: \.self) { account in
-                                        AccountCardView(account: account)
+                                        AccountCardView(account: account, onEdit: {
+                                            viewModel.editAccount(account)
+                                        }, onDelete: {
+                                            viewModel.deleteAccount(account.id)
+                                        })
                                     }
                                 }
                             }
                             .padding()
                         } else {
-                            LazyVStack(spacing: 12) {
+                            List {
                                 ForEach(viewModel.incomeSources, id: \.self) { source in
                                     SourceRowView(source: source)
+                                        .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
+                                        .listRowSeparator(.hidden)
+                                        .listRowBackground(Color.clear)
+                                        .onTapGesture {
+                                            viewModel.editSource(source)
+                                        }
+                                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                            Button(role: .destructive) {
+                                                if let index = viewModel.incomeSources.firstIndex(of: source) {
+                                                    viewModel.deleteIncomeSource(index)
+                                                }
+                                            } label: {
+                                                Image(systemName: "trash")
+                                            }
+                                            .tint(.red)
+                                        }
                                 }
-                            }
-                            .padding()
+                            }.id(viewModel.listRefreshID)
+                            .listStyle(.plain)
+                            .scrollContentBackground(.hidden)
                         }
-                    }
+                   // }
                 }
             }
 

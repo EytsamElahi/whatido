@@ -12,7 +12,7 @@ class CurrencyManager: ObservableObject {
 
     // Singleton Instance
     static let shared = CurrencyManager()
-    @Published var activeCurrency: CurrencyOption
+    @Published var activeCurrency: CurrencyOption?
 
     // Supported Currencies List
     let currencies: [CurrencyOption] = [
@@ -29,21 +29,19 @@ class CurrencyManager: ObservableObject {
     private init() {
         if let saved = AppData.prefCurrency {
             self.activeCurrency = saved
-        } else {
-            self.activeCurrency = CurrencyOption(code: "USD", locale: "en_US", symbol: "$")
         }
     }
 
     var currencyCode: String {
-        return activeCurrency.code
+        return activeCurrency?.code ?? ""
     }
 
     var localeIdentifier: String {
-        return activeCurrency.locale
+        return activeCurrency?.locale ?? ""
     }
 
     var symbol: String {
-        return activeCurrency.symbol
+        return activeCurrency?.symbol ?? ""
     }
 
     // Update Function

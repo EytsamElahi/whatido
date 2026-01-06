@@ -15,4 +15,5 @@ struct AccountDto: Hashable, AppDataType {
     let currency: String
     let sourceId: String
     var sourceName: String = ""
+    let createdAt: Date?
 }

@@ -17,6 +17,22 @@ struct AddAccountSheet: View {
     @State private var selectedAccountTypeString: String = ""
     @State private var sourceId: String = ""
 
+    private var title: String {
+        if viewModel.selectedAccount == nil {
+            return "New Account"
+        } else {
+            return "Edit Account"
+        }
+    }
+
+    private var actionBtnTitle: String {
+        if viewModel.selectedAccount == nil {
+            return "Add"
+        } else {
+            return "Update"
+        }
+    }
+
     var body: some View {
         ZStack {
             Color.cardBackground.ignoresSafeArea()
@@ -26,7 +42,7 @@ struct AddAccountSheet: View {
                     .foregroundStyle(Color.gray.opacity(0.3))
                     .padding(.top, 10)
                 VStack {
-                    Text("New Account")
+                    Text(title)
                         .font(.customFont(family: .quicksand, name: .bold, size: .x20))
                         .foregroundStyle(Color.white)
                     VStack(spacing: 15) {
@@ -99,10 +115,10 @@ struct AddAccountSheet: View {
                     }
                     .padding(.top, 5)
                 }
-                AppPrimaryButton(title: "Add", disable: .constant(balance == nil), isLoading: $viewModel.isLoading) {
+                AppPrimaryButton(title: actionBtnTitle, disable: .constant(balance == nil), isLoading: $viewModel.isLoading) {
                     guard let balance = balance, balance > 0, sourceId != "" else {return}
                     hideKeyboard()
-                    viewModel.createAccount(name: name, type: selectedType, balance: balance, sourceId: sourceId)
+                    actionButton(balance: balance)
                 }.padding(.bottom, 20)
                     .disabled(viewModel.isLoading)
             }.padding()
@@ -111,13 +127,27 @@ struct AddAccountSheet: View {
             self.selectedType = type ?? .bank
         }
         .onAppear {
-
+            if let account = viewModel.selectedAccount {
+                self.name = account.name
+                self.balance = account.currentBalance
+                self.selectedType = account.type
+                self.sourceId = account.sourceId
+                self.selectedAccountTypeString = account.type.rawValue
+            }
         }
         .interactiveDismissDisabled(viewModel.isLoading)
         .presentationDetents([.height(350)])
         .presentationDragIndicator(.hidden)
         .hideKeyboardOnTapAround()
 
+    }
+
+    private func actionButton(balance: Double) {
+        if viewModel.selectedAccount == nil {
+            viewModel.createAccount(name: name, type: selectedType, balance: balance, sourceId: sourceId)
+        } else {
+            viewModel.updateAccount(name: name, type: selectedType, balance: balance, sourceId: sourceId)
+        }
     }
 }
 

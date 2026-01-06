@@ -19,6 +19,8 @@ class Account: FirestoreIdentifiable {
     let currentBalance: Double
     let currency: String
     let sourceId: String
+    let created: Date?
+
 
     required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -29,15 +31,18 @@ class Account: FirestoreIdentifiable {
         self.currentBalance = try container.decode(Double.self, forKey: .currentBalance)
         self.currency = try container.decode(String.self, forKey: .currency)
         self.sourceId = try container.decode(String.self, forKey: .sourceId)
+        self.created = try container.decodeIfPresent(Date.self, forKey: .created)
+
     }
 
-    init(name: String, type: AccountType, balance: Double, currency: String, sourceId: String) {
+    init(name: String, type: AccountType, balance: Double, currency: String, sourceId: String, created: Date? = nil) {
         self.name = name
         self.type = type.rawValue
         self.currentBalance = balance
         self.currency = currency
         self.userId = AppData.user?.id ?? ""
         self.sourceId = sourceId
+        self.created = created
     }
 
     func convertToDto() -> AccountDto {
@@ -47,7 +52,8 @@ class Account: FirestoreIdentifiable {
             type: AccountType(rawValue: self.type) ?? .cash,
             currentBalance: self.currentBalance,
             currency: self.currency,
-            sourceId: self.sourceId
+            sourceId: self.sourceId,
+            createdAt: created
         )
     }
 
@@ -67,24 +73,28 @@ class IncomeSource: FirestoreIdentifiable {
     var id: String = ""
     let userId: String
     let name: String
+    let created: Date?
 
     required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.userId = try container.decode(String.self, forKey: .userId)
         self.id = try container.decode(String.self, forKey: .id)
         self.name = try container.decode(String.self, forKey: .name)
+        self.created = try container.decodeIfPresent(Date.self, forKey: .created)
     }
 
-    init(name: String) {
+    init(name: String, created: Date? = nil) {
         self.name = name
         self.userId = AppData.user?.id ?? ""
+        self.created = created
     }
 
     func convertToDto() -> IncomeSourceDto {
         return IncomeSourceDto(
             id: self.id,
             name: self.name,
-            icon: IncomeSource.getAutoIcon(forName: self.name)
+            icon: IncomeSource.getAutoIcon(forName: self.name),
+            createdAt: created
         )
     }
 

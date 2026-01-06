@@ -12,6 +12,8 @@ import SwiftUI
 struct AccountCardView: View {
     let account: AccountDto
     let brandColor = Color.appPrimaryColor
+    var onEdit: () -> ()
+    var onDelete: () -> ()
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -93,9 +95,22 @@ struct AccountCardView: View {
             .padding(20)
         }
         .frame(height: 160)
+        .contextMenu {
+            Button {
+                onEdit()
+            } label: {
+                Label("Edit", systemImage: "pencil")
+            }
+
+            Button(role: .destructive) {
+                onDelete()
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
     }
 }
 
 #Preview {
-    AccountCardView(account: AccountDto(id: "", name: "Meezan Bank", type: .bank, currentBalance: 20000, currency: "PKR", sourceId: ""))
+    AccountCardView(account: AccountDto(id: "", name: "Meezan Bank", type: .bank, currentBalance: 20000, currency: "PKR", sourceId: "", createdAt: nil), onEdit: {}, onDelete: {})
 }

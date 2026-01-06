@@ -61,8 +61,10 @@ class AuthenticationViewModel: ObservableObject {
             }
 
             AppData.user = user.toUserDto()
-            self.overlayManager.showToast(message: "User Created Successfully", style: .success)
-            navigateToCurrency = true
+            self.overlayManager.showToast(message: "User Authenticated Successfully", style: .success)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                self.navigateToCurrency = true
+            }
         }
 
     }

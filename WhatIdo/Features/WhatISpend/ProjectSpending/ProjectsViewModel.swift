@@ -131,8 +131,6 @@ class ProjectsViewModel: BaseViewModel {
             }
         }
     }
-
-    // TODO: - Add confirmation popup
     func deleteProject(_ id: String) {
         overlayManager.showPopup(
                 title: "Delete Project?",
@@ -141,9 +139,7 @@ class ProjectsViewModel: BaseViewModel {
                 primaryAction: PopupAction(title: "Delete", role: .destructive) {
                     self.performDelete(id: id)
                 },
-                secondaryAction: PopupAction(title: "Cancel", role: .cancel) {
-                    // Cancel logic (auto dismiss)
-                }
+                secondaryAction: PopupAction(title: "Cancel", role: .cancel) { }
             )
     }
 

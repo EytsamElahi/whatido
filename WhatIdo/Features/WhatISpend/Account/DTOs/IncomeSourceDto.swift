@@ -11,4 +11,5 @@ struct IncomeSourceDto: Hashable, AppDataType {
     let id: String
     let name: String
     let icon: String
+    let createdAt: Date?
 }
