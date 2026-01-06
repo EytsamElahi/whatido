@@ -17,4 +17,7 @@ class AppData {
     @AppStorageObject(key: "user", defaultValue: nil)
     static var user: UserDto?
 
+    @AppStorageObject(key: "defaultAccount", defaultValue: nil)
+    static var defaultSpendingAccount: SpendingAccountDto?
+
 }

@@ -13,4 +13,5 @@ enum Route: Hashable {
     case spendingAnalytics
     case currencySettings
     case login
+    case myAccounts
 }

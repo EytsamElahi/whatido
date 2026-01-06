@@ -31,6 +31,8 @@ extension SplashView {
             SettingsView()
         case .login:
             AuthenticationView(viewModel: container.makeLoginViewModel())
+        case .myAccounts:
+            AccountsView(viewModel: container.makeAccountsViewModel())
         }
     }
 }

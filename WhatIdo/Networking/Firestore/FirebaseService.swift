@@ -85,6 +85,7 @@ extension FirebaseService {
         guard let ref = endpoint.path as? DocumentReference else {
             throw FirestoreServiceError.documentNotFound
         }
+       
         var dict: [String: Any] = [
             "updated": Timestamp(date: Date()),
         ]

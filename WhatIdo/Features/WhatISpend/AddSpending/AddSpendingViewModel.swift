@@ -76,7 +76,7 @@ class AddSpendingViewModel: ObservableObject {
             return
         }
         let date = dateTf.toTimeStamp(format: "MM/dd/yyyy") ?? Date()
-        
+
         // Create Object
         let spending = Spending(
             name: spendingItemTf,
@@ -85,7 +85,7 @@ class AddSpendingViewModel: ObservableObject {
             spendingType: selectedType!,
             created: created ?? Date(),
             source: selectedFundingSource,
-            projectType: ProjectInfo(id: selectedProject?.id, name: selectedProject?.name, icon: selectedProject?.icon)
+            projectType: ProjectInfo(id: selectedProject?.id, name: selectedProject?.name, icon: selectedProject?.icon), accountType: DAccountType() // TODO: - Pass Account Type value
         )
         Task {
             self.isDataUploading = true

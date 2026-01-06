@@ -24,6 +24,7 @@ class AppDependencyContainer {
     private let projectsService: ProjectsServiceProtocol
     private let budgetsService: BudgetsServiceProtocol
     private let authService: AuthServiceProtocol
+    private let accountService: AccountServiceProtocol
     // 🔥 THE EVENT BUS (Signal)
     let eventBus = PassthroughSubject<AppGlobalEvent, Never>()
 
@@ -33,6 +34,7 @@ class AppDependencyContainer {
         self.projectsService = ProjectsService()
         self.budgetsService = BudgetsService()
         self.authService = FirebaseAuthService()
+        self.accountService = AccountService()
     }
 
     // MARK: - ViewModel Factories
@@ -82,5 +84,10 @@ class AppDependencyContainer {
     @MainActor
     func makeLoginViewModel() -> AuthenticationViewModel {
         return AuthenticationViewModel(authService: authService)
+    }
+
+    @MainActor
+    func makeAccountsViewModel() -> AccountsViewModel {
+        return AccountsViewModel(service: accountService)
     }
 }

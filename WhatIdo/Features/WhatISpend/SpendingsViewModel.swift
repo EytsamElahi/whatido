@@ -183,7 +183,7 @@ extension SpendingsViewModel {
         }
         let date = dateTf.toTimeStamp(format: "MM/dd/yyyy")
         guard let spendingType = spendingType else {return}
-        newSpending = Spending(name: spendingItemTf, amount: amountTf, date: date ?? Date(), spendingType: spendingType, created: self.tempSpending?.created ?? Date(), source: fundingSName, projectType: ProjectInfo(id: selectedProject?.id, name: selectedProject?.name, icon: selectedProject?.icon))
+        newSpending = Spending(name: spendingItemTf, amount: amountTf, date: date ?? Date(), spendingType: spendingType, created: self.tempSpending?.created ?? Date(), source: fundingSName, projectType: ProjectInfo(id: selectedProject?.id, name: selectedProject?.name, icon: selectedProject?.icon), accountType: DAccountType())
     }
 
     private func validateAddSpendingForm() -> Bool {
