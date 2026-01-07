@@ -112,5 +112,5 @@ struct AccountCardView: View {
 }
 
 #Preview {
-    AccountCardView(account: AccountDto(id: "", name: "Meezan Bank", type: .bank, currentBalance: 20000, currency: "PKR", sourceId: "", createdAt: nil), onEdit: {}, onDelete: {})
+    AccountCardView(account: AccountDto(id: "", name: "Meezan Bank", type: .bank, openingBalance: 20000, currentBalance: 200000, currency: "PKR", sourceId: "", isArchived: false, createdAt: nil), onEdit: {}, onDelete: {})
 }

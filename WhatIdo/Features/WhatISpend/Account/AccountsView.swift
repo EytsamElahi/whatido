@@ -95,7 +95,7 @@ struct AccountsView: View {
                 HStack {
                     Spacer()
                     Button {
-                        viewModel.showAddSheet = true
+                        viewModel.openSheet(tab: selectedTab)
                     } label: {
                         Image(systemName: "plus")
                             .font(.title2.bold())

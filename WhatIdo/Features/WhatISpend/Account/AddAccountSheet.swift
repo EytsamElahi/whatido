@@ -15,10 +15,11 @@ struct AddAccountSheet: View {
     @State private var balance: Double?
     @State private var selectedType: AccountType = .bank
     @State private var selectedAccountTypeString: String = ""
-    @State private var sourceId: String = ""
+    @State private var sourceId: String?
+    @State private var editing: Bool = false
 
     private var title: String {
-        if viewModel.selectedAccount == nil {
+        if !editing {
             return "New Account"
         } else {
             return "Edit Account"
@@ -26,13 +27,53 @@ struct AddAccountSheet: View {
     }
 
     private var actionBtnTitle: String {
-        if viewModel.selectedAccount == nil {
+        if !editing {
             return "Add"
         } else {
             return "Update"
         }
     }
 
+    fileprivate func InitialBalanceField() -> some View {
+       return HStack(spacing: 5) {
+                ZStack(alignment: .leading) {
+                    // Dark Background Pill
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.white.opacity(0.08))
+                    HStack {
+                        Text(CurrencyManager.shared.currencyCode)
+                            .font(.customFont(family: .quicksand, name: .bold, size: .x16))
+                            .foregroundStyle(Color.appPrimaryColor)
+                            .padding(.leading, 10)
+                        ZStack(alignment: .leading) {
+                            if balance == nil {
+                                Text("Initial Amount")
+                                    .font(.customFont(name: .regular, size: .x16))
+                                    .foregroundColor(Color.white.opacity(0.3))
+                                    .padding(.leading, 15)
+                                    .allowsHitTesting(false)
+                            }
+                            TextField("", value: $balance, format: .number)
+                                .keyboardType(.decimalPad)
+                                .font(.customFont(family: .inter, name: .bold, size: .x16))
+                                .padding(.horizontal, 15)
+                                .foregroundStyle(Color.white)
+                                .tint(Color.appPrimaryColor)
+                                .onChange(of: balance ?? 0.0) {oldValue, newValue in
+                                    if newValue > 999_999_9 {
+                                        balance = 999_999_9
+                                    }
+                                    if newValue < 0 {
+                                        balance = 0
+                                    }
+                                }
+                        }
+                    }
+                }.frame(height: 50)
+                
+            }
+    }
+    
     var body: some View {
         ZStack {
             Color.cardBackground.ignoresSafeArea()
@@ -54,42 +95,8 @@ struct AddAccountSheet: View {
                                              pickedItem: $selectedAccountTypeString)
                             .frame(height: 50)
                         }
-                        HStack(spacing: 5) {
-                            ZStack(alignment: .leading) {
-                                // Dark Background Pill
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.white.opacity(0.08))
-                                HStack {
-                                    Text(CurrencyManager.shared.currencyCode)
-                                        .font(.customFont(family: .quicksand, name: .bold, size: .x16))
-                                        .foregroundStyle(Color.appPrimaryColor)
-                                        .padding(.leading, 10)
-                                    ZStack(alignment: .leading) {
-                                        if balance == nil {
-                                            Text("Initial Amount")
-                                                .font(.customFont(name: .regular, size: .x16))
-                                                .foregroundColor(Color.white.opacity(0.3))
-                                                .padding(.leading, 15)
-                                                .allowsHitTesting(false)
-                                        }
-                                        TextField("", value: $balance, format: .number)
-                                            .keyboardType(.decimalPad)
-                                            .font(.customFont(family: .inter, name: .bold, size: .x16))
-                                            .padding(.horizontal, 15)
-                                            .foregroundStyle(Color.white)
-                                            .tint(Color.appPrimaryColor)
-                                        //                                .onChange(of: balance!) {oldValue, newValue in
-                                        //                                    if newValue > 999_999_9 {
-                                        //                                        balance = 999_999_9
-                                        //                                    }
-                                        //                                    if newValue < 0 {
-                                        //                                        balance = 0
-                                        //                                    }
-                                        //                                }
-                                    }
-                                }
-                            }.frame(height: 50)
-
+                        if !editing {
+                            InitialBalanceField()
                         }
                     }
                     VStack(alignment: .leading, spacing: 12) {
@@ -115,11 +122,10 @@ struct AddAccountSheet: View {
                     }
                     .padding(.top, 5)
                 }
-                AppPrimaryButton(title: actionBtnTitle, disable: .constant(balance == nil), isLoading: $viewModel.isLoading) {
-                    guard let balance = balance, balance > 0, sourceId != "" else {return}
+                AppPrimaryButton(title: actionBtnTitle, disable: editing ? .constant(name == "") : .constant(balance == nil), isLoading: $viewModel.isLoading) {
                     hideKeyboard()
-                    actionButton(balance: balance)
-                }.padding(.bottom, 20)
+                    actionButton()
+                }.padding(.vertical, 10)
                     .disabled(viewModel.isLoading)
             }.padding()
         }.onChange(of: selectedAccountTypeString) {old, new in
@@ -128,25 +134,27 @@ struct AddAccountSheet: View {
         }
         .onAppear {
             if let account = viewModel.selectedAccount {
+                self.editing = true
                 self.name = account.name
-                self.balance = account.currentBalance
                 self.selectedType = account.type
-                self.sourceId = account.sourceId
+                self.sourceId = account.sourceId ?? ""
                 self.selectedAccountTypeString = account.type.rawValue
             }
         }
         .interactiveDismissDisabled(viewModel.isLoading)
-        .presentationDetents([.height(350)])
+        .presentationDetents([.height(editing ? 300 : 350)])
         .presentationDragIndicator(.hidden)
         .hideKeyboardOnTapAround()
 
     }
 
-    private func actionButton(balance: Double) {
-        if viewModel.selectedAccount == nil {
-            viewModel.createAccount(name: name, type: selectedType, balance: balance, sourceId: sourceId)
+    private func actionButton() {
+        if !editing {
+            if let balance = balance, balance > 0 {
+                viewModel.createAccount(name: name, type: selectedType, balance: balance, sourceId: sourceId)
+            }
         } else {
-            viewModel.updateAccount(name: name, type: selectedType, balance: balance, sourceId: sourceId)
+            viewModel.updateAccount(name: name, type: selectedType, sourceId: sourceId)
         }
     }
 }

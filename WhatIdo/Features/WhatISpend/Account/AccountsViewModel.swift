@@ -114,7 +114,7 @@ class AccountsViewModel: ObservableObject {
             }
             let updatedAccounts = accounts.map { account -> AccountDto in
                 var newAccount = account
-                if let matchedAccount = accountLookup[newAccount.sourceId] {
+                if let matchedAccount = accountLookup[newAccount.sourceId ?? ""] {
                     newAccount.sourceName = matchedAccount.name
                 }
                 return newAccount
@@ -134,21 +134,39 @@ class AccountsViewModel: ObservableObject {
             )
     }
 
+    func openSheet(tab: Int) {
+        if tab == 0 {
+            selectedAccount = nil
+        } else {
+           selectedIncomeSource = nil
+        }
+        showAddSheet = true
+
+    }
+
 }
 
 // MARK: - Functions related to Accounts
 extension AccountsViewModel {
 
-    func createAccount(name: String, type: AccountType, balance: Double, sourceId: String) {
+    // MARK: - Create Account
+    func createAccount(name: String, type: AccountType, balance: Double, sourceId: String?) {
         Task { [weak self] in
-            guard let self = self else {return}
+            guard let self = self else { return }
             self.isLoading = true
-            defer {
-                self.isLoading = false
-            }
+            defer { self.isLoading = false }
+
             let accountId = UUID().uuidString
-            guard let currency = AppData.prefCurrency else {return}
-            let newAccount = Account(name: name, type: type, balance: balance, currency: currency.code, sourceId: sourceId, created: selectedAccount?.createdAt)
+            guard let currency = AppData.prefCurrency else { return }
+
+            // When creating, openingBalance and currentBalance start as the same value
+            let newAccount = Account(
+                name: name,
+                type: type,
+                openingBalance: balance, // initial amount
+                currency: currency.code,
+                sourceId: sourceId
+            )
             newAccount.id = accountId
 
             let result = await service.addAccount(newAccount)
@@ -163,31 +181,42 @@ extension AccountsViewModel {
             }
         }
     }
-    func updateAccount(name: String, type: AccountType, balance: Double, sourceId: String) {
+
+    // MARK: - Update Account
+    // Removed 'balance' parameter because we agreed not to edit balance directly here
+    func updateAccount(name: String, type: AccountType, sourceId: String?) {
         Task { [weak self] in
-            guard let self = self else {return}
-            guard let currency = AppData.prefCurrency else {return}
-            guard let account = selectedAccount else {return}
+            guard let self = self,
+                  let currency = AppData.prefCurrency,
+                  let account = selectedAccount else { return }
             self.isLoading = true
-            defer {
-                self.isLoading = false
-            }
-            let newAccount = Account(name: name, type: type, balance: balance, currency: currency.code, sourceId: sourceId, created: account.createdAt)
-            newAccount.id = account.id
-            let result = await service.editAccount(newAccount)
+            defer { self.isLoading = false }
+            let updatedAccount = Account(
+                name: name,
+                type: type,
+                openingBalance: account.openingBalance,
+                currentBalance: account.currentBalance,
+                currency: currency.code,
+                sourceId: sourceId,
+                isArchived: account.isArchived,
+                created: account.createdAt
+            )
+            updatedAccount.id = account.id
+            let result = await service.editAccount(updatedAccount)
             if case .error(let string) = result {
                 self.overlayManager.showToast(message: string, style: .error)
                 return
             }
             self.overlayManager.showToast(message: "Account updated successfully", style: .success)
-            if let index = accounts.firstIndex(where: {$0.id == account.id}) {
-                self.accounts[index] = newAccount.convertToDto()
+            if let index = accounts.firstIndex(where: { $0.id == account.id }) {
+                self.accounts[index] = updatedAccount.convertToDto()
                 self.showAddSheet = false
             }
         }
-
     }
+
     private func performDeleteAccount(_ id: String) {
+        // TODO: - Instead of delete, do archive
         Task {[weak self] in
             guard let self = self else {return}
             let result = await service.deleteAccount(id)
@@ -212,7 +241,7 @@ extension AccountsViewModel {
     func deleteIncomeSource(_ index: Int) {
         overlayManager.showPopup(
                 title: "Delete Account?",
-                message: "Are you sure you want to delete this account? This action cannot be undone.",
+                message: "This account will be hidden from your list. Your past transactions will remain in your history to keep your reports accurate.",
                 style: .warning,
                 primaryAction: PopupAction(title: "Delete", role: .destructive) {
                     self.performDeleteIncomeSource(at: index)
