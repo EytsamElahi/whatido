@@ -119,7 +119,7 @@ class AccountsViewModel: ObservableObject {
                 }
                 return newAccount
             }
-            return updatedAccounts
+        return updatedAccounts.filter { !$0.isArchived }
     }
 
     func deleteAccount(_ id: String) {

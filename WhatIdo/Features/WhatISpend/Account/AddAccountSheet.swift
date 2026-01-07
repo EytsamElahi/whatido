@@ -137,7 +137,7 @@ struct AddAccountSheet: View {
                 self.editing = true
                 self.name = account.name
                 self.selectedType = account.type
-                self.sourceId = account.sourceId ?? ""
+                self.sourceId = account.sourceId
                 self.selectedAccountTypeString = account.type.rawValue
             }
         }

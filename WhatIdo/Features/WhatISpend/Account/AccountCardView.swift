@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-import SwiftUI
-
 struct AccountCardView: View {
     let account: AccountDto
     let brandColor = Color.appPrimaryColor
@@ -81,15 +79,16 @@ struct AccountCardView: View {
                     }
 
                     Spacer()
-
-                    Text(account.sourceName)
-                        .font(.caption2)
-                        .fontWeight(.medium)
-                        .foregroundColor(.gray.opacity(0.8))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(Color.white.opacity(0.08))
-                        .cornerRadius(10)
+                    if let _ = account.sourceId {
+                        Text(account.sourceName)
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                            .foregroundColor(.gray.opacity(0.8))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Color.white.opacity(0.08))
+                            .cornerRadius(10)
+                    }
                 }
             }
             .padding(20)
