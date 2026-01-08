@@ -23,6 +23,7 @@ class Account: FirestoreIdentifiable {
     let sourceId: String?      // Optional: Link to an IncomeSource (can be nil)
     let isArchived: Bool       // Status for soft-delete or hiding the account
     let created: Date?
+    let isDefault: Bool
 
     // MARK: - Decodable Implementation
     required init(from decoder: any Decoder) throws {
@@ -37,6 +38,7 @@ class Account: FirestoreIdentifiable {
         self.sourceId = try container.decodeIfPresent(String.self, forKey: .sourceId)
         self.isArchived = try container.decodeIfPresent(Bool.self, forKey: .isArchived) ?? false
         self.created = try container.decodeIfPresent(Date.self, forKey: .created)
+        self.isDefault = try container.decodeIfPresent(Bool.self, forKey: .isDefault) ?? false
     }
 
     // MARK: - Initializer for creating new accounts
@@ -47,7 +49,9 @@ class Account: FirestoreIdentifiable {
          currency: String = "PKR",
          sourceId: String? = nil,
          isArchived: Bool = false,
-         created: Date? = nil) {
+         created: Date? = nil,
+         isDefault: Bool = false
+    ) {
 
         self.name = name
         self.type = type.rawValue
@@ -59,6 +63,7 @@ class Account: FirestoreIdentifiable {
         self.sourceId = sourceId
         self.isArchived = isArchived
         self.created = created
+        self.isDefault = isDefault
     }
 
     // MARK: - Data Transfer Object Mapping
@@ -72,7 +77,8 @@ class Account: FirestoreIdentifiable {
             currency: self.currency,
             sourceId: self.sourceId,
             isArchived: self.isArchived,
-            createdAt: created
+            createdAt: created,
+            isDefault: isDefault
         )
     }
 

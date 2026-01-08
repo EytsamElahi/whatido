@@ -13,6 +13,7 @@ import Combine
 class AddSpendingViewModel: ObservableObject {
     private let service: SpendingsServiceProtocol
     private let projectService: ProjectsServiceProtocol
+    private let accountService: AccountServiceProtocol
 
     // MARK: - Form Fields
     @Published var spendingItemTf: String = ""
@@ -29,7 +30,14 @@ class AddSpendingViewModel: ObservableObject {
     @Published var spendingTypes: [SpendingType] = []
     @Published var fundingSources: [FundSource] = FundSource.allCases
     @Published var selectedType: SpendingType?
-    
+    @Published var accounts: [AccountDto] = []
+    @Published var selectedAccountName: String = "" {
+        didSet {
+            selectedAccount = accounts.first(where: {$0.name == selectedAccountName})
+        }
+    }
+    @Published var selectedAccount: AccountDto?
+
     // Linked Project
     @Published var selectedProject: ProjectDto?
     @Published var projects: [ProjectDto]?
@@ -46,12 +54,14 @@ class AddSpendingViewModel: ObservableObject {
     private let overlayManager = OverlayManager.shared
     private let eventBus: PassthroughSubject<AppGlobalEvent, Never>
 
-    init(service: SpendingsServiceProtocol = SpendingsService(), projectSerivce: ProjectsServiceProtocol = ProjectsService(), spendingToEdit: SpendingDto? = nil, eventBus: PassthroughSubject<AppGlobalEvent, Never>) {
+    init(service: SpendingsServiceProtocol = SpendingsService(), projectSerivce: ProjectsServiceProtocol = ProjectsService(), accountService: AccountServiceProtocol = AccountService(), spendingToEdit: SpendingDto? = nil, eventBus: PassthroughSubject<AppGlobalEvent, Never>) {
         self.service = service
         self.projectService = projectSerivce
+        self.accountService = accountService
         self.eventBus = eventBus
         self.loadSpendingTypes()
         self.getProjects()
+        self.fetchAccounts()
 
         if let spending = spendingToEdit {
             self.spendingIdToEdit = spending.id
@@ -85,7 +95,7 @@ class AddSpendingViewModel: ObservableObject {
             spendingType: selectedType!,
             created: created ?? Date(),
             source: selectedFundingSource,
-            projectType: ProjectInfo(id: selectedProject?.id, name: selectedProject?.name, icon: selectedProject?.icon), accountType: DAccountType() // TODO: - Pass Account Type value
+            projectType: ProjectInfo(id: selectedProject?.id, name: selectedProject?.name, icon: selectedProject?.icon), accountType: DAccountType(name: selectedAccount?.name, accountId: selectedAccount?.id)
         )
         Task {
             self.isDataUploading = true
@@ -121,7 +131,20 @@ class AddSpendingViewModel: ObservableObject {
             dismissSheet = true
         }
     }
-    
+
+    private func fetchAccounts() {
+        Task { [weak self] in
+            guard let self = self else {return}
+            let result = await accountService.getAllAccounts()
+            switch result {
+            case .data(let data):
+                self.accounts = data.filter {!$0.isArchived}
+            case .error(let err): self.overlayManager.showToast(message: err, style: .error)
+            default: break
+            }
+        }
+    }
+
     private func validateForm() -> Bool {
         return !spendingItemTf.isEmpty && amountTf > 0.0 && selectedType != nil
     }

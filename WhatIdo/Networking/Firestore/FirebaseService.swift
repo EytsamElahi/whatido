@@ -18,6 +18,9 @@ protocol FirebaseService {
     func update<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws
     func post<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws -> T
     func deleteAtomic(documentEndpoint: FirestoreEndpoint, dependentCollectionEndpoint: FirestoreEndpoint, dependencyParam: FirestoreQueryParam) async throws
+    func updateCollectionProperties(_ queryParam: FirestoreQueryParam, endpoint: FirestoreEndpoint) async throws
+    func postWithAtomicUpdate<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint, atomicUpdates: [DocumentReference: [String: Any]]) async throws -> T
+    func performBatchUpdate(instructions: [(endpoint: FirestoreEndpoint, params: [FirestoreQueryParam])]) async throws
 }
 
 extension FirebaseService {
@@ -81,6 +84,48 @@ extension FirebaseService {
         if parsed.id.isEmpty { parsed.id = snap.documentID }
         return parsed
     }
+
+    // Generic logic for future use
+    func postWithAtomicUpdate<T: FirestoreIdentifiable>(
+        data: T,
+        endpoint: FirestoreEndpoint,
+        atomicUpdates: [DocumentReference: [String: Any]] // Side effects (e.g. Balance Update)
+    ) async throws -> T {
+
+        guard let mainRef = endpoint.path as? DocumentReference else {
+            throw FirestoreServiceError.documentNotFound
+        }
+
+        let batch = mainRef.firestore.batch()
+
+        // 1. Prepare Main Document Data
+        var dict = data.asDictionary()
+        dict["created"] = FieldValue.serverTimestamp()
+        dict["updated"] = FieldValue.serverTimestamp()
+
+        // Set main data in batch
+        batch.setData(dict, forDocument: mainRef, merge: true)
+
+        // 2. Apply Atomic Side Effects (Balance Updates, etc.)
+        for (ref, fields) in atomicUpdates {
+            batch.updateData(fields, forDocument: ref)
+        }
+
+        // 3. Commit Batch
+        try await batch.commit()
+
+        // 4. Reuse your logic to get the snapshot and parse
+        let snap = try await awaitCommittedSnapshot(mainRef)
+
+        guard snap.exists, let snapData = snap.data() else {
+            throw FirestoreServiceError.documentNotFound
+        }
+
+        var parsed = try FirestoreParser.parse(snapData, type: T.self)
+        if parsed.id.isEmpty { parsed.id = snap.documentID }
+        return parsed
+    }
+
     func update<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws {
         guard let ref = endpoint.path as? DocumentReference else {
             throw FirestoreServiceError.documentNotFound
@@ -211,6 +256,35 @@ extension FirebaseService {
         batch.deleteDocument(docRef)
 
         // 8. Commit Atomic Write
+        try await batch.commit()
+    }
+
+    func updateCollectionProperties(_ queryParam: FirestoreQueryParam, endpoint: FirestoreEndpoint) async throws {
+        guard let ref = endpoint.path as? DocumentReference else {
+            throw FirestoreServiceError.documentNotFound
+        }
+        try await ref.updateData([
+            queryParam.key: queryParam.value,
+            "updated": Timestamp(date: Date())])
+    }
+
+    func performBatchUpdate(instructions: [(endpoint: FirestoreEndpoint, params: [FirestoreQueryParam])]) async throws {
+        let batch = Firestore.firestore().batch()
+
+        for instruction in instructions {
+            guard let ref = instruction.endpoint.path as? DocumentReference else {
+                throw FirestoreServiceError.documentNotFound
+            }
+
+            var dict: [String: Any] = [:]
+            for param in instruction.params {
+                dict[param.key] = param.value
+            }
+            dict["updated"] = Timestamp(date: Date())
+
+            batch.updateData(dict, forDocument: ref)
+        }
+
         try await batch.commit()
     }
 }

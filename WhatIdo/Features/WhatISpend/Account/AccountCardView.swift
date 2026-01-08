@@ -10,8 +10,10 @@ import SwiftUI
 struct AccountCardView: View {
     let account: AccountDto
     let brandColor = Color.appPrimaryColor
-    var onEdit: () -> ()
-    var onDelete: () -> ()
+    var onEdit: () -> Void
+    var onDelete: () -> Void
+    var onBalanceAdjustment: () -> Void
+    var onMarkAsDefault: () -> Void
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -40,11 +42,18 @@ struct AccountCardView: View {
             VStack(alignment: .leading) {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(account.name)
-                            .font(.system(size: 18, weight: .bold)) // Readable Size
-                            .foregroundColor(.white)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.8)
+                        HStack {
+                            Text(account.name)
+                                .font(.system(size: 18, weight: .bold)) // Readable Size
+                                .foregroundColor(.white)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
+                            if account.isDefault {
+                                Image(systemName: "checkmark.seal.fill")
+                                    .foregroundColor(brandColor)
+                                    .font(.caption)
+                            }
+                        }
 
                         // Type Badge (Bank/Cash)
                         Text(account.type.rawValue.uppercased())
@@ -106,10 +115,22 @@ struct AccountCardView: View {
             } label: {
                 Label("Delete", systemImage: "trash")
             }
+            Button {
+                onBalanceAdjustment()
+            } label: {
+                Label("Adjust Balance", systemImage: "plus.forwardslash.minus")
+            }
+            if !account.isDefault {
+                Button {
+                    onMarkAsDefault()
+                } label: {
+                    Label("Set as Default", systemImage: "star.fill")
+                }
+            }
         }
     }
 }
 
 #Preview {
-    AccountCardView(account: AccountDto(id: "", name: "Meezan Bank", type: .bank, openingBalance: 20000, currentBalance: 200000, currency: "PKR", sourceId: "", isArchived: false, createdAt: nil), onEdit: {}, onDelete: {})
+    AccountCardView(account: AccountDto(id: "", name: "Meezan Bank", type: .bank, openingBalance: 20000, currentBalance: 200000, currency: "PKR", sourceId: "", isArchived: false, createdAt: nil, isDefault: true), onEdit: {}, onDelete: {}, onBalanceAdjustment: {}, onMarkAsDefault: {})
 }

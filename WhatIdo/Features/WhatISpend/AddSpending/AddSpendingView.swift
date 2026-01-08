@@ -148,8 +148,8 @@ struct AddSpendingView: View {
                             CalendarFieldView(fieldInputText: $viewModel.dateTf, placeHolder: "Date", datePickerPosition: .start, datePickerRange: .past, month: viewModel.currentMonthInDateFormat ?? Date())
                                 .frame(height: 50)
 
-                            CustomPickerView(listing: viewModel.fundingSources.compactMap { $0.rawValue },
-                                             pickedItem: $viewModel.selectedFundingSource)
+                            CustomPickerView(listing: viewModel.accounts.compactMap { $0.name },
+                                             pickedItem: $viewModel.selectedAccountName)
                                 .frame(height: 50)
                         }
                     }

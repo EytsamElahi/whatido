@@ -16,6 +16,7 @@ protocol AccountServiceProtocol {
     func deleteIncomeSource(_ id: String) async -> AppResult<Void>
     func editAccount(_ account: Account) async -> AppResult<Void>
     func editIncomeSource(_ source: IncomeSource) async -> AppResult<Void>
+    func updateDefaultAccount(selectedId: String, allActiveAccounts: [AccountDto]) async -> AppResult<Void>
 }
 
 final class AccountService: FirebaseService, AccountServiceProtocol {
@@ -65,7 +66,7 @@ final class AccountService: FirebaseService, AccountServiceProtocol {
     func deleteAccount(_ id: String) async -> AppResult<Void> {
         let endPoint = FirestoreEndpoints.createAccount(id: id)
         do {
-            try await delete(endpoint: endPoint)
+            try await updateCollectionProperties(FirestoreQueryParam(key: "isArchived", value: true), endpoint: endPoint)
             return .success
         } catch {
             return .error(error.localizedDescription)
@@ -94,6 +95,25 @@ final class AccountService: FirebaseService, AccountServiceProtocol {
     func editIncomeSource(_ source: IncomeSource) async -> AppResult<Void> {
         do {
             let _ = try await update(data: source, endpoint: FirestoreEndpoints.createIncomeSource(id: source.id))
+            return .success
+        } catch {
+            return .error(error.localizedDescription)
+        }
+    }
+
+    func updateDefaultAccount(selectedId: String, allActiveAccounts: [AccountDto]) async -> AppResult<Void> {
+        do {
+            var instructions: [(endpoint: FirestoreEndpoint, params: [FirestoreQueryParam])] = []
+            for acc in allActiveAccounts {
+                let endpoint = FirestoreEndpoints.createAccount(id: acc.id)
+                let isDefault = (acc.id == selectedId)
+
+                instructions.append((
+                    endpoint: endpoint,
+                    params: [FirestoreQueryParam(key: "isDefault", value: isDefault)]
+                ))
+            }
+            try await performBatchUpdate(instructions: instructions)
             return .success
         } catch {
             return .error(error.localizedDescription)

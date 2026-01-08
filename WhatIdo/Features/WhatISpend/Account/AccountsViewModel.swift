@@ -16,6 +16,7 @@ class AccountsViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String? = nil
     @Published var showAddSheet: Bool = false
+    @Published var showAdjustSheet: Bool = false
     @Published var selectedAccount: AccountDto?
     @Published var selectedIncomeSource: IncomeSourceDto?
     @Published var listRefreshID = UUID()
@@ -125,7 +126,7 @@ class AccountsViewModel: ObservableObject {
     func deleteAccount(_ id: String) {
         overlayManager.showPopup(
                 title: "Delete Account?",
-                message: "Are you sure you want to delete this account? This action cannot be undone.",
+                message: "This account will be hidden from your list. Your past transactions will remain in your history to keep your reports accurate.",
                 style: .warning,
                 primaryAction: PopupAction(title: "Delete", role: .destructive) {
                     self.performDeleteAccount(id)
@@ -142,6 +143,42 @@ class AccountsViewModel: ObservableObject {
         }
         showAddSheet = true
 
+    }
+
+    func adjustAccountBalance(to newBalance: Double) {
+        guard let account = selectedAccount else { return }
+        self.isLoading = true
+        Task { [weak self] in
+            guard let self = self else { return }
+            defer { self.isLoading = false }
+
+            // Prepare updated model
+            let updatedAccount = Account(
+                name: account.name,
+                type: account.type,
+                openingBalance: account.openingBalance,
+                currentBalance: newBalance, // 🔥 New manual balance
+                currency: account.currency,
+                sourceId: account.sourceId,
+                isArchived: account.isArchived,
+                created: account.createdAt
+            )
+            updatedAccount.id = account.id
+            let result = await service.editAccount(updatedAccount)
+
+            switch result {
+            case .success:
+                if let index = self.accounts.firstIndex(where: { $0.id == account.id }) {
+                    self.accounts[index] = updatedAccount.convertToDto()
+                }
+                self.overlayManager.showToast(message: "Balance adjusted!", style: .success)
+                self.showAdjustSheet = false // Close sheet
+            case .error(let err):
+                self.overlayManager.showToast(message: err, style: .error)
+            default:
+                print("")
+            }
+        }
     }
 
 }
@@ -234,14 +271,44 @@ extension AccountsViewModel {
         selectedAccount = account
         showAddSheet = true
     }
+
+    func markAsDefault(account: AccountDto) {
+        Task { [weak self] in
+            guard let self = self else { return }
+            self.overlayManager.showLoader()
+            let result = await service.updateDefaultAccount(selectedId: account.id, allActiveAccounts: self.accounts)
+
+            await MainActor.run {
+                self.overlayManager.hideLoader()
+                switch result {
+                case .success:
+                    self.accounts = self.accounts.map { acc in
+                        AccountDto(
+                            id: acc.id, name: acc.name, type: acc.type,
+                            openingBalance: acc.openingBalance, currentBalance: acc.currentBalance,
+                            currency: acc.currency, sourceId: acc.sourceId,
+                            isArchived: acc.isArchived,
+                            createdAt: acc.createdAt,
+                            isDefault: (acc.id == account.id)
+                        )
+                    }
+                    self.overlayManager.showToast(message: "Default account updated", style: .success)
+                case .error(let err):
+                    self.overlayManager.showToast(message: err, style: .error)
+                default:
+                    print("")
+                }
+            }
+        }
+    }
 }
 
 // MARK: - Functions related to Income Source
 extension AccountsViewModel {
     func deleteIncomeSource(_ index: Int) {
         overlayManager.showPopup(
-                title: "Delete Account?",
-                message: "This account will be hidden from your list. Your past transactions will remain in your history to keep your reports accurate.",
+                title: "Delete Source?",
+                message: "Are you sure you want to delete this source? This action cannot be undone.",
                 style: .warning,
                 primaryAction: PopupAction(title: "Delete", role: .destructive) {
                     self.performDeleteIncomeSource(at: index)

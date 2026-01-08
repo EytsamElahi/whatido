@@ -55,6 +55,11 @@ struct AccountsView: View {
                                             viewModel.editAccount(account)
                                         }, onDelete: {
                                             viewModel.deleteAccount(account.id)
+                                        }, onBalanceAdjustment: {
+                                            viewModel.selectedAccount = account
+                                            viewModel.showAdjustSheet.toggle()
+                                        }, onMarkAsDefault: {
+                                            viewModel.markAsDefault(account: account)
                                         })
                                     }
                                 }
@@ -118,6 +123,9 @@ struct AccountsView: View {
                 AddSourceSheet(viewModel: viewModel)
             }
         }
+        .sheet(isPresented: $viewModel.showAdjustSheet) {
+            AdjustBalanceSheet(viewModel: viewModel)
+        }
     }
 }
 
@@ -152,4 +160,79 @@ struct SourceRowView: View {
 
 #Preview {
     AccountsView(viewModel: AccountsViewModel(service: AccountService()))
+}
+
+struct AdjustBalanceSheet: View {
+    @ObservedObject var viewModel: AccountsViewModel
+    @State private var newBalance: Double? = nil
+    @State private var newBalanceString: String = ""
+
+    var body: some View {
+        ZStack {
+            Color.cardBackground.ignoresSafeArea()
+            VStack(spacing: 15) {
+                // Drag Indicator
+                Capsule()
+                    .frame(width: 40, height: 5)
+                    .foregroundStyle(Color.gray.opacity(0.3))
+                    .padding(.top, 10)
+
+                VStack(spacing: 10) {
+                    // Title
+                    Text("Adjust Balance")
+                        .font(.customFont(family: .quicksand, name: .bold, size: .x20))
+                        .foregroundStyle(Color.white)
+
+                    // Current Balance Info (ReadOnly Display)
+                    VStack(spacing: 5) {
+                        Text("Current Recorded Balance")
+                            .font(.customFont(family: .quicksand, name: .medium, size: .x14))
+                            .foregroundStyle(Color.gray)
+
+                        Text("\(CurrencyManager.shared.symbol) \(viewModel.selectedAccount?.currentBalance ?? 0, specifier: "%.2f")")
+                            .font(.customFont(family: .quicksand, name: .bold, size: .x24))
+                            .foregroundStyle(Color.appPrimaryColor)
+                    }
+                    .padding(.vertical, 10)
+
+                    // Input Field for New Balance
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("New Actual Balance")
+                            .font(.customFont(family: .quicksand, name: .bold, size: .x16))
+                            .foregroundStyle(Color.white)
+
+                        // Using your custom AppTextfield for consistency
+                        AppTextfield(inputText: $newBalanceString,
+                                     placeHolder: "Enter actual amount...", keyboardType: .decimalPad)
+                            .frame(height: 50)
+                    }
+                }
+
+                Spacer()
+
+                // Action Button
+                AppPrimaryButton(
+                    title: "Confirm Adjustment",
+                    disable: .constant(newBalanceString.isEmpty),
+                    isLoading: $viewModel.isLoading
+                ) {
+                    hideKeyboard()
+                    if let val = Double(newBalanceString) {
+                        viewModel.adjustAccountBalance(to: val)
+                    }
+                }
+                .padding(.vertical, 10)
+                .disabled(viewModel.isLoading)
+
+            }
+            .padding()
+        }
+        .onAppear {
+            if let current = viewModel.selectedAccount?.currentBalance {
+                newBalanceString = String(format: "%.0f", current)
+            }
+        }
+        .presentationDetents([.height(350)])
+        .presentationDragIndicator(.hidden)
+    }
 }

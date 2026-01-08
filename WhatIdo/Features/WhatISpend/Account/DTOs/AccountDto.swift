@@ -20,4 +20,5 @@ struct AccountDto: Hashable, AppDataType {
     var sourceName: String = ""
     let isArchived: Bool
     let createdAt: Date?
+    let isDefault: Bool
 }
