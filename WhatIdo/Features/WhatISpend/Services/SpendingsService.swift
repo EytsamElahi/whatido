@@ -15,7 +15,7 @@ protocol SpendingsServiceProtocol {
     func getSpendingsForProject(_ projectId: String) async -> AppResult<[SpendingDto]>
     func addSpending(_ spending: Spending) async -> AppResult<SpendingDto>
     func editSpending(_ spending: Spending, id: String) async -> AppResult<Void>
-    func deleteSpending(_ id: String) async -> AppResult<Void>
+    func deleteSpending(_ spending: SpendingDto) async -> AppResult<Void>
     func editSpending(oldSpending: SpendingDto, newSpending: Spending, spendingId: String) async -> AppResult<Void>
 }
 
@@ -85,10 +85,38 @@ final class SpendingsService: FirebaseService, SpendingsServiceProtocol {
         }
     }
     
-    func deleteSpending(_ id: String) async -> AppResult<Void> {
+//    func deleteSpending(_ spending: SpendingDto) async -> AppResult<Void> {
+//        do {
+//            try await delete(endpoint: FirestoreEndpoints.deleteSpending(id: id))
+//            return .success
+//        } catch {
+//            return .error(error.localizedDescription)
+//        }
+//    }
+
+    func deleteSpending(_ spending: SpendingDto) async -> AppResult<Void> {
         do {
-            try await delete(endpoint: FirestoreEndpoints.deleteSpending(id: id))
+            var instructions: [(endpoint: FirestoreEndpoint, params: [FirestoreQueryParam])] = []
+            // 1. ARCHIVE SPENDING (Delete Logic) 🗑️
+            let spendingEndpoint = FirestoreEndpoints.editSpending(id: spending.id)
+            instructions.append((
+                endpoint: spendingEndpoint,
+                params: [FirestoreQueryParam(key: "isArchived", value: true)]
+            ))
+            // 2. REFUND ACCOUNT (Balance Logic) 💰
+            if let accountId = spending.account?.id {
+                let accountEndpoint = FirestoreEndpoints.createAccount(id: accountId)
+
+                instructions.append((
+                    endpoint: accountEndpoint,
+                    params: [FirestoreQueryParam(key: "currentBalance", value: FieldValue.increment(spending.amount))]
+                ))
+            }
+
+            // 3. EXECUTE BATCH
+            try await performBatchUpdate(instructions: instructions)
             return .success
+
         } catch {
             return .error(error.localizedDescription)
         }
@@ -108,6 +136,10 @@ final class SpendingsService: FirebaseService, SpendingsServiceProtocol {
 
     func editSpending(oldSpending: SpendingDto, newSpending: Spending, spendingId: String) async -> AppResult<Void> {
         do {
+            guard let _ = newSpending.accountType else {
+                try await update(data: newSpending, endpoint: FirestoreEndpoints.editSpending(id: spendingId))
+                return .success
+            }
             var instructions: [(endpoint: FirestoreEndpoint, params: [FirestoreQueryParam])] = []
 
             // MARK: - 1. Spending Update (AUTOMATIC MAPPING) 🤖

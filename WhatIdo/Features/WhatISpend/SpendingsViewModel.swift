@@ -75,7 +75,7 @@ class SpendingsViewModel: ObservableObject {
             // 1. Fetch Spendings
             let spendingResult = await spendingService.getSpendingsOfMonth(currentMonthDate ?? Date())
             if case .data(let spendings) = spendingResult {
-                self.currentMonthSpendings = spendings
+                self.currentMonthSpendings = spendings.filter {!$0.isArchived}
                 self.calculateTotal()
             }
             if case .error(let string) = spendingResult {
@@ -100,7 +100,7 @@ class SpendingsViewModel: ObservableObject {
         let spending = spendings[index]
         
         Task {
-            let result = await spendingService.deleteSpending(spending.id)
+            let result = await spendingService.deleteSpending(spending)
             if case .success = result {
                 self.overlayManager.showToast(message: "Spending deleted successfully", style: .success)
             }
