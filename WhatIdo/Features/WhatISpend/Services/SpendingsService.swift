@@ -16,6 +16,7 @@ protocol SpendingsServiceProtocol {
     func addSpending(_ spending: Spending) async -> AppResult<SpendingDto>
     func editSpending(_ spending: Spending, id: String) async -> AppResult<Void>
     func deleteSpending(_ id: String) async -> AppResult<Void>
+    func editSpending(oldSpending: SpendingDto, newSpending: Spending, spendingId: String) async -> AppResult<Void>
 }
 
 final class SpendingsService: FirebaseService, SpendingsServiceProtocol {
@@ -42,16 +43,12 @@ final class SpendingsService: FirebaseService, SpendingsServiceProtocol {
     }
 
     func addSpending(_ spending: Spending) async -> AppResult<SpendingDto> {
-        //        do {
-        //            let spending = try await post(data: spending, endpoint: FirestoreEndpoints.createSpending)
-        //            return .data(spending.convertToDto())
-        //        } catch {
-        //            return .error(error.localizedDescription)
-        //        }
         do {
             // 1. Define where the balance update should happen
-            guard let accId = spending.accountType.accountId else {
-                return .error("Account missing")
+            guard let accId = spending.accountType?.accountId else {
+                // 1.a) If there's no account
+                let spending = try await post(data: spending, endpoint: FirestoreEndpoints.createSpending)
+                return .data(spending.convertToDto())
             }
 
             let accountRef = FirestoreEndpoints.createAccount(id: accId)
@@ -103,6 +100,49 @@ final class SpendingsService: FirebaseService, SpendingsServiceProtocol {
             let endpoint = FirestoreEndpoints.getAllSpendings
             let spendingsData: [Spending] = try await request(filter: filter, endpoint: endpoint)
             return .data(spendingsData.map { $0.convertToDto() })
+
+        } catch {
+            return .error(error.localizedDescription)
+        }
+    }
+
+    func editSpending(oldSpending: SpendingDto, newSpending: Spending, spendingId: String) async -> AppResult<Void> {
+        do {
+            var instructions: [(endpoint: FirestoreEndpoint, params: [FirestoreQueryParam])] = []
+
+            // MARK: - 1. Spending Update (AUTOMATIC MAPPING) 🤖
+            let encodedData = try Firestore.Encoder().encode(newSpending)
+
+            let spendingParams = encodedData.map { key, value in
+                FirestoreQueryParam(key: key, value: value)
+            }
+
+            let spendingEndpoint = FirestoreEndpoints.editSpending(id: spendingId)
+            instructions.append((endpoint: spendingEndpoint, params: spendingParams))
+
+
+            // MARK: - 2. Account Balance Logic (Revert & Apply) ⚖️
+            if let oldAccId = oldSpending.account?.id {
+                let oldAccEndpoint = FirestoreEndpoints.createAccount(id: oldAccId)
+                instructions.append((
+                    endpoint: oldAccEndpoint,
+                    params: [FirestoreQueryParam(key: "currentBalance", value: FieldValue.increment(oldSpending.amount))]
+                ))
+            }
+
+            // Step B: Deduct from New Account
+            if let newAccId = newSpending.accountType?.accountId {
+                let newAccEndpoint = FirestoreEndpoints.createAccount(id: newAccId)
+                instructions.append((
+                    endpoint: newAccEndpoint,
+                    params: [FirestoreQueryParam(key: "currentBalance", value: FieldValue.increment(-newSpending.amount))]
+                ))
+            }
+
+
+            // MARK: - 3. Execute Batch
+            try await performBatchUpdate(instructions: instructions)
+            return .success
 
         } catch {
             return .error(error.localizedDescription)

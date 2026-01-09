@@ -9,7 +9,7 @@ import SwiftUI
 
 struct SpendsListingView: View {
     @EnvironmentObject var navigation: NavigationManager
-    @StateObject var viewModel: DashboardViewModel
+    @StateObject var viewModel: SpendingsViewModel
     @Environment(\.dependencyContainer) var container
     @ObservedObject var currencyManager = CurrencyManager.shared
     @State private var showCurrencySettingScreen: Bool = false
@@ -183,7 +183,7 @@ struct SpendsListingView: View {
 }
 
 struct AddSpendingRow: View {
-    @EnvironmentObject var viewModel: DashboardViewModel
+    @EnvironmentObject var viewModel: SpendingsViewModel
     var body: some View {
         HStack {
             Text("Transactions")

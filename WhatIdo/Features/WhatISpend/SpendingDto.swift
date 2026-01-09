@@ -17,9 +17,8 @@ struct SpendingDto: Hashable, AppDataType {
     let created: Date
     let spendingTypeId: Int
     let spendingCategoryId: Int
-    let fundSource: FundSource?
     let project: SpendingProjectDto?
-    let account: SpendingAccountDto
+    var account: SpendingAccountDto?
 
 }
 

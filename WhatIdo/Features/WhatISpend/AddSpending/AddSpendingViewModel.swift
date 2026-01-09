@@ -24,11 +24,9 @@ class AddSpendingViewModel: ObservableObject {
             selectedType = spendingTypes.first(where: {$0.name == selectedTypeName})
         }
     }
-    @Published var selectedFundingSource: String = "Cash"
     @Published var currentMonthInDateFormat: Date? = Date().getFirstDateOfMonth()
     // Dropdown Data
     @Published var spendingTypes: [SpendingType] = []
-    @Published var fundingSources: [FundSource] = FundSource.allCases
     @Published var selectedType: SpendingType?
     @Published var accounts: [AccountDto] = []
     @Published var selectedAccountName: String = "" {
@@ -53,6 +51,7 @@ class AddSpendingViewModel: ObservableObject {
     private var created: Date?
     private let overlayManager = OverlayManager.shared
     private let eventBus: PassthroughSubject<AppGlobalEvent, Never>
+    private var spendingToEdit: SpendingDto?
 
     init(service: SpendingsServiceProtocol = SpendingsService(), projectSerivce: ProjectsServiceProtocol = ProjectsService(), accountService: AccountServiceProtocol = AccountService(), spendingToEdit: SpendingDto? = nil, eventBus: PassthroughSubject<AppGlobalEvent, Never>) {
         self.service = service
@@ -64,12 +63,12 @@ class AddSpendingViewModel: ObservableObject {
         self.fetchAccounts()
 
         if let spending = spendingToEdit {
+            self.spendingToEdit = spending
             self.spendingIdToEdit = spending.id
             self.spendingItemTf = spending.name
             self.amountTf = spending.amount
             self.dateTf = spending.date.toDateReturnString() // Helper method
             self.selectedTypeName = spending.type
-            self.selectedFundingSource = spending.fundSource?.rawValue ?? "Cash"
             self.created = spending.created
             // Project pre-fill logic view se pass hogi ya yahan handle hogi
         }
@@ -86,6 +85,12 @@ class AddSpendingViewModel: ObservableObject {
             return
         }
         let date = dateTf.toTimeStamp(format: "MM/dd/yyyy") ?? Date()
+        let accountTypeInfo: DAccountType
+        if let account = selectedAccount {
+            accountTypeInfo = DAccountType(name: account.name, accountId: account.id)
+        } else {
+            accountTypeInfo = DAccountType(name: "Unlinked", accountId: nil)
+        }
 
         // Create Object
         let spending = Spending(
@@ -94,18 +99,16 @@ class AddSpendingViewModel: ObservableObject {
             date: date,
             spendingType: selectedType!,
             created: created ?? Date(),
-            source: selectedFundingSource,
-            projectType: ProjectInfo(id: selectedProject?.id, name: selectedProject?.name, icon: selectedProject?.icon), accountType: DAccountType(name: selectedAccount?.name, accountId: selectedAccount?.id)
+            projectType: ProjectInfo(id: selectedProject?.id, name: selectedProject?.name, icon: selectedProject?.icon), accountType: accountTypeInfo
         )
         Task {
             self.isDataUploading = true
             defer {
                 self.isDataUploading = false
             }
-            let result: AppResult<SpendingDto>
-            if let id = spendingIdToEdit {
+            if let id = spendingIdToEdit, let oldSpending = spendingToEdit {
                 spending.id = id
-                let apiResult = await service.editSpending(spending, id: id)
+                let apiResult = await service.editSpending(oldSpending: oldSpending, newSpending: spending,spendingId: id)
                  if case .error(let error) = apiResult {
                      self.overlayManager.showToast(message: error, style: .error)
                      return
@@ -139,6 +142,10 @@ class AddSpendingViewModel: ObservableObject {
             switch result {
             case .data(let data):
                 self.accounts = data.filter {!$0.isArchived}
+                if let account = accounts.first(where: {$0.isDefault == true}) {
+                    self.selectedAccount = account
+                    self.selectedAccountName = account.name
+                }
             case .error(let err): self.overlayManager.showToast(message: err, style: .error)
             default: break
             }

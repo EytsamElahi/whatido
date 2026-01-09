@@ -114,9 +114,9 @@ struct AddSpendingView: View {
                             .foregroundStyle(Color.gray)
 
                         HStack(alignment: .firstTextBaseline, spacing: 5) {
-//                            Text("Rs")
-//                                .font(.customFont(family: .quicksand, name: .bold, size: .x24))
-//                                .foregroundStyle(Color.appPrimaryColor)
+                            //                            Text("Rs")
+                            //                                .font(.customFont(family: .quicksand, name: .bold, size: .x24))
+                            //                                .foregroundStyle(Color.appPrimaryColor)
                             Text(currencyManager.currencyCode)
                                 .font(.customFont(family: .quicksand, name: .bold, size: .x24))
                                 .foregroundStyle(Color.appPrimaryColor)
@@ -150,7 +150,7 @@ struct AddSpendingView: View {
 
                             CustomPickerView(listing: viewModel.accounts.compactMap { $0.name },
                                              pickedItem: $viewModel.selectedAccountName)
-                                .frame(height: 50)
+                            .frame(height: 50)
                         }
                     }
                     .padding(.horizontal)
@@ -164,56 +164,56 @@ struct AddSpendingView: View {
 
                         LazyVGrid(columns: columns, spacing: 20) {
 
-                                // 🔥 LOGIC: Agar expanded hai to sab dikhao, warna sirf pehle 8
+                            // 🔥 LOGIC: Agar expanded hai to sab dikhao, warna sirf pehle 8
                             let categoriesToShow = showAllCategories ? viewModel.spendingTypes : Array(viewModel.spendingTypes.prefix(8))
 
-                                ForEach(categoriesToShow, id: \.id) { category in
-                                    VStack {
-                                        // 1. Icon Circle
-                                        ZStack {
-                                            Circle()
-                                                .fill(viewModel.selectedType?.id == category.id ? Color.appPrimaryColor : Color.gray.opacity(0.2))
-                                                .frame(width: 60, height: 60)
+                            ForEach(categoriesToShow, id: \.id) { category in
+                                VStack {
+                                    // 1. Icon Circle
+                                    ZStack {
+                                        Circle()
+                                            .fill(viewModel.selectedType?.id == category.id ? Color.appPrimaryColor : Color.gray.opacity(0.2))
+                                            .frame(width: 60, height: 60)
 
-                                            Image(systemName: getIcon(for: category.name ?? "")) // Tumhara Helper Function
-                                                .font(.system(size: 24))
-                                                .foregroundStyle(viewModel.selectedType?.id == category.id ? .black : .white)
-                                        }
-
-                                        Text(category.name ?? "")
-                                            .font(.caption)
-                                            .foregroundStyle(.white)
-                                            .multilineTextAlignment(.center)
-                                            .lineLimit(2)
-                                            .minimumScaleFactor(0.8)
-                                            .frame(height: 35, alignment: .top)
+                                        Image(systemName: getIcon(for: category.name ?? "")) // Tumhara Helper Function
+                                            .font(.system(size: 24))
+                                            .foregroundStyle(viewModel.selectedType?.id == category.id ? .black : .white)
                                     }
-                                    .onTapGesture {
-                                        withAnimation(.spring()) {
-                                            viewModel.selectedType = category
-                                        }
+
+                                    Text(category.name ?? "")
+                                        .font(.caption)
+                                        .foregroundStyle(.white)
+                                        .multilineTextAlignment(.center)
+                                        .lineLimit(2)
+                                        .minimumScaleFactor(0.8)
+                                        .frame(height: 35, alignment: .top)
+                                }
+                                .onTapGesture {
+                                    withAnimation(.spring()) {
+                                        viewModel.selectedType = category
                                     }
                                 }
                             }
-                            .padding(.horizontal)
+                        }
+                        .padding(.horizontal)
                         if viewModel.spendingTypes.count > 8 {
-                                Button(action: {
-                                    withAnimation(.easeInOut) {
-                                        showAllCategories.toggle()
-                                    }
-                                }) {
-                                    HStack {
-                                        Text(showAllCategories ? "Show Less" : "See All Categories")
-                                            .font(.subheadline)
-                                            .fontWeight(.medium)
-
-                                        Image(systemName: showAllCategories ? "chevron.up" : "chevron.down")
-                                    }
-                                    .foregroundStyle(Color.appPrimaryColor) // Tumhara yellow/brand color
-                                    .padding(.top, 10)
+                            Button(action: {
+                                withAnimation(.easeInOut) {
+                                    showAllCategories.toggle()
                                 }
-                                .frame(maxWidth: .infinity) // Center align button
+                            }) {
+                                HStack {
+                                    Text(showAllCategories ? "Show Less" : "See All Categories")
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+
+                                    Image(systemName: showAllCategories ? "chevron.up" : "chevron.down")
+                                }
+                                .foregroundStyle(Color.appPrimaryColor) // Tumhara yellow/brand color
+                                .padding(.top, 10)
                             }
+                            .frame(maxWidth: .infinity) // Center align button
+                        }
                     }
 
                     // MARK: - 4. Project Link (NEW ADDITION 🚀)
@@ -265,11 +265,11 @@ struct AddSpendingView: View {
                     AppPrimaryButton(title: viewModel.spendingIdToEdit == nil ? "Save" : "Update",
                                      disable: .constant(false),
                                      isLoading: $viewModel.isDataUploading) {
-                        
+
                         viewModel.saveSpending()
                     }
-                    .padding(.horizontal)
-                    .padding(.bottom, 30) // Extra padding for safe area
+                                     .padding(.horizontal)
+                                     .padding(.bottom, 30) // Extra padding for safe area
                 }
             }.scrollDismissesKeyboard(.interactively) // iOS 16 feature: Scroll to dismiss keyboard
                 .onChange(of: viewModel.dismissSheet) {
@@ -281,10 +281,10 @@ struct AddSpendingView: View {
                     }
                 }
         }.interactiveDismissDisabled(viewModel.isDataUploading)
-         .hideKeyboardOnTapAround()
-        .alert(isPresented: $viewModel.showErrorAlert) {
-            Alert(title: Text("Missing Info"), message: Text("Please fill in the amount and category."), dismissButton: .default(Text("OK")))
-        }
+            .hideKeyboardOnTapAround()
+            .alert(isPresented: $viewModel.showErrorAlert) {
+                Alert(title: Text("Missing Info"), message: Text("Please fill in the amount and category."), dismissButton: .default(Text("OK")))
+            }
     }
 }
 

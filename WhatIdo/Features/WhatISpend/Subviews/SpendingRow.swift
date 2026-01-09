@@ -23,7 +23,7 @@ struct SpendingRow: View {
                     Image(systemName: "tag.fill")
                     Text(spending.type)
                         .font(.customFont(name: .regular, size: .x16))
-                    if let source = spending.fundSource?.rawValue {
+                    if let source = spending.account?.name {
                         Text("•") // Separator
                         Text(source) // Source
                             .font(.customFont(name: .regular, size: .x16))
@@ -83,7 +83,7 @@ struct UpdatedSpendingRow: View {
 
                 HStack(spacing: 4) {
                     Text(spending.type)
-                    if let source = spending.fundSource?.rawValue {
+                    if let source = spending.account?.name {
                         Text("•")
                         Text(source)
                     }

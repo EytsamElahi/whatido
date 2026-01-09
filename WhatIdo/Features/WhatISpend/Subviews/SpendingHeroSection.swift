@@ -7,7 +7,7 @@
 
 import SwiftUI
 struct SpendingsHeroSection: View {
-    @EnvironmentObject var viewModel: DashboardViewModel
+    @EnvironmentObject var viewModel: SpendingsViewModel
     @EnvironmentObject var currencyManager: CurrencyManager
     var budgetProgress: Double
     var progressBarColor: Color

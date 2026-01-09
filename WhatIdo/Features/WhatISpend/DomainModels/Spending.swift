@@ -9,15 +9,15 @@ import Foundation
 
 class Spending: FirestoreIdentifiable {
     var id: String = ""
+    let userId: String
     let name: String
     let amount: Double
     let date: Date
     let spendingType: SpendingType?
     let created: Date?
     let updated: Date?
-    let source: String?
     let projectInfo: ProjectInfo?
-    let accountType: DAccountType
+    let accountType: DAccountType?
 
     required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -28,21 +28,21 @@ class Spending: FirestoreIdentifiable {
         self.spendingType = try container.decodeIfPresent(SpendingType.self, forKey: .spendingType)
         self.created = try container.decodeIfPresent(Date.self, forKey: .created)
         self.updated = try container.decodeIfPresent(Date.self, forKey: .updated)
-        self.source = try container.decodeIfPresent(String.self, forKey: .source)
         self.projectInfo = try container.decodeIfPresent(ProjectInfo.self, forKey: .projectInfo)
-        self.accountType = try container.decode(DAccountType.self, forKey: .accountType)
+        self.accountType = try container.decodeIfPresent(DAccountType.self, forKey: .accountType)
+        self.userId = try container.decodeIfPresent(String.self, forKey: .userId) ?? ""
     }
 
-    init(name: String, amount: Double, date: Date, spendingType: SpendingType?, created: Date, source: String?, projectType: ProjectInfo? = nil, accountType: DAccountType) {
+    init(name: String, amount: Double, date: Date, spendingType: SpendingType?, created: Date, projectType: ProjectInfo? = nil, accountType: DAccountType? = nil) {
         self.name = name
         self.amount = amount
         self.date = date
         self.spendingType = spendingType
         self.updated = nil
         self.created = created
-        self.source = source
         self.projectInfo = projectType
         self.accountType = accountType
+        self.userId = AppData.user?.id ?? ""
     }
 
     public static func == (lhs: Spending, rhs: Spending) -> Bool {
@@ -54,7 +54,12 @@ class Spending: FirestoreIdentifiable {
     }
 
      func convertToDto() -> SpendingDto {
-         return SpendingDto(id: self.id, name: self.name, amount: self.amount, date: self.date, type: self.spendingType?.name ?? "", created: self.created ?? Date(), spendingTypeId: spendingType?.id ?? -1, spendingCategoryId: spendingType?.catId ?? -1, fundSource: FundSource(rawValue: self.source ?? "Cash"), project: SpendingProjectDto(id: projectInfo?.id, projectName: projectInfo?.name, projectIcon: projectInfo?.icon), account: SpendingAccountDto(id: accountType.accountId ?? "", name: accountType.name ?? ""))
+        var spending = SpendingDto(id: self.id, name: self.name, amount: self.amount, date: self.date, type: self.spendingType?.name ?? "", created: self.created ?? Date(), spendingTypeId: spendingType?.id ?? -1, spendingCategoryId: spendingType?.catId ?? -1, project: SpendingProjectDto(id: projectInfo?.id, projectName: projectInfo?.name, projectIcon: projectInfo?.icon), account: nil)
+         if let account = self.accountType {
+            let acc = SpendingAccountDto(id: account.accountId ?? "", name: account.name ?? "")
+             spending.account = acc
+         }
+         return spending
     }
 
 }

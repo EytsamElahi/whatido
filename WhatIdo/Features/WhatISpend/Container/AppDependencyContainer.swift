@@ -41,10 +41,11 @@ class AppDependencyContainer {
 
     // 1. Dashboard (Main Screen)
     @MainActor
-    func makeDashboardViewModel() -> DashboardViewModel {
-        return DashboardViewModel(
+    func makeDashboardViewModel() -> SpendingsViewModel {
+        return SpendingsViewModel(
             spendingService: spendingsService,
             budgetService: budgetsService,
+            accountService: accountService,
             eventBus: eventBus
         )
     }
