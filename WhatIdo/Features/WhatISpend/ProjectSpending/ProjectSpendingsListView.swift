@@ -14,6 +14,7 @@ struct ProjectSpendingsListView: View {
     @StateObject var viewModel: ProjectsViewModel
     @Environment(\.dependencyContainer) var container
     @ObservedObject var currencyManager = CurrencyManager.shared
+    @State private var showAddAccountSheet: Bool = false
 
     var body: some View {
         ZStack {
@@ -118,17 +119,25 @@ struct ProjectSpendingsListView: View {
             viewModel.fetchProjectSpendings(project.id)
         }
         .sheet(isPresented: $viewModel.showAddNewSpendingSheet) {
-            AddSpendingView(viewModel: container.makeTransactionFormViewModel(spendingToEdit: viewModel.spendingToEdit), selectedProject: viewModel.selectedProject,onSpendingAdded: { updatedSpending in
+            AddSpendingView(viewModel: container.makeTransactionFormViewModel(spendingToEdit: viewModel.spendingToEdit), selectedProject: viewModel.selectedProject,onDismiss: { action in
                 viewModel.showAddNewSpendingSheet = false
-                guard let updatedSpending = updatedSpending else {return}
-                if let index = viewModel.projectSpendings.firstIndex(where: { $0.id == updatedSpending.id }) {
-                    viewModel.projectSpendings[index] = updatedSpending
-                } else {
-                    viewModel.projectSpendings.insert(updatedSpending, at: 0)
+                switch action {
+                case .spending(let updatedSpending):
+                    guard let updatedSpending = updatedSpending else {return}
+                    if let index = viewModel.projectSpendings.firstIndex(where: { $0.id == updatedSpending.id }) {
+                        viewModel.projectSpendings[index] = updatedSpending
+                    } else {
+                        viewModel.projectSpendings.insert(updatedSpending, at: 0)
+                    }
+                    viewModel.updateTotalSpending()
+                case .openAddAccountSheet:
+                    self.showAddAccountSheet = true
                 }
-                viewModel.updateTotalSpending()
             }).environmentObject(viewModel)
                 .presentationDetents([.medium, .large])
+        }
+        .sheet(isPresented: $showAddAccountSheet) {
+            AddAccountSheet(viewModel: container.makeAccountsViewModel())
         }
     }
 }

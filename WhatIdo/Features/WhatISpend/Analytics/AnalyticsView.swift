@@ -38,7 +38,9 @@ struct AnalyticsView: View {
                         chartView
 
                         // 5. The List (Extracted)
-                        breakdownListView
+                        if !viewModel.chartData.isEmpty {
+                            breakdownListView
+                        }
 
                     } // End Main VStack
                     .padding(.bottom, 40)

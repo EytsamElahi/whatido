@@ -7,11 +7,15 @@
 
 import SwiftUI
 
+enum AddSpendingSheetDismissAction {
+    case openAddAccountSheet
+    case spending(SpendingDto?)
+}
 struct AddSpendingView: View {
     @ObservedObject var viewModel: AddSpendingViewModel
     var selectedProject: ProjectDto?
     @Environment(\.dismiss) var dismiss
-    var onSpendingAdded: (SpendingDto?) -> ()
+    var onDismiss: (AddSpendingSheetDismissAction) -> ()
     @State private var showAllCategories = false // Default: Collapsed
     @ObservedObject var currencyManager = CurrencyManager.shared
 
@@ -144,13 +148,57 @@ struct AddSpendingView: View {
                         AppTextfield(inputText: $viewModel.spendingItemTf, placeHolder: "What is this for?", maxLength: 40)
                             .frame(height: 50)
 
-                        HStack(spacing: 12) {
-                            CalendarFieldView(fieldInputText: $viewModel.dateTf, placeHolder: "Date", datePickerPosition: .start, datePickerRange: .past, month: viewModel.currentMonthInDateFormat ?? Date())
-                                .frame(height: 50)
+//                        HStack(spacing: 12) {
+//                            CalendarFieldView(fieldInputText: $viewModel.dateTf, placeHolder: "Date", datePickerPosition: .start, datePickerRange: .past, month: viewModel.currentMonthInDateFormat ?? Date())
+//                                .frame(height: 50)
+//
+//                            CustomPickerView(listing: viewModel.accounts.compactMap { $0.name },
+//                                             pickedItem: $viewModel.selectedAccountName)
+//                            .frame(height: 50)
+//                        }
+                        // Inside AddSpendingView
 
-                            CustomPickerView(listing: viewModel.accounts.compactMap { $0.name },
-                                             pickedItem: $viewModel.selectedAccountName)
-                            .frame(height: 50)
+                        // MARK: - 2. Metadata (Source Section Updated)
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Payment Source")
+                                .font(.customFont(family: .quicksand, name: .bold, size: .x16))
+                                .foregroundStyle(Color.white)
+
+                            HStack(spacing: 12) {
+                                // 🔥 SMART SOURCE PICKER
+                                Group {
+                                    if viewModel.accounts.isEmpty {
+                                        // Case A: No Accounts Exist -> Show "Unlinked" + Add Button
+                                        HStack {
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                Text("Unlinked")
+                                                    .font(.customFont(family: .quicksand, name: .bold, size: .x14))
+                                                    .foregroundStyle(Color.white)
+                                                Text("Tap to add account")
+                                                    .font(.caption2)
+                                                    .foregroundStyle(Color.appPrimaryColor)
+                                            }
+                                            Spacer()
+                                            Image(systemName: "plus.circle.fill")
+                                                .foregroundStyle(Color.appPrimaryColor)
+                                        }
+                                        .padding(.horizontal)
+                                        .frame(height: 50)
+                                        .background(Color.white.opacity(0.05))
+                                        .cornerRadius(12)
+                                        .onTapGesture {
+                                            onDismiss(.openAddAccountSheet)
+                                        }
+                                    } else {
+                                        // Case B: Accounts Exist -> Show Normal Picker
+                                       CustomPickerView(listing: viewModel.accounts.compactMap { $0.name },
+                                                         pickedItem: $viewModel.selectedAccountName)
+                                        .frame(height: 50)
+                                    }
+                                }
+                                CalendarFieldView(fieldInputText: $viewModel.dateTf, placeHolder: "Date", datePickerPosition: .start, datePickerRange: .past, month: viewModel.currentMonthInDateFormat ?? Date())
+                                    .frame(height: 50)
+                            }
                         }
                     }
                     .padding(.horizontal)
@@ -273,7 +321,7 @@ struct AddSpendingView: View {
                 }
             }.scrollDismissesKeyboard(.interactively) // iOS 16 feature: Scroll to dismiss keyboard
                 .onChange(of: viewModel.dismissSheet) {
-                    onSpendingAdded(viewModel.spending)
+                    onDismiss(.spending(viewModel.spending))
                 }
                 .onAppear {
                     if let project = selectedProject {

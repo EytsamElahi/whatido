@@ -20,4 +20,7 @@ class AppData {
     @AppStorageObject(key: "defaultAccount", defaultValue: nil)
     static var defaultSpendingAccount: SpendingAccountDto?
 
+    @AppStorage(key: "addAccountPopupShowed", defaultValue: false)
+    static var addAccountPopupShowed: Bool
+
 }

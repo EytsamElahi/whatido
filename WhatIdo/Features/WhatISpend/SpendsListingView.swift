@@ -13,6 +13,8 @@ struct SpendsListingView: View {
     @Environment(\.dependencyContainer) var container
     @ObservedObject var currencyManager = CurrencyManager.shared
     @State private var showCurrencySettingScreen: Bool = false
+    @State private var showAddAccountSheet: Bool = false
+    @State private var showNoAccountPopup = false
 
     // Progress Bar Logic
     var budgetProgress: Double {
@@ -81,13 +83,14 @@ struct SpendsListingView: View {
 
                     // MARK: - 2. Smart Hero Card
                     SpendingsHeroSection(budgetProgress: budgetProgress, progressBarColor: progressBarColor){
-                        navigation.push(screen: .myAccounts)
+                        navigation.push(screen: .spendingAnalytics)
                     }
                     .environmentObject(viewModel)
                     .environmentObject(currencyManager)
 
-                    AddSpendingRow()
-                        .environmentObject(viewModel)
+                    AddSpendingRow(){
+                        didTapAddButton()
+                    }.environmentObject(viewModel)
                         .padding(.horizontal, 20)
                         .padding(.top, 20)
                         .padding(.bottom, 5)
@@ -127,6 +130,24 @@ struct SpendsListingView: View {
                         Spacer()
                     }
                 }
+                if showNoAccountPopup {
+                    NoAccountPopupView(
+                        onAddAccount: {
+                            withAnimation { showNoAccountPopup = false }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                                showAddAccountSheet = true
+                            }
+                        },
+                        onSkip: {
+                            withAnimation { showNoAccountPopup = false }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                                viewModel.showAddSheet = true
+                            }
+                        }
+                    )
+                    .transition(.opacity)
+                    .zIndex(100)
+                }
             }
             // MARK: - Modifiers & Lifecycle
             .onAppear {
@@ -144,22 +165,23 @@ struct SpendsListingView: View {
             }
             .sheet(isPresented: $viewModel.showAddSheet) {
                 let addSpendingVM = container.makeTransactionFormViewModel(spendingToEdit: viewModel.spendingToEdit)
-                AddSpendingView(viewModel: addSpendingVM, selectedProject: nil,onSpendingAdded: { updatedSpending in
+                AddSpendingView(viewModel: addSpendingVM, selectedProject: nil, onDismiss: { action in
                     self.viewModel.showAddSheet = false
-                    guard let updatedSpending = updatedSpending else {return}
-                    if let index = viewModel.currentMonthSpendings?.firstIndex(where: { $0.id == updatedSpending.id }) {
-                        viewModel.currentMonthSpendings?[index] = updatedSpending
-                    } else {
-                        viewModel.currentMonthSpendings?.append(updatedSpending)
-                        viewModel.updatedSorting()
+                    switch action {
+                    case .spending(let updatedSpending):
+                        guard let updatedSpending = updatedSpending else {return}
+                        if let index = viewModel.currentMonthSpendings?.firstIndex(where: { $0.id == updatedSpending.id }) {
+                            viewModel.currentMonthSpendings?[index] = updatedSpending
+                        } else {
+                            viewModel.currentMonthSpendings?.append(updatedSpending)
+                            viewModel.updatedSorting()
+                        }
+                    case .openAddAccountSheet:
+                        self.showAddAccountSheet = true
                     }
                 })
                     .presentationDetents([.medium, .large])
             }
-//            .sheet(isPresented: $showCurrencySettingScreen) {
-//                SettingsView()
-//                    .presentationDetents([.medium, .large])
-//            }.interactiveDismissDisabled()
             .sheet(isPresented: $viewModel.showBudgetSheet) {
                 SetBudgetView(viewModel: container.makeBudgetViewModel(budgetToEdit: viewModel.monthlyBudget), onGetBudget: { budget in
                     viewModel.monthlyBudget = budget
@@ -168,12 +190,25 @@ struct SpendsListingView: View {
                     }
                 })
             }
+            .sheet(isPresented: $showAddAccountSheet) {
+                AddAccountSheet(viewModel: container.makeAccountsViewModel())
+            }
             .alert("Confirm Deletion", isPresented: $viewModel.showDeleteConfirmationAlert, presenting: viewModel.spendingToDeleteIndex) { spending in
                 Button("Delete", role: .destructive) { viewModel.deleteSpending() }
                 Button("Cancel", role: .cancel) { viewModel.spendingToDeleteIndex = nil }
             } message: { _ in
                 Text("Are you sure you want to delete this spending?")
             }
+        }
+    }
+
+    func didTapAddButton() {
+        if viewModel.accounts.isEmpty && !AppData.addAccountPopupShowed {
+            AppData.addAccountPopupShowed = true
+            withAnimation { showNoAccountPopup = true }
+        } else {
+            viewModel.spendingToEdit = nil
+            viewModel.showAddSheet.toggle()
         }
     }
 }
@@ -184,6 +219,7 @@ struct SpendsListingView: View {
 
 struct AddSpendingRow: View {
     @EnvironmentObject var viewModel: SpendingsViewModel
+    var action: () -> Void
     var body: some View {
         HStack {
             Text("Transactions")
@@ -194,8 +230,7 @@ struct AddSpendingRow: View {
 
             // Add Button
             Button {
-                viewModel.spendingToEdit = nil
-                viewModel.showAddSheet.toggle()
+                action()
             } label: {
                 Image(systemName: "plus.circle.fill")
                     .font(.system(size: 30))

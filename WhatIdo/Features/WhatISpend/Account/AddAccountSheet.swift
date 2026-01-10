@@ -99,28 +99,30 @@ struct AddAccountSheet: View {
                             InitialBalanceField()
                         }
                     }
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Source")
-                            .font(.customFont(family: .quicksand, name: .bold, size: .x16))
-                            .foregroundStyle(Color.white)
+                    if !viewModel.incomeSources.isEmpty {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Source")
+                                .font(.customFont(family: .quicksand, name: .bold, size: .x16))
+                                .foregroundStyle(Color.white)
                             // .padding(.leading)
 
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack {
-                                ForEach(viewModel.incomeSources, id: \.id) { source in
-                                    let selected = source.id == sourceId
-                                    Button {
-                                        withAnimation {
-                                            sourceId = source.id
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack {
+                                    ForEach(viewModel.incomeSources, id: \.id) { source in
+                                        let selected = source.id == sourceId
+                                        Button {
+                                            withAnimation {
+                                                sourceId = source.id
+                                            }
+                                        } label: {
+                                            CapsuleView(name: source.name, isSelected: selected)
                                         }
-                                    } label: {
-                                        CapsuleView(name: source.name, isSelected: selected)
                                     }
                                 }
                             }
                         }
+                        .padding(.top, 5)
                     }
-                    .padding(.top, 5)
                 }
                 AppPrimaryButton(title: actionBtnTitle, disable: editing ? .constant(name == "") : .constant(balance == nil), isLoading: $viewModel.isLoading) {
                     hideKeyboard()
@@ -142,8 +144,8 @@ struct AddAccountSheet: View {
             }
         }
         .interactiveDismissDisabled(viewModel.isLoading)
-        .presentationDetents([.height(editing ? 300 : 350)])
-        .presentationDragIndicator(.hidden)
+        .presentationDetents([.height((editing || viewModel.incomeSources.isEmpty) ? 300 : 350)])
+        //.presentationDragIndicator(.hidden)
         .hideKeyboardOnTapAround()
 
     }

@@ -35,7 +35,7 @@ class AnalyticsViewModel: ObservableObject {
             let result = await spendingService.getAllSpendings() // Ya getSpendingsByDate()
             
             if case .data(let allSpendings) = result {
-                self.filterAndProcessData(allSpendings)
+                self.filterAndProcessData(allSpendings.filter {!$0.isArchived})
             }
             
             self.isLoading = false

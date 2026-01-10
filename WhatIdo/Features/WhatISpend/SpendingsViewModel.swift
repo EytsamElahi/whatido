@@ -14,7 +14,7 @@ class SpendingsViewModel: ObservableObject {
     // Services
     private let spendingService: SpendingsServiceProtocol
     private let budgetService: BudgetsServiceProtocol
-    private let accountService: AccountServiceProtocol
+    let accountService: AccountServiceProtocol
 
     // MARK: - Data
     @Published var currentMonthSpendings: [SpendingDto]?
@@ -133,8 +133,6 @@ class SpendingsViewModel: ObservableObject {
                 self.monthlyBudget = budget
             case .error(let error):
                 debugPrint("Error in fetching budget \(error)")
-            case .success:
-                debugPrint("No budget found")
             default:
                 debugPrint("Default")
             }
