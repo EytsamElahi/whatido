@@ -38,6 +38,8 @@ public final class SocialAuthenticator {
             return try await googleAuthentication()
         case .apple:
             return try await appleAuthentication()
+        default:
+           return nil
         }
     }
 

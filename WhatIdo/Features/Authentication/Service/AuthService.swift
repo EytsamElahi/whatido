@@ -21,9 +21,10 @@ public struct AuthModel: AuthModelType {
 
 protocol AuthServiceProtocol {
     func signIn(with provider: AuthSocialProvider) async throws -> AuthModel
+    func delete() async throws
 }
 
-public final class FirebaseAuthService: AuthServiceProtocol  {
+public final class FirebaseAuthService: AuthServiceProtocol, FirebaseService  {
     private let socialAuthenticator: SocialAuthenticator
 
     public init( socialAuthenticator: SocialAuthenticator = SocialAuthenticator()) {
@@ -46,5 +47,14 @@ public final class FirebaseAuthService: AuthServiceProtocol  {
          let user = result.user
          return AuthModel(userId: user.uid, email: user.email, name: user.displayName)
      }
+
+    func delete() async throws {
+        // 1. Check current user
+        guard let user = Auth.auth().currentUser else {
+            throw NSError(domain: "Auth", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user logged in"])
+        }
+        try await deleteAllUserData(userId: user.uid)
+        try await user.delete()
+    }
 
 }

@@ -18,6 +18,7 @@ protocol FirebaseService {
     func update<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws
     func post<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws -> T
     func deleteAtomic(documentEndpoint: FirestoreEndpoint, dependentCollectionEndpoint: FirestoreEndpoint, dependencyParam: FirestoreQueryParam) async throws
+    func deleteAllUserData(userId: String) async throws
 }
 
 extension FirebaseService {
@@ -211,5 +212,38 @@ extension FirebaseService {
 
         // 8. Commit Atomic Write
         try await batch.commit()
+    }
+
+    func deleteAllUserData(userId: String) async throws {
+        let userCollections = ["spendings", "accounts", "projects", "income_sources", "budget"]
+        let db = Firestore.firestore()
+        let batch = db.batch()
+        var hasDataToDelete = false
+
+        // 1. Iterate over all collections to find user data
+        // We use a TaskGroup to fetch from multiple collections in parallel for speed
+        try await withThrowingTaskGroup(of: [QueryDocumentSnapshot].self) { group in
+            for collection in userCollections {
+                group.addTask {
+                    let snapshot = try await db.collection(collection)
+                        .whereField("userId", isEqualTo: userId)
+                        .getDocuments()
+                    return snapshot.documents
+                }
+            }
+
+            // Collect all documents
+            for try await documents in group {
+                for doc in documents {
+                    batch.deleteDocument(doc.reference)
+                    hasDataToDelete = true
+                }
+            }
+        }
+
+        // 2. Commit Batch (Only if data exists)
+        if hasDataToDelete {
+            try await batch.commit()
+        }
     }
 }

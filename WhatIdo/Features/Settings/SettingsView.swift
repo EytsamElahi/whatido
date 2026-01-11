@@ -9,7 +9,7 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @ObservedObject var viewModel: SettingsViewModel
+    @StateObject var viewModel: SettingsViewModel
     @EnvironmentObject var navigation: NavigationManager
 
     // Helper to get App Version
@@ -97,7 +97,7 @@ struct SettingsView: View {
                     }
 
                     Button(role: .destructive) {
-                        viewModel.deleteAccount()
+                        viewModel.reAuthenticate()
                     } label: {
                         SettingsRow(icon: "trash.fill", title: "Delete My Account", isDestructive: true)
                     }
@@ -117,6 +117,10 @@ struct SettingsView: View {
             }
             .scrollContentBackground(.hidden) // 🔥 Removes default white list background
             .listStyle(.insetGrouped)
+        }.onChange(of: viewModel.accountDeleted) {old, new in
+            if new {
+                navigation.path = NavigationPath()
+            }
         }
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.inline)

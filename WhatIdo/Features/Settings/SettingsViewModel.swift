@@ -6,10 +6,12 @@
 //
 
 import Foundation
+import FirebaseAuth
 
 @MainActor
 class SettingsViewModel: ObservableObject {
     @Published var notification: Bool = false
+    @Published var accountDeleted: Bool = false
 
     private let authService: AuthServiceProtocol
     private let overlayManager = OverlayManager.shared
@@ -19,11 +21,63 @@ class SettingsViewModel: ObservableObject {
     }
 
     func deleteAccount() {
-        overlayManager.showPopup(title: "Delete Account?", message: "Are you sure? All your spending data will be lost forever.", style: .warning, primaryAction: PopupAction(title: "Delete", role: .destructive) {
-            // TODO: - Add delete account function
+        overlayManager.showPopup(title: "Delete Account?", message: "Are you sure? All your spending data will be lost forever.", style: .warning, primaryAction: PopupAction(title: "Delete", role: .destructive) {[weak self] in
+            guard let self = self else {return}
+            performAccountDeletion()
         },
         secondaryAction: PopupAction(title: "Cancel", role: .cancel) {
             // Cancel logic (auto dismiss)
         })
+    }
+
+    func reAuthenticate() {
+        overlayManager.showPopup(title: "Action Required", message: "Please re-authenticate using your Signed-In method to continue deleting your account.", style: .info, primaryAction: PopupAction(title: "ReAuthenticate", role: .destructive) {[weak self] in
+            guard let self = self else {return}
+            let provider = getAuthProvider()
+            authenticate(provider)
+        },
+        secondaryAction: PopupAction(title: "Cancel", role: .cancel) {
+            // Cancel logic (auto dismiss)
+        })
+    }
+
+    func performAccountDeletion() {
+        Task {
+            overlayManager.showLoader()
+            defer { overlayManager.hideLoader() }
+            do {
+                try await authService.delete()
+                self.accountDeleted = true
+            } catch {
+                debugPrint("Error in deleting")
+                overlayManager.showToast(message: error.localizedDescription, style: .error)
+            }
+        }
+    }
+    private func authenticate(_ provider: AuthSocialProvider) {
+        Task { [weak self] in
+            guard let self = self else {return}
+            do {
+                let user = try await authService.signIn(with: provider)
+                deleteAccount()
+            } catch {
+                self.overlayManager.showToast(message: error.localizedDescription, style: .error)
+            }
+        }
+    }
+
+    private func getAuthProvider() -> AuthSocialProvider {
+        guard let user = Auth.auth().currentUser else { return .unknown }
+        for profile in user.providerData {
+            switch profile.providerID {
+            case AuthSocialProvider.apple.providerID:
+                return .apple
+            case AuthSocialProvider.google.providerID:
+                return .google
+            default:
+                continue
+            }
+        }
+        return .unknown
     }
 }
