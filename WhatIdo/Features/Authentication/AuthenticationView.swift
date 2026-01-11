@@ -82,7 +82,7 @@ struct AuthenticationView: View {
                 isAnimating = true
             }
         }.onChange(of: viewModel.navigateToCurrency) {
-            navManager.push(screen: .currencySettings)
+            navManager.push(screen: .currencySettings(false))
         }
         .sheet(isPresented: $viewModel.showUsernameSheet) {
             UsernameView()

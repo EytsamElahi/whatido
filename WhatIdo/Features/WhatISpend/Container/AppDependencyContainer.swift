@@ -83,4 +83,9 @@ class AppDependencyContainer {
     func makeLoginViewModel() -> AuthenticationViewModel {
         return AuthenticationViewModel(authService: authService)
     }
+
+    @MainActor
+    func makeSettingsViewModel() -> SettingsViewModel {
+        return SettingsViewModel(authService: authService)
+    }
 }

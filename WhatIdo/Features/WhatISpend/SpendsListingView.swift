@@ -74,10 +74,10 @@ struct SpendsListingView: View {
                 VStack(alignment: .leading) {
                     // MARK: - 1. Custom Header
                     AppHeaderView(title: viewModel.currentMonth, trailingButtonIcon: "folder.fill", backAction: {
-                        print("Button tapped!")
+                        navigation.push(screen: .settings)
                     }, trailingButtonAction: {
                         navigation.push(screen: .projectListing)
-                    })
+                    }, isBackButton: false)
 
                     // MARK: - 2. Smart Hero Card
                     SpendingsHeroSection(budgetProgress: budgetProgress, progressBarColor: progressBarColor){

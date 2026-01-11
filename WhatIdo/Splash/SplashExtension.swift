@@ -27,10 +27,12 @@ extension SplashView {
                 .environment(\.dependencyContainer, container)
         case .spendingAnalytics:
             AnalyticsView(viewModel: container.makeAnalyticsViewModel())
-        case .currencySettings:
-            SettingsView()
+        case .currencySettings(let fromSettings):
+            CurrencySettingsView(isFromSettings: fromSettings)
         case .login:
             AuthenticationView(viewModel: container.makeLoginViewModel())
+        case .settings:
+            SettingsView(viewModel: container.makeSettingsViewModel())
         }
     }
 }

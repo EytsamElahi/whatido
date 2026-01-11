@@ -12,14 +12,27 @@ struct AppHeaderView: View {
     var trailingButtonIcon: String? = nil
     var backAction: () -> Void
     var trailingButtonAction: (() -> Void)? = nil
+    var isBackButton: Bool = true
     var body: some View {
         HStack {
             Button(action: {
                 backAction()
             }) {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundStyle(Color.textPrimary)
+                if isBackButton {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundStyle(Color.textPrimary)
+                } else {
+                    ZStack {
+                        Circle()
+                            .fill(Color.white.opacity(0.1))
+                            .frame(width: 38, height: 38)
+
+                        Text(AppData.user?.name?.prefix(1).uppercased() ?? "U")
+                            .font(.customFont(family: .quicksand, name: .bold, size: .x16))
+                            .foregroundStyle(Color.appPrimaryColor) // Your Teal Color
+                    }
+                }
             }
 
             Text(title)
