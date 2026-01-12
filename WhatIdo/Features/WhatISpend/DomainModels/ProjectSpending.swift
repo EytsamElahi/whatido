@@ -15,6 +15,7 @@ class ProjectSpending: FirestoreIdentifiable, AppDataType {
     var icon: String
     let created: Date?
     var status: String
+    let userId: String
 
     required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -25,6 +26,7 @@ class ProjectSpending: FirestoreIdentifiable, AppDataType {
         self.icon = try container.decode(String.self, forKey: .icon)
         self.created = try container.decodeIfPresent(Date.self, forKey: .created)
         self.status = try container.decode(String.self, forKey: .status)
+        self.userId = try container.decodeIfPresent(String.self, forKey: .userId) ?? ""
     }
 
     init(id: String,
@@ -40,6 +42,7 @@ class ProjectSpending: FirestoreIdentifiable, AppDataType {
         self.icon = icon
         self.status = status
         self.created = created
+        self.userId = AppData.user?.id ?? ""
     }
 
     public static func == (lhs: ProjectSpending, rhs: ProjectSpending) -> Bool {

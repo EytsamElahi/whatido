@@ -9,6 +9,7 @@ import Foundation
 
 class Spending: FirestoreIdentifiable {
     var id: String = ""
+    let userId: String
     let name: String
     let amount: Double
     let date: Date
@@ -29,6 +30,7 @@ class Spending: FirestoreIdentifiable {
         self.updated = try container.decodeIfPresent(Date.self, forKey: .updated)
         self.source = try container.decodeIfPresent(String.self, forKey: .source)
         self.projectInfo = try container.decodeIfPresent(ProjectInfo.self, forKey: .projectInfo)
+        self.userId = try container.decodeIfPresent(String.self, forKey: .userId) ?? ""
     }
 
     init(name: String, amount: Double, date: Date, spendingType: SpendingType?, created: Date, source: String?, projectType: ProjectInfo? = nil) {
@@ -40,6 +42,7 @@ class Spending: FirestoreIdentifiable {
         self.created = created
         self.source = source
         self.projectInfo = projectType
+        self.userId = AppData.user?.id ?? ""
     }
 
     public static func == (lhs: Spending, rhs: Spending) -> Bool {

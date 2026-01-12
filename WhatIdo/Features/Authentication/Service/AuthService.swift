@@ -22,6 +22,7 @@ public struct AuthModel: AuthModelType {
 protocol AuthServiceProtocol {
     func signIn(with provider: AuthSocialProvider) async throws -> AuthModel
     func delete() async throws
+    func logout() async throws
 }
 
 public final class FirebaseAuthService: AuthServiceProtocol, FirebaseService  {
@@ -55,6 +56,10 @@ public final class FirebaseAuthService: AuthServiceProtocol, FirebaseService  {
         }
         try await deleteAllUserData(userId: user.uid)
         try await user.delete()
+    }
+
+    func logout() async throws {
+        try Auth.auth().signOut()
     }
 
 }

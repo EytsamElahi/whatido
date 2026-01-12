@@ -91,7 +91,7 @@ struct SettingsView: View {
                 // MARK: - Section 3: Danger Zone
                 Section {
                     Button(role: .destructive) {
-                        // Logout Action
+                        viewModel.logout()
                     } label: {
                         SettingsRow(icon: "rectangle.portrait.and.arrow.right", title: "Log Out", isDestructive: false) // Keep neutral or make red
                     }
@@ -119,11 +119,16 @@ struct SettingsView: View {
             .listStyle(.insetGrouped)
         }.onChange(of: viewModel.accountDeleted) {old, new in
             if new {
+                resetState()
                 navigation.path = NavigationPath()
             }
         }
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.inline)
+    }
+    func resetState() {
+        AppData.prefCurrency = nil
+        AppData.user = nil
     }
 }
 

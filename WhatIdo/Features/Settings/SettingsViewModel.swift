@@ -58,7 +58,7 @@ class SettingsViewModel: ObservableObject {
         Task { [weak self] in
             guard let self = self else {return}
             do {
-                let user = try await authService.signIn(with: provider)
+                let _ = try await authService.signIn(with: provider)
                 deleteAccount()
             } catch {
                 self.overlayManager.showToast(message: error.localizedDescription, style: .error)
@@ -79,5 +79,27 @@ class SettingsViewModel: ObservableObject {
             }
         }
         return .unknown
+    }
+
+    func logout() {
+        overlayManager.showPopup(title: "Log Out?", message: "Are you sure you want to log out? Your data will remain safe.", style: .info, primaryAction: PopupAction(title: "Log Out", role: .destructive) {[weak self] in
+            guard let self = self else {return}
+            performLogout()
+        },
+        secondaryAction: PopupAction(title: "Cancel", role: .cancel) {
+            // Cancel logic (auto dismiss)
+        })
+    }
+
+    private func performLogout() {
+        Task { [weak self] in
+            guard let self = self else {return}
+            do {
+                let _ = try await authService.logout()
+                self.accountDeleted = true
+            } catch {
+                self.overlayManager.showToast(message: error.localizedDescription, style: .error)
+            }
+        }
     }
 }
