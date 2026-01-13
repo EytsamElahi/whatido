@@ -1,0 +1,12 @@
+//
+//  Production.xcconfig
+//  WhatIdo
+//
+//  Created by eytsam elahi on 13/01/2026.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://developer.apple.com/documentation/xcode/adding-a-build-configuration-file-to-your-project
+
+APP_NAME = Yaru
+//BUNDLE_IDENTIFIER = com.tma.epokratis.dev
