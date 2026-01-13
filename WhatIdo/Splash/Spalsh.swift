@@ -16,24 +16,27 @@ struct SplashView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             NavigationStack(path: $navManager.path) {
-                VStack {
-                    Text("What i do")
-                        .font(.headline)
-                }.frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .onAppear {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
-                            if let _ = AppData.user {
-                                navManager.push(screen: .spendings)
-                            } else {
-                                navManager.push(screen: .login)
-                            }
+                ZStack {
+                    Color.cardBackground.ignoresSafeArea()
+                    VStack {
+                       // Image(.appIcon)
+                    }.foregroundStyle(Color.white)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .onAppear {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
+                        if let _ = AppData.user {
+                            navManager.push(screen: .spendings)
+                        } else {
+                            navManager.push(screen: .login)
+                        }
 
-                        })
-                    }
-                    .navigationDestination(for: Route.self) { routes in
-                        // MARK: - NAVIGATIONS
-                        destinationView(for: routes)
-                    }
+                    })
+                }
+                .navigationDestination(for: Route.self) { routes in
+                    // MARK: - NAVIGATIONS
+                    destinationView(for: routes)
+                }
             }.disabled(overlayManager.isLoading) // Loading ke waqt touch disable
                 .blur(radius: overlayManager.isLoading ? 2 : 0) // Thora blur effect
 
@@ -55,7 +58,7 @@ struct SplashView: View {
                     .zIndex(20)
                     .onTapGesture {
                         // Optional: Background tap pe close karna hai ya nahi
-                       // overlayManager.dismissPopup()
+                        // overlayManager.dismissPopup()
                     }
 
                 // The Popup Card

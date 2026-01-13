@@ -39,14 +39,24 @@ struct AuthenticationView: View {
                         .foregroundStyle(appPrimary)
                         .shadow(color: appPrimary.opacity(0.8), radius: 20, x: 0, y: 0)
 
-                    Text("WhatIDo")
+                    Text("Yaru")
                         .font(.system(size: 40, weight: .bold, design: .rounded))
                         .foregroundStyle(.white)
-
-                    Text("Track. Save. Grow.")
+//                    Text("Track your spendings")
+//                 //                            .font(.customFont(family: .quicksand, name: .regular, size: .x16))
+//                                         Image(.appIcon)
+//                                         Text("what gets measured gets managed.")
+//                                             .font(.customFont(family: .quicksand, name: .semiBold, size: .x20))
+//                                             .font(.headline)
+                    Text("Track your spendings")
                         .font(.body)
                         .foregroundStyle(.gray)
                         .tracking(2) // Letter spacing
+                    Text("what gets measured gets managed.")
+                        .italic()
+                        .font(.body)
+                        .foregroundStyle(.gray)
+                        .tracking(2)
                 }
                 .opacity(isAnimating ? 1 : 0)
                 .offset(y: isAnimating ? 0 : 20)
