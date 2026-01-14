@@ -18,8 +18,18 @@ struct SplashView: View {
             NavigationStack(path: $navManager.path) {
                 ZStack {
                     Color.cardBackground.ignoresSafeArea()
+                    // 2. AMBIENT GLOW (Yellow Effect peeche)
+                    Circle()
+                        .fill(Color.appPrimaryColor)
+                        .frame(width: 250, height: 250)
+                        .blur(radius: 100) // Neon Glow effect
+                        .offset(y: -150)
+                        .opacity(0.4)
                     VStack {
-                       // Image(.appIcon)
+                       Image(.appIcon)
+                            .resizable()
+                            .frame(width: 100, height: 100)
+                            .clipShape(RoundedRectangle(cornerRadius: 10.0))
                     }.foregroundStyle(Color.white)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -93,4 +103,9 @@ extension EnvironmentValues {
         get { self[DependencyContainerKey.self] }
         set { self[DependencyContainerKey.self] = newValue }
     }
+}
+
+#Preview {
+    SplashView(container: AppDependencyContainer())
+        .environmentObject(NavigationManager())
 }
