@@ -47,8 +47,8 @@ struct SplashView: View {
                     // MARK: - NAVIGATIONS
                     destinationView(for: routes)
                 }
-            }.disabled(overlayManager.isLoading) // Loading ke waqt touch disable
-                .blur(radius: overlayManager.isLoading ? 2 : 0) // Thora blur effect
+            }.disabled(overlayManager.isLoading) 
+                .blur(radius: overlayManager.isLoading ? 2 : 0)
 
             // 2. LOADING OVERLAY
             if overlayManager.isLoading {

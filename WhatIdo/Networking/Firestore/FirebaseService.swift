@@ -59,28 +59,56 @@ extension FirebaseService {
         }
     }
 
+//    func post<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws -> T {
+//        guard let ref = endpoint.path as? DocumentReference else {
+//            throw FirestoreServiceError.documentNotFound
+//        }
+//
+//        var dict: [String: Any] = [:]
+//        dict["created"] = FieldValue.serverTimestamp()
+//        dict["updated"] = FieldValue.serverTimestamp()
+//
+//        dict.merge(data.asDictionary()) { _, new in new }
+//
+//        try await ref.setData(dict, merge: true)
+//
+//        let snap = try await awaitCommittedSnapshot(ref)
+//
+//        guard snap.exists, let snapData = snap.data() else {
+//            throw FirestoreServiceError.documentNotFound
+//        }
+//
+//        var parsed = try FirestoreParser.parse(snapData, type: T.self)
+//        if parsed.id.isEmpty { parsed.id = snap.documentID }
+//        return parsed
+//    }
     func post<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws -> T {
         guard let ref = endpoint.path as? DocumentReference else {
             throw FirestoreServiceError.documentNotFound
         }
 
+        // 1. Prepare Data
         var dict: [String: Any] = [:]
         dict["created"] = FieldValue.serverTimestamp()
         dict["updated"] = FieldValue.serverTimestamp()
-
         dict.merge(data.asDictionary()) { _, new in new }
 
-        try await ref.setData(dict, merge: true)
-
-        let snap = try await awaitCommittedSnapshot(ref)
-
-        guard snap.exists, let snapData = snap.data() else {
-            throw FirestoreServiceError.documentNotFound
+        ref.setData(dict, merge: true) { error in
+            if let error = error {
+                // Optional: Log error to Crashlytics silently
+                print("Background sync failed: \(error.localizedDescription)")
+            } else {
+                print("Background sync success")
+            }
         }
 
-        var parsed = try FirestoreParser.parse(snapData, type: T.self)
-        if parsed.id.isEmpty { parsed.id = snap.documentID }
-        return parsed
+        // 3. Return Optimistic Data Immediately
+        var optimisticData = data
+        if optimisticData.id.isEmpty {
+            optimisticData.id = ref.documentID
+        }
+        
+        return optimisticData
     }
     func update<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws {
         guard let ref = endpoint.path as? DocumentReference else {
@@ -113,11 +141,11 @@ extension FirebaseService {
             query = query.whereField(params.key, isEqualTo: params.value)
         }
         // First check it from cache
-        var querySnapshot = try await query.getDocuments(source: .cache)
-        if querySnapshot.documents.isEmpty {
-            // If there are no document from cache check it from remote
-            querySnapshot = try await query.getDocuments(source: .server)
-        }
+        var querySnapshot = try await query.getDocuments(source: .default)
+//        if querySnapshot.documents.isEmpty {
+//            // If there are no document from cache check it from remote
+//            querySnapshot = try await query.getDocuments(source: .server)
+//        }
         var response: [T] = []
         for document in querySnapshot.documents {
             var data = try FirestoreParser.parse(document.data(), type: T.self)
@@ -131,16 +159,6 @@ extension FirebaseService {
     }
 
     func request<T: FirestoreIdentifiable>(endpoint: FirestoreEndpoint) async throws -> T {
-        //        guard let ref = endpoint.path as? DocumentReference else {
-        //            throw FirestoreServiceError.documentNotFound
-        //        }
-        //        var document = try await ref.getDocument(source: .cache)
-        //        if document.exists == false {
-        //            document = try await ref.getDocument(source: .server)
-        //        }
-        //        guard let data = document.data() else {
-        //            throw FirestoreServiceError.documentNotFound
-        //        }
 
         guard let ref = endpoint.path as? DocumentReference else {
             throw FirestoreServiceError.documentNotFound

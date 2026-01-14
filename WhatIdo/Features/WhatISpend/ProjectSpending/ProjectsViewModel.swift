@@ -16,7 +16,7 @@ class ProjectsViewModel: BaseViewModel {
     
     @Published var projects: [ProjectDto] = []
     @Published var selectedProject: ProjectDto? // For Edit
-    @Published var projectSpendings: [SpendingDto] = []
+    @Published var projectSpendings: [SpendingDto]?
     @Published var totalProjectSpending: Int = 0
     // Edit State
     var spendingToEdit: SpendingDto? 
@@ -36,6 +36,8 @@ class ProjectsViewModel: BaseViewModel {
         self.projectService = projectService
         self.spendingService = spendingService
         self.eventBus = eventBus
+        super.init()
+        self.fetchProjects()
     }
     
     // MARK: - CRUD
@@ -176,17 +178,17 @@ class ProjectsViewModel: BaseViewModel {
     func fetchProjectSpendings(_ id: String) {
         isDataLoading = true
         Task {
+            defer {self.isDataLoading = false}
             let result = await spendingService.getSpendingsForProject(id)
             if case .data(let spendings) = result {
                 self.projectSpendings = spendings
-                self.updateTotalSpending()
+                await self.updateTotalSpending()
             }
-            isDataLoading = false
         }
     }
 
-    func updateTotalSpending() {
-        guard !projectSpendings.isEmpty else {return}
+    func updateTotalSpending() async {
+        guard let projectSpendings, !projectSpendings.isEmpty else {return}
         self.totalProjectSpending = projectSpendings.reduce(0) { $0 + Int($1.amount) }
     }
 }

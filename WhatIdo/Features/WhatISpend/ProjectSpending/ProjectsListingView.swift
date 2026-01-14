@@ -90,8 +90,6 @@ struct ProjectsListingView: View {
                     .padding(.bottom)
                 }
 
-            }.onAppear {
-                viewModel.fetchProjects()
             } .loadingIndicator($viewModel.dataIsDeleting)
         }   .navigationBarHidden(true)
         //        // Sheet for Adding New Project

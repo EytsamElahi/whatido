@@ -51,51 +51,48 @@ struct ProjectSpendingsListView: View {
                     } label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.system(size: 30))
-                            .foregroundStyle(Color.appPrimaryColor)
+                            .foregroundStyle(viewModel.isDataLoading ? Color.appPrimaryColor.opacity(0.3) : Color.appPrimaryColor)
                             .background(Color.white.clipShape(Circle())) // White BG taake pop kare
-                    }
+                    }.disabled(viewModel.isDataLoading)
                 }
                 .padding(.horizontal)
                 .padding(.top, 10)
                 .padding(.bottom, 20)
-
-                if viewModel.projectSpendings.isEmpty && !viewModel.isDataLoading {
+                if viewModel.isDataLoading {
                     Spacer()
-                    VStack(spacing: 15) {
-                        Image(systemName: "tray")
-                            .font(.system(size: 50))
-                            .foregroundStyle(Color.gray.opacity(0.3))
-                        Text("No transactions yet")
-                            .font(.customFont(family: .quicksand, name: .medium, size: .x16))
-                            .foregroundStyle(Color.gray)
-                    }
+                    ProgressView().tint(Color.appPrimaryColor)
                     Spacer()
-                } else {
-                    // MARK: - Spendings List
-                    if viewModel.isDataLoading {
+                } else if let spendings = viewModel.projectSpendings {
+                    if spendings.isEmpty {
                         Spacer()
-                        ProgressView().tint(Color.appPrimaryColor)
+                        VStack(spacing: 15) {
+                            Image(systemName: "tray")
+                                .font(.system(size: 50))
+                                .foregroundStyle(Color.gray.opacity(0.3))
+                            Text("No transactions yet")
+                                .font(.customFont(family: .quicksand, name: .medium, size: .x16))
+                                .foregroundStyle(Color.gray)
+                        }
                         Spacer()
                     } else {
-                        // MARK: - Summary Card (Total Spent)
+                        // Case: Loaded successfully, data exists
                         VStack(spacing: 5) {
                             Text("Total Spent")
                                 .font(.customFont(family: .quicksand, name: .medium, size: .x14))
                                 .foregroundStyle(Color.gray)
 
                             Text("\(currencyManager.symbol) \(viewModel.totalProjectSpending)")
-                                    .font(.customFont(family: .inter, name: .bold, size: .x30))
-                                    .foregroundStyle(Color.white)
+                                .font(.customFont(family: .inter, name: .bold, size: .x30))
+                                .foregroundStyle(Color.white)
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 20)
                         .background(Color.cardBackground)
-                        .padding(.bottom, 20) // Separation from list
+                        .padding(.bottom, 20)
                         
                         ScrollView {
                             LazyVStack(spacing: 15) {
-                                ForEach(viewModel.projectSpendings, id: \.id) { spending in
-                                    // 🔥 Reusing your existing Card
+                                ForEach(spendings, id: \.id) { spending in
                                     UpdatedSpendingRow(spending: spending, hideProject: true)
                                         .environmentObject(currencyManager)
                                         .onTapGesture {
@@ -109,6 +106,8 @@ struct ProjectSpendingsListView: View {
                             .padding(.bottom, 20)
                         }
                     }
+                } else {
+                    Spacer()
                 }
             }
         }
@@ -121,12 +120,15 @@ struct ProjectSpendingsListView: View {
             AddSpendingView(viewModel: container.makeTransactionFormViewModel(spendingToEdit: viewModel.spendingToEdit), selectedProject: viewModel.selectedProject,onSpendingAdded: { updatedSpending in
                 viewModel.showAddNewSpendingSheet = false
                 guard let updatedSpending = updatedSpending else {return}
-                if let index = viewModel.projectSpendings.firstIndex(where: { $0.id == updatedSpending.id }) {
-                    viewModel.projectSpendings[index] = updatedSpending
+                if let index = viewModel.projectSpendings?.firstIndex(where: { $0.id == updatedSpending.id }) {
+                    viewModel.projectSpendings?[index] = updatedSpending
                 } else {
-                    viewModel.projectSpendings.insert(updatedSpending, at: 0)
+                    viewModel.projectSpendings?.insert(updatedSpending, at: 0)
                 }
-                viewModel.updateTotalSpending()
+                Task { [weak viewModel] in
+                    guard let viewModel else { return }
+                    await viewModel.updateTotalSpending()
+                }
             }).environmentObject(viewModel)
                 .presentationDetents([.medium, .large])
         }
