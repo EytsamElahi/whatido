@@ -148,6 +148,60 @@ extension AnalyticsView {
         }
 
     // 4️⃣ Breakdown List View
+//    var breakdownListView: some View {
+//        VStack(alignment: .leading, spacing: 15) {
+//            Text("Category Breakdown")
+//                .font(.customFont(family: .quicksand, name: .bold, size: .x18))
+//                .foregroundStyle(.white)
+//                .padding(.horizontal)
+//
+//            ForEach(viewModel.chartData) { data in
+//                let safeTotal = viewModel.totalSpent > 0 ? viewModel.totalSpent : 1
+//              //  let percent = (data.totalAmount / safeTotal) * 100
+//                AnalyticsCategoryCard(data: data, totalSpent: safeTotal)
+////                HStack(spacing: 15) {
+////                    // Icon
+////                    ZStack {
+////                        Circle()
+////                            .fill(data.color.opacity(0.2))
+////                            .frame(width: 44, height: 44)
+////
+////                        Image(systemName: data.icon)
+////                            .font(.system(size: 20))
+////                            .foregroundStyle(data.color)
+////                    }
+////
+////                    // Name
+////                    Text(data.spendingName)
+////                        .font(.customFont(family: .quicksand, name: .semiBold, size: .x16))
+////                        .foregroundStyle(.white)
+////
+////                    Spacer()
+////
+////                    // Amount & Percentage Logic
+////                    VStack(alignment: .trailing, spacing: 4) {
+////                        Text("\(AppData.prefCurrency?.symbol ?? "$") \(String(format: "%.0f", data.totalAmount))")
+////                            .font(.customFont(family: .inter, name: .bold, size: .x16))
+////                            .foregroundStyle(.white)
+////
+////                        // 🔥 CRITICAL FIX: Safe Division Logic
+////                        // Agar TotalSpent 0 hai, to hum 1 use karenge taake crash na ho
+////                        let safeTotal = viewModel.totalSpent > 0 ? viewModel.totalSpent : 1
+////                        let percent = (data.totalAmount / safeTotal) * 100
+////
+////                        Text("\(String(format: "%.1f", percent))%")
+////                            .font(.customFont(family: .inter, name: .medium, size: .x12))
+////                            .foregroundStyle(.gray)
+////                    }
+////                }
+////                .padding(12)
+////                .background(Color(white: 0.1))
+////                .cornerRadius(16)
+////                .padding(.horizontal)
+//            }
+//        }
+//        .padding(.bottom, 40)
+//    }
     var breakdownListView: some View {
         VStack(alignment: .leading, spacing: 15) {
             Text("Category Breakdown")
@@ -156,6 +210,29 @@ extension AnalyticsView {
                 .padding(.horizontal)
 
             ForEach(viewModel.chartData) { data in
+                // Use the new subview here
+                AnalyticsCategoryCard(data: data, totalSpent: viewModel.totalSpent)
+            }
+        }
+        .padding(.bottom, 40)
+    }
+}
+
+struct AnalyticsCategoryCard: View {
+    let data: SpendingTypeChartData
+    let totalSpent: Double
+
+    // Local state for expansion
+    @State private var isExpanded: Bool = false
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // MARK: - Header (The Main Card)
+            Button {
+                withAnimation(.snappy) {
+                    isExpanded.toggle()
+                }
+            } label: {
                 HStack(spacing: 15) {
                     // Icon
                     ZStack {
@@ -175,28 +252,73 @@ extension AnalyticsView {
 
                     Spacer()
 
-                    // Amount & Percentage Logic
+                    // Amount & Percent
                     VStack(alignment: .trailing, spacing: 4) {
                         Text("\(AppData.prefCurrency?.symbol ?? "$") \(String(format: "%.0f", data.totalAmount))")
                             .font(.customFont(family: .inter, name: .bold, size: .x16))
                             .foregroundStyle(.white)
 
-                        // 🔥 CRITICAL FIX: Safe Division Logic
-                        // Agar TotalSpent 0 hai, to hum 1 use karenge taake crash na ho
-                        let safeTotal = viewModel.totalSpent > 0 ? viewModel.totalSpent : 1
+                        let safeTotal = totalSpent > 0 ? totalSpent : 1
                         let percent = (data.totalAmount / safeTotal) * 100
 
-                        Text("\(String(format: "%.1f", percent))%")
-                            .font(.customFont(family: .inter, name: .medium, size: .x12))
-                            .foregroundStyle(.gray)
+                        HStack(spacing: 4) {
+                            Text("\(String(format: "%.1f", percent))%")
+                            // Chevron indicator
+                            Image(systemName: "chevron.down")
+                                .rotationEffect(.degrees(isExpanded ? 180 : 0))
+                        }
+                        .font(.customFont(family: .inter, name: .medium, size: .x12))
+                        .foregroundStyle(.gray)
                     }
                 }
                 .padding(12)
-                .background(Color(white: 0.1))
-                .cornerRadius(16)
-                .padding(.horizontal)
+                .background(Color(white: 0.1)) // Card Background
+            }
+
+            // MARK: - Expanded Details
+            if isExpanded {
+                VStack(spacing: 0) {
+                    Divider()
+                        .background(Color.gray.opacity(0.3))
+                        .padding(.horizontal)
+
+                    ForEach(data.transactions, id: \.self) { transaction in
+                        HStack {
+                            // Date
+                            Text(transaction.date.formatted(.dateTime.day().month()))
+                                .font(.customFont(family: .inter, name: .medium, size: .x12))
+                                .foregroundStyle(.gray)
+                                .frame(width: 50, alignment: .leading)
+
+                            // Note/Title (Assuming SpendingDto has a 'note' or 'title')
+                            Text(transaction.name.isEmpty ? "No description" : transaction.name)
+                                .font(.customFont(family: .quicksand, name: .medium, size: .x14))
+                                .foregroundStyle(.white.opacity(0.9))
+                                .lineLimit(1)
+
+                            Spacer()
+
+                            // Amount
+                            Text("\(AppData.prefCurrency?.symbol ?? "$")\(String(format: "%.0f", transaction.amount))")
+                                .font(.customFont(family: .inter, name: .semiBold, size: .x14))
+                                .foregroundStyle(.white)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+
+                        // Separator between items (except last)
+                        if transaction.id != data.transactions.last?.id {
+                            Divider()
+                                .background(Color.gray.opacity(0.2))
+                                .padding(.leading, 66) // Indent divider
+                        }
+                    }
+                }
+                .background(Color(white: 0.08)) // Slightly darker for inner list
+                .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-        .padding(.bottom, 40)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .padding(.horizontal)
     }
 }

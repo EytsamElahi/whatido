@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-struct SpendingDto: Hashable, AppDataType {
+struct SpendingDto: Hashable, Identifiable, AppDataType {
     let id: String
     let name: String
     let amount: Double

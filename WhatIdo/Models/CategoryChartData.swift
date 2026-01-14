@@ -13,6 +13,7 @@ struct SpendingTypeChartData: Identifiable, Hashable {
     let icon: String
     let totalAmount: Double
     let color: Color
+    let transactions: [SpendingDto]
 }
 
 // Time Filter ke liye Enum

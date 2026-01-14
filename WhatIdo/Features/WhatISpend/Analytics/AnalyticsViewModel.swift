@@ -74,20 +74,18 @@ class AnalyticsViewModel: ObservableObject {
         for (categoryName, spendings) in groupedDict {
             let total = spendings.reduce(0) { $0 + $1.amount }
 
-            // 🔥 CRITICAL FIX: Agar amount 0 ya minus hai to chart mein mat add karo
-            if total > 0.01 { // 0 ki jagah 0.01 check karein (Floating point safety)
+            if total > 0.01 {
                 if let firstItem = spendings.first {
                     processedData.append(SpendingTypeChartData(
                         spendingName: categoryName,
                         icon: firstItem.icon,
                         totalAmount: total,
-                        color: firstItem.iconColor
+                        color: firstItem.iconColor,
+                        transactions: spendings // 👈 PASS THE ARRAY HERE
                     ))
                 }
             }
         }
-
-        // Sort: Sabse zyada kharcha upar
         let sortedData = processedData.sorted { $0.totalAmount > $1.totalAmount }
         self.chartData = sortedData
     }
