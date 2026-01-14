@@ -175,14 +175,34 @@ class ProjectsViewModel: BaseViewModel {
         }
     }
     // MARK: - Fetch Details
+//    func fetchProjectSpendings(_ id: String) {
+//        isDataLoading = true
+//        Task {
+//            defer {self.isDataLoading = false}
+//            let result = await spendingService.getSpendingsForProject(id)
+//            if case .data(let spendings) = result {
+//                self.projectSpendings = spendings
+//                await self.updateTotalSpending()
+//            }
+//        }
+//    }
     func fetchProjectSpendings(_ id: String) {
-        isDataLoading = true
+        isDataLoading = true // Start loading spinner (for the initial cache load)
+        
         Task {
-            defer {self.isDataLoading = false}
-            let result = await spendingService.getSpendingsForProject(id)
-            if case .data(let spendings) = result {
-                self.projectSpendings = spendings
-                await self.updateTotalSpending()
+            do {
+                // This loop stays alive and listens for updates
+                for try await dtos in spendingService.getSpendingsForProject(id) {
+                    
+                    self.projectSpendings = dtos
+                    await self.updateTotalSpending()
+                    
+                    // Stop spinner immediately after the first batch (Cache) arrives
+                    self.isDataLoading = false
+                }
+            } catch {
+                print("Stream error: \(error.localizedDescription)")
+                self.isDataLoading = false
             }
         }
     }

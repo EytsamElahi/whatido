@@ -69,18 +69,23 @@ class DashboardViewModel: ObservableObject {
         isDataLoading = true
         Task {
             // 1. Fetch Spendings
-            let spendingResult = await spendingService.getSpendingsOfMonth(currentMonthDate ?? Date())
-            if case .data(let spendings) = spendingResult {
-                self.currentMonthSpendings = spendings
-                self.calculateTotal()
+            do {
+                // This loop stays alive and listens for updates
+                for try await spendings in spendingService.getSpendingsOfMonth(currentMonthDate ?? Date()) {
+                    self.currentMonthSpendings = spendings
+                    self.calculateTotal()
+                    withAnimation(.easeOut(duration: 0.4)) {
+                        self.isDataLoading = false
+                    }
+                }
+            } catch {
+                print("Stream error: \(error.localizedDescription)")
+                self.overlayManager.showToast(message: error.localizedDescription, style: .error)
+                withAnimation(.easeOut(duration: 0.4)) {
+                    self.isDataLoading = false
+                }
             }
-            if case .error(let string) = spendingResult {
-                self.overlayManager.showToast(message: string, style: .error)
-            }
-            withAnimation(.easeOut(duration: 0.4)) {
-                self.isDataLoading = false
-            }
-
+           
             // 2. Fetch Budget
             let budgetId = "\(currentMonthDate?.components.year ?? 0)_\(currentMonth)"
             let budgetResult = await budgetService.getMonthlyBudget(id: budgetId)

@@ -19,6 +19,12 @@ protocol FirebaseService {
     func post<T: FirestoreIdentifiable>(data: T, endpoint: FirestoreEndpoint) async throws -> T
     func deleteAtomic(documentEndpoint: FirestoreEndpoint, dependentCollectionEndpoint: FirestoreEndpoint, dependencyParam: FirestoreQueryParam) async throws
     func deleteAllUserData(userId: String) async throws
+    func streamRequest<T: FirestoreIdentifiable>(
+        _ queryParams: FirestoreQueryParam?,
+        filter date: FirestoreDateFilter?,
+        orderBy: String?,
+        endpoint: FirestoreEndpoint
+    ) -> AsyncThrowingStream<[T], Error>
 }
 
 extension FirebaseService {
@@ -156,6 +162,54 @@ extension FirebaseService {
             response.append(data)
         }
         return response
+    }
+    
+    func streamRequest<T: FirestoreIdentifiable>(
+        _ queryParams: FirestoreQueryParam? = nil,
+        filter date: FirestoreDateFilter? = nil,
+        orderBy: String? = nil,
+        endpoint: FirestoreEndpoint
+    ) -> AsyncThrowingStream<[T], Error> {
+
+        return AsyncThrowingStream { continuation in
+            guard let ref = endpoint.path as? CollectionReference else {
+                continuation.finish(throwing: FirestoreServiceError.collectionNotFound)
+                return
+            }
+
+            var query: Query = ref.order(by: orderBy ?? "date", descending: true)
+
+            if let dateFilter = date {
+                query = query.whereField(dateFilter.key, isGreaterThanOrEqualTo: Timestamp(date: dateFilter.from))
+                query = query.whereField(dateFilter.key, isLessThanOrEqualTo: Timestamp(date: dateFilter.to))
+            }
+            if let params = queryParams {
+                query = query.whereField(params.key, isEqualTo: params.value)
+            }
+
+            let listener = query.addSnapshotListener(includeMetadataChanges: true) { snapshot, error in
+                if let error = error {
+                    continuation.finish(throwing: error)
+                    return
+                }
+
+                guard let snapshot = snapshot else { return }
+
+                let items: [T] = snapshot.documents.compactMap { document in
+                    var item = try? FirestoreParser.parse(document.data(), type: T.self)
+                    if item?.id == "" { item?.id = document.documentID }
+                    return item
+                }
+
+                // Yield the data to the UI
+                continuation.yield(items)
+            }
+
+            // Clean up the listener when the View disappears or Task is cancelled
+            continuation.onTermination = { @Sendable _ in
+                listener.remove()
+            }
+        }
     }
 
     func request<T: FirestoreIdentifiable>(endpoint: FirestoreEndpoint) async throws -> T {
