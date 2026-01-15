@@ -20,6 +20,9 @@ class AnalyticsViewModel: ObservableObject {
     @Published var selectedRange: TimeRange = .thisMonth
     @Published var totalSpent: Double = 0.0
     
+    @Published var customDate: Date = Date()
+    @Published var isCustomMode: Bool = false
+    
     @Published var isLoading = false
     private let overlayManager = OverlayManager.shared
     init(service: SpendingsServiceProtocol = SpendingsService()) {
@@ -56,21 +59,21 @@ class AnalyticsViewModel: ObservableObject {
         let calendar = Calendar.current
         let now = Date()
 
-        switch selectedRange {
-        case .thisWeek:
-            // Matches current Week of Year
+        if isCustomMode {
+            // Filter by the selected 'customDate' Month & Year
             filteredData = allData.filter {
-                calendar.isDate($0.date, equalTo: now, toGranularity: .weekOfYear)
+                calendar.isDate($0.date, equalTo: customDate, toGranularity: .month) &&
+                calendar.isDate($0.date, equalTo: customDate, toGranularity: .year)
             }
-        case .thisMonth:
-            // Matches current Month
-            filteredData = allData.filter {
-                calendar.isDate($0.date, equalTo: now, toGranularity: .month)
-            }
-        case .thisYear:
-            // Matches current Year (Replaces All Time)
-            filteredData = allData.filter {
-                calendar.isDate($0.date, equalTo: now, toGranularity: .year)
+        } else {
+            // Normal Tabs Logic
+            switch selectedRange {
+            case .thisWeek:
+                filteredData = allData.filter { calendar.isDate($0.date, equalTo: now, toGranularity: .weekOfYear) }
+            case .thisMonth:
+                filteredData = allData.filter { calendar.isDate($0.date, equalTo: now, toGranularity: .month) }
+            case .thisYear:
+                filteredData = allData.filter { calendar.isDate($0.date, equalTo: now, toGranularity: .year) }
             }
         }
         // Update the list view data source
@@ -99,5 +102,6 @@ class AnalyticsViewModel: ObservableObject {
         let sortedData = processedData.sorted { $0.totalAmount > $1.totalAmount }
         // Assign to Published property
         self.chartData = sortedData
+      
     }
 }
