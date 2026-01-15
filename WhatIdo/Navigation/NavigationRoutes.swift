@@ -6,12 +6,13 @@
 //
 
 enum Route: Hashable {
-    case spendings
-    case SpendingDetails
-    case projectListing
-    case projectSpendingsList(ProjectDto)
-    case spendingAnalytics
-    case currencySettings(Bool)
-    case settings
-    case login
+  case spendings
+  case SpendingDetails
+  case projectListing
+  case projectSpendingsList(ProjectDto)
+  case spendingAnalytics
+  case currencySettings(Bool)
+  case settings
+  case login
+  case goals
 }

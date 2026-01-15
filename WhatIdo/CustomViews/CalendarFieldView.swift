@@ -116,7 +116,7 @@ fileprivate struct CalendarIcon: View {
     var body: some View {
         switch datePickerRange {
         case .future:
-            DatePicker(selection: $selectedDate, in: Date()...month, displayedComponents: .date) {}
+            DatePicker(selection: $selectedDate, in: Date()..., displayedComponents: .date) {}
                 .tint(Color.black)
                 .labelsHidden()
                 .contentShape(Rectangle())

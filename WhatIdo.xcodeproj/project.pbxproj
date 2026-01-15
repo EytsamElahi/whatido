@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		C33839AE2DD3B6C1002D4AFF /* NetworkManager.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C33839A62DD3B6C1002D4AFF /* NetworkManager.framework */; };
 		C33839AF2DD3B6C1002D4AFF /* NetworkManager.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C33839A62DD3B6C1002D4AFF /* NetworkManager.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		C3AAA0082FF0000000000001 /* GoalsViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3AAA0072FF0000000000001 /* GoalsViewModelTests.swift */; };
 		C3D9D2E02F057A640049182C /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = C3D9D2DF2F057A640049182C /* GoogleSignIn */; };
 		C3D9D2E22F057A640049182C /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = C3D9D2E12F057A640049182C /* GoogleSignInSwift */; };
 		C3F7F2342DE56FB700E04B31 /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = C3F7F2332DE56FB700E04B31 /* FirebaseAppCheck */; };
@@ -25,6 +26,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = C33839A52DD3B6C1002D4AFF;
 			remoteInfo = NetworkManager;
+		};
+		C3AAA0132FF0000000000009 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C3CBBE032DBFE9E300D112D8 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C3CBBE0A2DBFE9E300D112D8;
+			remoteInfo = WhatIdo;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -44,6 +52,8 @@
 
 /* Begin PBXFileReference section */
 		C33839A62DD3B6C1002D4AFF /* NetworkManager.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = NetworkManager.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		C3AAA0052FF0000000000001 /* WhatIdoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WhatIdoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C3AAA0072FF0000000000001 /* GoalsViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalsViewModelTests.swift; sourceTree = "<group>"; };
 		C3CBBE0B2DBFE9E300D112D8 /* WhatIdo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WhatIdo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -91,6 +101,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C3AAA0032FF0000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C3CBBE082DBFE9E300D112D8 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -109,11 +126,28 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		C305537E2F18FEAE00DCF552 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		C3AAA0062FF0000000000001 /* WhatIdoTests */ = {
+			isa = PBXGroup;
+			children = (
+				C3AAA0072FF0000000000001 /* GoalsViewModelTests.swift */,
+			);
+			path = WhatIdoTests;
+			sourceTree = "<group>";
+		};
 		C3CBBE022DBFE9E300D112D8 = {
 			isa = PBXGroup;
 			children = (
 				C3CBBE0D2DBFE9E300D112D8 /* WhatIdo */,
+				C3AAA0062FF0000000000001 /* WhatIdoTests */,
 				C33839A72DD3B6C1002D4AFF /* NetworkManager */,
+				C305537E2F18FEAE00DCF552 /* Frameworks */,
 				C3CBBE0C2DBFE9E300D112D8 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -123,6 +157,7 @@
 			children = (
 				C3CBBE0B2DBFE9E300D112D8 /* WhatIdo.app */,
 				C33839A62DD3B6C1002D4AFF /* NetworkManager.framework */,
+				C3AAA0052FF0000000000001 /* WhatIdoTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -162,6 +197,26 @@
 			productName = NetworkManager;
 			productReference = C33839A62DD3B6C1002D4AFF /* NetworkManager.framework */;
 			productType = "com.apple.product-type.framework";
+		};
+		C3AAA0012FF0000000000001 /* WhatIdoTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C3AAA0092FF0000000000001 /* Build configuration list for PBXNativeTarget "WhatIdoTests" */;
+			buildPhases = (
+				C3AAA0022FF0000000000001 /* Sources */,
+				C3AAA0032FF0000000000001 /* Frameworks */,
+				C3AAA0042FF0000000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C3AAA0142FF0000000000010 /* PBXTargetDependency */,
+			);
+			name = WhatIdoTests;
+			packageProductDependencies = (
+			);
+			productName = WhatIdoTests;
+			productReference = C3AAA0052FF0000000000001 /* WhatIdoTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		C3CBBE0A2DBFE9E300D112D8 /* WhatIdo */ = {
 			isa = PBXNativeTarget;
@@ -232,12 +287,20 @@
 			targets = (
 				C3CBBE0A2DBFE9E300D112D8 /* WhatIdo */,
 				C33839A52DD3B6C1002D4AFF /* NetworkManager */,
+				C3AAA0012FF0000000000001 /* WhatIdoTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		C33839A42DD3B6C1002D4AFF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C3AAA0042FF0000000000001 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -261,6 +324,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C3AAA0022FF0000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C3AAA0082FF0000000000001 /* GoalsViewModelTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C3CBBE072DBFE9E300D112D8 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -276,9 +347,114 @@
 			target = C33839A52DD3B6C1002D4AFF /* NetworkManager */;
 			targetProxy = C33839AC2DD3B6C1002D4AFF /* PBXContainerItemProxy */;
 		};
+		C3AAA0142FF0000000000010 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C3CBBE0A2DBFE9E300D112D8 /* WhatIdo */;
+			targetProxy = C3AAA0132FF0000000000009 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		C308BF8F2F18EEF500255076 /* Debug(Development) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YLN8246T33;
+				ENABLE_TESTABILITY = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rxworkforce.WhatIdoTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/WhatIdo.app/WhatIdo";
+			};
+			name = "Debug(Development)";
+		};
+		C308BF902F18EEF500255076 /* Debug(Production) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YLN8246T33;
+				ENABLE_TESTABILITY = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rxworkforce.WhatIdoTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/WhatIdo.app/WhatIdo";
+			};
+			name = "Debug(Production)";
+		};
+		C308BF912F18EEF500255076 /* Release(Development) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YLN8246T33;
+				ENABLE_TESTABILITY = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rxworkforce.WhatIdoTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/WhatIdo.app/WhatIdo";
+			};
+			name = "Release(Development)";
+		};
+		C308BF922F18EEF500255076 /* Release(Production) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YLN8246T33;
+				ENABLE_TESTABILITY = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rxworkforce.WhatIdoTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/WhatIdo.app/WhatIdo";
+			};
+			name = "Release(Production)";
+		};
 		C33839B12DD3B6C1002D4AFF /* Debug(Development) */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -610,6 +786,56 @@
 			};
 			name = "Release(Production)";
 		};
+		C3AAA00A2FF0000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YLN8246T33;
+				ENABLE_TESTABILITY = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rxworkforce.WhatIdoTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/WhatIdo.app/WhatIdo";
+			};
+			name = Debug;
+		};
+		C3AAA00B2FF0000000000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YLN8246T33;
+				ENABLE_TESTABILITY = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rxworkforce.WhatIdoTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/WhatIdo.app/WhatIdo";
+			};
+			name = Release;
+		};
 		C3CBBE1C2DBFE9E500D112D8 /* Debug(Development) */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReferenceAnchor = C3CBBE0D2DBFE9E300D112D8 /* WhatIdo */;
@@ -814,6 +1040,19 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = "Release(Development)";
+		};
+		C3AAA0092FF0000000000001 /* Build configuration list for PBXNativeTarget "WhatIdoTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C3AAA00A2FF0000000000001 /* Debug */,
+				C3AAA00B2FF0000000000001 /* Release */,
+				C308BF8F2F18EEF500255076 /* Debug(Development) */,
+				C308BF902F18EEF500255076 /* Debug(Production) */,
+				C308BF912F18EEF500255076 /* Release(Development) */,
+				C308BF922F18EEF500255076 /* Release(Production) */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
 		};
 		C3CBBE062DBFE9E300D112D8 /* Build configuration list for PBXProject "WhatIdo" */ = {
 			isa = XCConfigurationList;

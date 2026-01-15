@@ -1,0 +1,22 @@
+# Project Context
+This is an iOS app named "whatido" focused on personal tracking (goals, time, expenses).
+It uses SwiftUI, Firebase/Firestore, and Swift Testing.
+
+# Code Style
+- ALWAYS use SwiftUI.
+- Use MVVM architecture.
+- For testing, prefer the new Swift Testing framework (`@Test`) over XCTest.
+- Use 2 spaces for indentation.
+
+# Tech Stack Rules
+- We use Firestore for the backend.
+- Dependency Injection: Use Constructor Injection.
+- Unit Tests: All ViewModels must be testable with Mock services.
+- Using Services to manage backend calls.
+
+# Forbidden
+- DO NOT use generic `print()`. Use `debugPrint()` instead.
+- DO NOT use force unwraps (`!`).
+- DO NOT use `@State` for ViewModel properties.
+- DO NOT use `@ObservedObject` for ViewModel properties.
+- DO NOT use `@EnvironmentObject` for ViewModel properties.

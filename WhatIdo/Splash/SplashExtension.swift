@@ -26,13 +26,16 @@ extension SplashView {
             ProjectSpendingsListView(project: dto, viewModel: container.makeProjectsViewModel())
                 .environment(\.dependencyContainer, container)
         case .spendingAnalytics:
-            AnalyticsView(viewModel: container.makeAnalyticsViewModel())
+            // AnalyticsView(viewModel: container.makeAnalyticsViewModel())
+            GoalsView(viewModel: container.makeGoalsViewModel())
         case .currencySettings(let fromSettings):
             CurrencySettingsView(isFromSettings: fromSettings)
         case .login:
             AuthenticationView(viewModel: container.makeLoginViewModel())
         case .settings:
             SettingsView(viewModel: container.makeSettingsViewModel())
+        case .goals:
+            GoalsView(viewModel: container.makeGoalsViewModel())
         }
     }
 }

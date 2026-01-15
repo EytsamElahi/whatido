@@ -1,0 +1,43 @@
+{
+  "configurations" : [
+    {
+      "id" : "C3AAA0152FF0000000000011",
+      "name" : "Configuration 1",
+      "options" : {
+
+      },
+      "targets" : [
+        {
+          "parallelizable" : true,
+          "target" : {
+            "containerPath" : "container:WhatIdo.xcodeproj",
+            "identifier" : "C3AAA0012FF0000000000001",
+            "name" : "WhatIdoTests"
+          }
+        }
+      ]
+    }
+  ],
+  "defaultOptions" : {
+    "commandLineArgumentEntries" : [
+
+    ],
+    "environmentVariableEntries" : [
+
+    ],
+    "language" : "en",
+    "region" : "US",
+    "testTimeoutsEnabled" : false
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:WhatIdo.xcodeproj",
+        "identifier" : "C3AAA0012FF0000000000001",
+        "name" : "WhatIdoTests"
+      }
+    }
+  ],
+  "version" : 1
+}
