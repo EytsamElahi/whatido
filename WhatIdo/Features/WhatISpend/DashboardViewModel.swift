@@ -67,7 +67,8 @@ class DashboardViewModel: ObservableObject {
     // MARK: - Fetch Logic
     func fetchDashboardData() {
         isDataLoading = true
-        Task {
+        Task {[weak self] in
+            guard let self = self else {return}
             // 1. Fetch Spendings
             do {
                 // This loop stays alive and listens for updates
@@ -100,7 +101,8 @@ class DashboardViewModel: ObservableObject {
         guard let spendings = currentMonthSpendings else {return}
         let spending = spendings[index]
         
-        Task {
+        Task {[weak self] in
+            guard let self = self else {return}
             let result = await spendingService.deleteSpending(spending.id)
             if case .success = result {
                 self.overlayManager.showToast(message: "Spending deleted successfully", style: .success)
@@ -127,7 +129,8 @@ class DashboardViewModel: ObservableObject {
 
     func getCurrentMonthBudget() {
         let budgetId = "\(currentMonthDate?.components.year ?? 0)_\(currentMonth)"
-        Task {@MainActor in
+        Task {[weak self] in
+            guard let self = self else {return}
             let result = await budgetService.getMonthlyBudget(id: budgetId)
             switch result {
             case .data(let budget):
@@ -136,8 +139,6 @@ class DashboardViewModel: ObservableObject {
                 debugPrint("Error in fetching budget \(error)")
             case .success:
                 debugPrint("No budget found")
-            default:
-                debugPrint("Default")
             }
 
         }

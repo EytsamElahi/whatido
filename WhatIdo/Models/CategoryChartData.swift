@@ -20,5 +20,5 @@ struct SpendingTypeChartData: Identifiable, Hashable {
 enum TimeRange: String, CaseIterable {
     case thisWeek = "This Week"
     case thisMonth = "This Month"
-    case allTime = "All Time"
+    case thisYear = "This Year"
 }

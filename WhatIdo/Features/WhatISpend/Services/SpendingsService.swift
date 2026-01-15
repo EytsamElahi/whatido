@@ -17,6 +17,7 @@ protocol SpendingsServiceProtocol {
     func deleteSpending(_ id: String) async -> AppResult<Void>
     func getSpendingsForProject(_ projectId: String) -> AsyncThrowingStream<[SpendingDto], Error>
     func getSpendingsOfMonth(_ month: Date) -> AsyncThrowingStream<[SpendingDto], Error>
+    func getAllSpendings() -> AsyncThrowingStream<[SpendingDto], Error>
 }
 
 final class SpendingsService: FirebaseService, SpendingsServiceProtocol {
@@ -88,24 +89,11 @@ final class SpendingsService: FirebaseService, SpendingsServiceProtocol {
     @available(*, deprecated)
     func getSpendingsOfMonth(_ month: Date) async -> AppResult<[SpendingDto]>{
         let filter = FirestoreDateFilter(key: "date", from: month, to: Date())
-//        do {
-//            let endpoint = FirestoreEndpoints.getAllSpendings
-//            let spendingsData: [Spending] = try await request(filter: filter, endpoint: endpoint)
-//            return .data(spendingsData.map { $0.convertToDto() })
-//
-//        } catch {
-//            return .error(error.localizedDescription)
-//        }
         do {
-            // 1. Fetch [Spending] using the generic <Spending>
-            for try await data in streamRequest(filter: filter, orderBy: nil, endpoint: FirestoreEndpoints.getAllSpendings) as AsyncThrowingStream<[Spending], Error>  {
-                let dtos = data.map { $0.convertToDto() }
-                return .data(dtos)
-            }
-            return .success
-            
+            let endpoint = FirestoreEndpoints.getAllSpendings
+            let spendingsData: [Spending] = try await request(filter: filter, endpoint: endpoint)
+            return .data(spendingsData.map { $0.convertToDto() })
         } catch {
-            // 5. Pass errors to the ViewModel
             return .error(error.localizedDescription)
         }
     }
@@ -143,6 +131,20 @@ final class SpendingsService: FirebaseService, SpendingsServiceProtocol {
             Task {
                 do {
                     for try await data in streamRequest(filter: filter, endpoint: FirestoreEndpoints.getAllSpendings) as AsyncThrowingStream<[Spending], Error>  {
+                        let dtos = data.map { $0.convertToDto() }
+                        continuation.yield(dtos)
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+        }
+    }
+    func getAllSpendings() -> AsyncThrowingStream<[SpendingDto], Error> {
+        return AsyncThrowingStream { continuation in
+            Task {
+                do {                    for try await data in streamRequest(endpoint: FirestoreEndpoints.getAllSpendings) as AsyncThrowingStream<[Spending], Error>  {
                         let dtos = data.map { $0.convertToDto() }
                         continuation.yield(dtos)
                     }
