@@ -61,7 +61,7 @@ struct ProjectsListingView: View {
                                 Text("No projects yet")
                                     .font(.customFont(family: .quicksand, name: .medium, size: .x16))
                                     .foregroundStyle(Color.gray)
-                                Text("Create a project to track specific events like 'House Construction' or 'Dubai Trip'")
+                                Text("Create a project to track specific events like 'House Construction' or 'Dubai Trip'. Track all expenses related to a specific goal separately from your daily budget.")
                                     .font(.customFont(family: .quicksand, name: .regular, size: .x14))
                                     .foregroundStyle(Color.gray.opacity(0.7))
                                     .multilineTextAlignment(.center)

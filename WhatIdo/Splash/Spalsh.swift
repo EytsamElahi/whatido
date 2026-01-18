@@ -26,9 +26,9 @@ struct SplashView: View {
                         .offset(y: -150)
                         .opacity(0.4)
                     VStack {
-                       Image(.appIcon)
+                        Image(.splashIcon)
                             .resizable()
-                            .frame(width: 100, height: 100)
+                            .frame(width: 200, height: 200)
                             .clipShape(RoundedRectangle(cornerRadius: 10.0))
                     }.foregroundStyle(Color.white)
                 }

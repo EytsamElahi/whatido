@@ -32,31 +32,26 @@ struct AuthenticationView: View {
 
                 // 3. LOGO & BRANDING
                 VStack(spacing: 15) {
-                    Image(systemName: "chart.bar.doc.horizontal.fill") // Yahan apna Logo lagana
+                    Image(.splashIcon) // Yahan apna Logo lagana
                         .resizable()
                         .scaledToFit()
                         .frame(width: 80, height: 80)
                         .foregroundStyle(appPrimary)
-                        .shadow(color: appPrimary.opacity(0.8), radius: 20, x: 0, y: 0)
+                        //.shadow(color: appPrimary.opacity(0.8), radius: 20, x: 0, y: 0)
 
                     Text("Yaru")
                         .font(.system(size: 40, weight: .bold, design: .rounded))
                         .foregroundStyle(.white)
-//                    Text("Track your spendings")
-//                 //                            .font(.customFont(family: .quicksand, name: .regular, size: .x16))
-//                                         Image(.appIcon)
-//                                         Text("what gets measured gets managed.")
-//                                             .font(.customFont(family: .quicksand, name: .semiBold, size: .x20))
-//                                             .font(.headline)
-                    Text("Track your spendings")
-                        .font(.body)
-                        .foregroundStyle(.gray)
-                        .tracking(2) // Letter spacing
-                    Text("what gets measured gets managed.")
-                        .italic()
-                        .font(.body)
-                        .foregroundStyle(.gray)
-                        .tracking(2)
+                    VStack(spacing: 5) {
+                        Text("Track your spending")
+                            .font(.body)
+                            .foregroundStyle(.white)
+                            .tracking(2) // Letter spacing
+                        Text("What gets measured, gets managed.")
+                            .font(.system(size: 14, weight: .medium, design: .monospaced))
+                            .foregroundStyle(.gray)
+
+                    }
                 }
                 .opacity(isAnimating ? 1 : 0)
                 .offset(y: isAnimating ? 0 : 20)
@@ -68,7 +63,7 @@ struct AuthenticationView: View {
                     SocialButtonView(image: .google, title: "Continue with Google", backgroundColor: .googleBackground, fontColor: .black, imageWidth: 20, imageHeight: 20, action: {
                         viewModel.authenticate(.google)
                     }).padding(.horizontal)
-                    SocialButtonView(image: .apple, title: "Continue with Apple", backgroundColor: .black, fontColor: .white,imageWidth: 18, imageHeight: 22, action: {
+                    SocialButtonView(image: .apple, title: "Continue with Apple", backgroundColor: .cardBackground, fontColor: .white,imageWidth: 18, imageHeight: 22, action: {
                         viewModel.authenticate(.apple)
                     }).padding(.horizontal)
 
@@ -79,7 +74,7 @@ struct AuthenticationView: View {
                 .offset(y: isAnimating ? 0 : 20)
 
                 // 5. FOOTER (Terms)
-                Text("By continuing, you agree to our Terms & Privacy Policy.")
+                Text("By continuing, you agree to our [Terms & Privacy Policy](https://fire-cord-c32.notion.site/Yaru-Legal-Support-2ec64ce7ca4c80b595fbcba6ce8c5152).")
                     .font(.caption2)
                     .foregroundStyle(.gray.opacity(0.6))
                     .multilineTextAlignment(.center)
@@ -102,3 +97,7 @@ struct AuthenticationView: View {
     }
 }
 
+
+#Preview {
+    AuthenticationView(viewModel: AuthenticationViewModel(authService: FirebaseAuthService()))
+}
