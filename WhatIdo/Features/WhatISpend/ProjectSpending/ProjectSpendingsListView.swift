@@ -117,7 +117,7 @@ struct ProjectSpendingsListView: View {
             viewModel.fetchProjectSpendings(project.id)
         }
         .sheet(isPresented: $viewModel.showAddNewSpendingSheet) {
-            AddSpendingView(viewModel: container.makeTransactionFormViewModel(spendingToEdit: viewModel.spendingToEdit), selectedProject: viewModel.selectedProject,onSpendingAdded: { updatedSpending in
+            AddSpendingView(viewModel: container.makeTransactionFormViewModel(spendingToEdit: viewModel.spendingToEdit, selectedProject: viewModel.selectedProject), selectedProject: viewModel.selectedProject,onSpendingAdded: { updatedSpending in
                 viewModel.showAddNewSpendingSheet = false
                 guard let updatedSpending = updatedSpending else {return}
                 if let index = viewModel.projectSpendings?.firstIndex(where: { $0.id == updatedSpending.id }) {

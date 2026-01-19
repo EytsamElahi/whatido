@@ -46,10 +46,11 @@ class AddSpendingViewModel: ObservableObject {
     private let overlayManager = OverlayManager.shared
     private let eventBus: PassthroughSubject<AppGlobalEvent, Never>
 
-    init(service: SpendingsServiceProtocol = SpendingsService(), projectSerivce: ProjectsServiceProtocol = ProjectsService(), spendingToEdit: SpendingDto? = nil, eventBus: PassthroughSubject<AppGlobalEvent, Never>) {
+    init(service: SpendingsServiceProtocol = SpendingsService(), projectSerivce: ProjectsServiceProtocol = ProjectsService(), spendingToEdit: SpendingDto? = nil, selectedProject: ProjectDto? = nil, eventBus: PassthroughSubject<AppGlobalEvent, Never>) {
         self.service = service
         self.projectService = projectSerivce
         self.eventBus = eventBus
+        self.selectedProject = selectedProject
         self.loadSpendingTypes()
         self.getProjects()
 

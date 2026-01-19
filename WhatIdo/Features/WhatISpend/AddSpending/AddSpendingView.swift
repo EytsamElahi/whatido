@@ -300,11 +300,6 @@ struct AddSpendingView: View {
                     viewModel.dateTf = newVal.toDateReturnString()
                     self.calendarId = UUID()
                 }
-                .onAppear {
-                    if let project = selectedProject {
-                        viewModel.selectedProject = project
-                    }
-                }
         }.interactiveDismissDisabled(viewModel.isDataUploading)
          .hideKeyboardOnTapAround()
         .alert(isPresented: $viewModel.showErrorAlert) {

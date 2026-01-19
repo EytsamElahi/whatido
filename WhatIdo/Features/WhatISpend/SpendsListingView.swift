@@ -143,7 +143,7 @@ struct SpendsListingView: View {
                 viewModel.updatedSorting()
             }
             .sheet(isPresented: $viewModel.showAddSheet) {
-                let addSpendingVM = container.makeTransactionFormViewModel(spendingToEdit: viewModel.spendingToEdit)
+                let addSpendingVM = container.makeTransactionFormViewModel(spendingToEdit: viewModel.spendingToEdit, selectedProject: nil)
                 AddSpendingView(viewModel: addSpendingVM, selectedProject: nil,onSpendingAdded: { updatedSpending in
                     self.viewModel.showAddSheet = false
                     guard let updatedSpending = updatedSpending else {return}

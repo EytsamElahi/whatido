@@ -62,10 +62,11 @@ class AppDependencyContainer {
     // 3. Add/Edit Transaction Form
     // Note: Isay hum optional 'spending' pass karte hain (Edit case ke liye)
     @MainActor
-    func makeTransactionFormViewModel(spendingToEdit: SpendingDto? = nil) -> AddSpendingViewModel {
+    func makeTransactionFormViewModel(spendingToEdit: SpendingDto? = nil, selectedProject: ProjectDto? = nil) -> AddSpendingViewModel {
         return AddSpendingViewModel(
             service: spendingsService,
             spendingToEdit: spendingToEdit,
+            selectedProject: selectedProject,
             eventBus: eventBus
         )
     }
