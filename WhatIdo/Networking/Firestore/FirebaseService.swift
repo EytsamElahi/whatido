@@ -137,7 +137,6 @@ extension FirebaseService {
         //        }
 
         var query: Query = ref.order(by: orderBy ?? "date", descending: true)
-
         if let dateFilter = date {
             query = query.whereField(dateFilter.key, isGreaterThanOrEqualTo: Timestamp(date: dateFilter.from))
             query = query.whereField(dateFilter.key, isLessThanOrEqualTo: Timestamp(date: dateFilter.to))
@@ -146,6 +145,7 @@ extension FirebaseService {
         if let params = queryParams {
             query = query.whereField(params.key, isEqualTo: params.value)
         }
+        query = query.whereField("userId", isEqualTo: AppData.user?.id ?? "")
         // First check it from cache
         var querySnapshot = try await query.getDocuments(source: .default)
 //        if querySnapshot.documents.isEmpty {
@@ -178,7 +178,6 @@ extension FirebaseService {
             }
 
             var query: Query = ref.order(by: orderBy ?? "date", descending: true)
-
             if let dateFilter = date {
                 query = query.whereField(dateFilter.key, isGreaterThanOrEqualTo: Timestamp(date: dateFilter.from))
                 query = query.whereField(dateFilter.key, isLessThanOrEqualTo: Timestamp(date: dateFilter.to))
@@ -186,7 +185,7 @@ extension FirebaseService {
             if let params = queryParams {
                 query = query.whereField(params.key, isEqualTo: params.value)
             }
-
+            query = query.whereField("userId", isEqualTo: AppData.user?.id ?? "")
             let listener = query.addSnapshotListener(includeMetadataChanges: true) { snapshot, error in
                 if let error = error {
                     continuation.finish(throwing: error)
@@ -262,7 +261,8 @@ extension FirebaseService {
         }
 
         // 3. Query to find children (e.g., spendings where projectId == xyz)
-        let query = colRef.whereField(dependencyParam.key, isEqualTo: dependencyParam.value)
+        var query = colRef.whereField(dependencyParam.key, isEqualTo: dependencyParam.value)
+        query = query.whereField("userId", isEqualTo: AppData.user?.id ?? "")
 
         // 4. Fetch snapshots (Network call)
         let snapshot = try await query.getDocuments()

@@ -84,7 +84,7 @@ struct ProjectsListingView: View {
                         .frame(height: 55)
                         .background(Color.appPrimaryColor)
                         .cornerRadius(16)
-                        .shadow(color: Color.appPrimaryColor.opacity(0.3), radius: 10, x: 0, y: 5)
+                        //.shadow(color: Color.appPrimaryColor.opacity(0.3), radius: 10, x: 0, y: 5)
                     }
                     .padding(.horizontal)
                     .padding(.bottom)

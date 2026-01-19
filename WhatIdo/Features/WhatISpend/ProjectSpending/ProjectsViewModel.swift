@@ -85,7 +85,9 @@ class ProjectsViewModel: BaseViewModel {
             let result = await projectService.addProject(project)
             switch result {
             case .data(let newProject):
-                self.projects.insert(newProject, at: 0)
+                var temProj = newProject
+                temProj.createdAt = Date()
+                self.projects.insert(temProj, at: 0)
                 OverlayManager.shared.showToast(message: PopupMessages.dataAddedMessage("Project"), style: .success)
                 self.showAddProjectSheet = false
 

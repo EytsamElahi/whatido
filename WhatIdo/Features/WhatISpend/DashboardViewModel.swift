@@ -110,7 +110,7 @@ class DashboardViewModel: ObservableObject {
             if case(.error(let string)) = result {
                 self.overlayManager.showToast(message: string, style: .error)
             }
-            currentMonthSpendings?.remove(at: index)
+         //   currentMonthSpendings?.remove(at: index)
             calculateTotal()
             spendingToDeleteIndex = nil
         }
