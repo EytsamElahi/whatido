@@ -36,7 +36,11 @@ struct SplashView: View {
                 .onAppear {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
                         if let _ = AppData.user {
-                            navManager.push(screen: .spendings)
+                            if AppData.prefCurrency.isNil {
+                                navManager.push(screen: .currencySettings(false))
+                            } else {
+                                navManager.push(screen: .spendings)
+                            }
                         } else {
                             navManager.push(screen: .login)
                         }

@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "C3CBBE0A2DBFE9E300D112D8"
-               BuildableName = "WhatIdo.app"
+               BuildableName = "Yaru-Dev.app"
                BlueprintName = "WhatIdo"
                ReferencedContainer = "container:WhatIdo.xcodeproj">
             </BuildableReference>
@@ -73,7 +73,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "C3CBBE0A2DBFE9E300D112D8"
-            BuildableName = "WhatIdo.app"
+            BuildableName = "Yaru-Dev.app"
             BlueprintName = "WhatIdo"
             ReferencedContainer = "container:WhatIdo.xcodeproj">
          </BuildableReference>
@@ -90,7 +90,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "C3CBBE0A2DBFE9E300D112D8"
-            BuildableName = "WhatIdo.app"
+            BuildableName = "Yaru-Dev.app"
             BlueprintName = "WhatIdo"
             ReferencedContainer = "container:WhatIdo.xcodeproj">
          </BuildableReference>

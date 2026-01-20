@@ -48,7 +48,7 @@ struct CurrencySettingsView: View {
                                     }
 
                                 } label: {
-                                    HStack {
+                                    HStack(alignment: .top) {
                                         Text(currency.symbol)
                                             .font(.title2)
                                             .fontWeight(.bold)
