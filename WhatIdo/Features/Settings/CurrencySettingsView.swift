@@ -30,7 +30,15 @@ struct CurrencySettingsView: View {
                             ForEach(currencyManager.currencies, id: \.code) { (currency: CurrencyOption) in
                                 Button {
                                     currencyManager.updateCurrency(option: currency)
-//                                    dismiss.callAsFunction()
+                                    
+                                    // Update on Firestore as well
+                                    if let userId = AppData.user?.id {
+                                        Task {
+                                            let repo = UserRepository()
+                                            let _ = await repo.updateUserCurrency(userId: userId, currency: currency.code)
+                                        }
+                                    }
+
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                                         if isFromSettings {
                                             navigation.pop()

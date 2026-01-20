@@ -12,9 +12,10 @@ public struct AuthModel: AuthModelType {
     let userId: String
     let email: String?
     var name: String?
+    var currency: String?
 
     func toUserDto() -> UserDto {
-        return UserDto(id: userId, name: name, email: email)
+        return UserDto(id: userId, name: name, email: email, currency: currency)
     }
 }
 

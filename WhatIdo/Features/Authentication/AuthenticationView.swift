@@ -89,6 +89,9 @@ struct AuthenticationView: View {
         }.onChange(of: viewModel.navigateToCurrency) {
             navManager.push(screen: .currencySettings(false))
         }
+        .onChange(of: viewModel.navigateToDashboard) {
+            navManager.push(screen: .spendings)
+        }
         .sheet(isPresented: $viewModel.showUsernameSheet) {
             UsernameView()
                 .environmentObject(viewModel)
