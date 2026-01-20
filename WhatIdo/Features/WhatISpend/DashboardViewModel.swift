@@ -35,7 +35,7 @@ class DashboardViewModel: ObservableObject {
 
     // Delete Spending
     @Published var showDeleteConfirmationAlert: Bool = false
-    var spendingToDeleteIndex: Int? 
+    var spendingToDelete: SpendingDto? 
 
     // Loading State
     @Published var isDataLoading: Bool = false
@@ -97,9 +97,7 @@ class DashboardViewModel: ObservableObject {
     }
     
     func deleteSpending() {
-        guard let index = spendingToDeleteIndex else { return }
-        guard let spendings = currentMonthSpendings else {return}
-        let spending = spendings[index]
+        guard let spending = spendingToDelete else { return }
         
         Task {[weak self] in
             guard let self = self else {return}
@@ -110,9 +108,7 @@ class DashboardViewModel: ObservableObject {
             if case(.error(let string)) = result {
                 self.overlayManager.showToast(message: string, style: .error)
             }
-         //   currentMonthSpendings?.remove(at: index)
-            calculateTotal()
-            spendingToDeleteIndex = nil
+            spendingToDelete = nil
         }
     }
 

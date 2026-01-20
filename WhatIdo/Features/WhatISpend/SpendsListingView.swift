@@ -97,7 +97,7 @@ struct SpendsListingView: View {
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else {
                         List {
-                            ForEach(viewModel.currentMonthSpendings ?? [], id: \.self) { spending in
+                            ForEach(viewModel.currentMonthSpendings ?? [], id: \.id) { spending in
                                 UpdatedSpendingRow(spending: spending)
                                     .environmentObject(currencyManager)
                                     .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
@@ -109,11 +109,9 @@ struct SpendsListingView: View {
                                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                         Button(role: .destructive) {
                                             // TODO: - Check Deletion is working
-                                            // Delete Logic: Index dhoond kar delete call karein
-                                            if let index = viewModel.currentMonthSpendings?.firstIndex(of: spending) {
-                                                viewModel.spendingToDeleteIndex = index
-                                                viewModel.showDeleteConfirmationAlert = true
-                                            }
+                                            // Delete Logic: Pass the spending object
+                                            viewModel.spendingToDelete = spending
+                                            viewModel.showDeleteConfirmationAlert = true
                                         } label: {
                                             Image(systemName: "trash")
                                         }
@@ -168,9 +166,9 @@ struct SpendsListingView: View {
                     }
                 })
             }
-            .alert("Confirm Deletion", isPresented: $viewModel.showDeleteConfirmationAlert, presenting: viewModel.spendingToDeleteIndex) { spending in
+            .alert("Confirm Deletion", isPresented: $viewModel.showDeleteConfirmationAlert, presenting: viewModel.spendingToDelete) { spending in
                 Button("Delete", role: .destructive) { viewModel.deleteSpending() }
-                Button("Cancel", role: .cancel) { viewModel.spendingToDeleteIndex = nil }
+                Button("Cancel", role: .cancel) { viewModel.spendingToDelete = nil }
             } message: { _ in
                 Text("Are you sure you want to delete this spending?")
             }
