@@ -17,4 +17,10 @@ class AppData {
     @AppStorageObject(key: "user", defaultValue: nil)
     static var user: UserDto?
 
+    static func clear() {
+        budget = nil
+        prefCurrency = nil
+        user = nil
+    }
+
 }

@@ -45,6 +45,12 @@ class DashboardViewModel: ObservableObject {
     // Edit State
     var spendingToEdit: SpendingDto? // Isay use kar ke hum TransactionFormViewModel init karenge
     private var cancellables = Set<AnyCancellable>()
+    private var fetchTask: Task<Void, Never>?
+
+    deinit {
+        print("🗑️ DashboardViewModel deinitialized: Cleaning up...")
+        fetchTask?.cancel()
+    }
 
     init(spendingService: SpendingsServiceProtocol = SpendingsService(),
          budgetService: BudgetsServiceProtocol = BudgetsService(),
@@ -68,12 +74,18 @@ class DashboardViewModel: ObservableObject {
     func fetchDashboardData() {
         isDataLoading = true
         
+        fetchTask?.cancel()
+        
         // 1. Fetch Spendings (Stream)
-        Task {[weak self] in
-            guard let self = self else {return}
+        fetchTask = Task {[weak self] in
             do {
                 // This loop stays alive and listens for updates
-                for try await spendings in spendingService.getSpendingsOfMonth(currentMonthDate ?? Date()) {
+                // Using .getSpendingsOfMonth which returns AsyncThrowingStream
+                let stream: AsyncThrowingStream<[SpendingDto], Error> = spendingService.getSpendingsOfMonth(self?.currentMonthDate ?? Date())
+                
+                for try await spendings in stream {
+                    guard let self = self else { break }
+                    
                     self.currentMonthSpendings = spendings
                     self.calculateTotal()
                     withAnimation(.easeOut(duration: 0.4)) {
@@ -81,8 +93,17 @@ class DashboardViewModel: ObservableObject {
                     }
                 }
             } catch {
-                print("Stream error: \(error.localizedDescription)")
-                self.overlayManager.showToast(message: error.localizedDescription, style: .error)
+                guard let self = self, !Task.isCancelled else { return }
+                
+                // Ignore "Missing or insufficient permissions" if we are logging out/deleting
+                let errorMsg = error.localizedDescription
+                if errorMsg.contains("insufficient permissions") {
+                    print("ℹ️ Suppressing permission error during logout/cleanup.")
+                    return
+                }
+                
+                print("Stream error: \(errorMsg)")
+                self.overlayManager.showToast(message: errorMsg, style: .error)
                 withAnimation(.easeOut(duration: 0.4)) {
                     self.isDataLoading = false
                 }
@@ -92,8 +113,12 @@ class DashboardViewModel: ObservableObject {
         // 2. Fetch Budget (Async Request)
         Task {[weak self] in
             guard let self = self else {return}
-            let budgetId = "\(currentMonthDate?.components.year ?? 0)_\(currentMonth)"
-            let budgetResult = await budgetService.getMonthlyBudget(id: budgetId)
+            let userId = AppData.user?.id ?? ""
+            let budgetId = "\(userId)_\(self.currentMonthDate?.components.year ?? 0)_\(self.currentMonth)"
+            let budgetResult = await self.budgetService.getMonthlyBudget(id: budgetId)
+            
+            guard !Task.isCancelled else { return }
+            
             if case .data(let budget) = budgetResult {
                 self.monthlyBudget = budget
             }

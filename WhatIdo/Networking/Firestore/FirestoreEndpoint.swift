@@ -27,7 +27,7 @@ enum FirestoreEndpoints: FirestoreEndpoint {
     case getAllSpendings
     case editSpending(id: String)
     case deleteSpending(id: String)
-    case addBudget(year: Int, month: String)
+    case addBudget(userId: String, year: Int, month: String)
     case getBudget(id: String)
     case editBudget(id: String)
     case deleteBudget(id: String)
@@ -52,8 +52,8 @@ enum FirestoreEndpoints: FirestoreEndpoint {
             return firestore.collection("spendings").document(documentId)
         case .getSpending(let documentId):
             return firestore.collection("spendings").document(documentId)
-        case .addBudget(let year, let month):
-            return firestore.collection("budget").document("\(year)_\(month)")
+        case .addBudget(let userId, let year, let month):
+            return firestore.collection("budget").document("\(userId)_\(year)_\(month)")
         case .getBudget(let documentId):
             return firestore.collection("budget").document(documentId)
         case .editBudget(let documentId):

@@ -46,6 +46,7 @@ class SettingsViewModel: ObservableObject {
             overlayManager.showLoader()
             defer { overlayManager.hideLoader() }
             do {
+                AppData.clear()
                 try await authService.delete()
                 self.accountDeleted = true
             } catch {
@@ -95,7 +96,8 @@ class SettingsViewModel: ObservableObject {
         Task { [weak self] in
             guard let self = self else {return}
             do {
-                let _ = try await authService.logout()
+                AppData.clear()
+                try await authService.logout()
                 self.accountDeleted = true
             } catch {
                 self.overlayManager.showToast(message: error.localizedDescription, style: .error)

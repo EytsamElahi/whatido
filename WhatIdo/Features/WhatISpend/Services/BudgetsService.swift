@@ -28,7 +28,7 @@ final class BudgetsService: FirebaseService, BudgetsServiceProtocol {
     
     func addMonthlyBudget(_ budget: Budget) async -> AppResult<Budget> {
         do {
-            let savedBudget = try await post(data: budget, endpoint: FirestoreEndpoints.addBudget(year: budget.year, month: budget.month))
+            let savedBudget = try await post(data: budget, endpoint: FirestoreEndpoints.addBudget(userId: budget.userId, year: budget.year, month: budget.month))
             return .data(savedBudget)
         } catch {
             return .error(error.localizedDescription)
