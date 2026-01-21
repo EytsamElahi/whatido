@@ -52,7 +52,8 @@ struct CurrencySettingsView: View {
                                         Text(currency.symbol)
                                             .font(.title2)
                                             .fontWeight(.bold)
-                                            .frame(width: 40)
+                                            .frame(width: 60)
+                                            .lineLimit(1)
                                             .foregroundStyle(Color.appPrimaryColor)
 
                                         VStack(alignment: .leading) {
@@ -68,9 +69,10 @@ struct CurrencySettingsView: View {
 
                                         Spacer()
 
-                                        if currencyManager.currencyCode == currency.code {
+                                        if AppData.prefCurrency?.code == currency.code {
                                             Image(systemName: "checkmark.circle.fill")
                                                 .foregroundStyle(Color.appPrimaryColor)
+                                                .padding(.vertical)
                                         }
                                     }
                                     .padding()
@@ -98,4 +100,9 @@ struct CurrencySettingsView: View {
         formatter.locale = Locale(identifier: locale)
         return formatter.string(from: NSNumber(value: amount)) ?? "\(code) \(amount)"
     }
+}
+
+#Preview {
+    CurrencySettingsView()
+        .environmentObject(NavigationManager())
 }
