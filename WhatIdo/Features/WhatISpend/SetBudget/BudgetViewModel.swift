@@ -32,7 +32,8 @@ class BudgetViewModel: ObservableObject {
         let budget = Budget(
             month: self.currentMonth,
             year: self.currentMonthInDateFormat?.components.year ?? 0,
-            budgetAmount: amount
+            budgetAmount: amount,
+            currencyCode: CurrencyManager.shared.currencyCode
         )
 
         Task { [weak self] in

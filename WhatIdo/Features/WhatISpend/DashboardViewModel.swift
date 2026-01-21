@@ -67,9 +67,10 @@ class DashboardViewModel: ObservableObject {
     // MARK: - Fetch Logic
     func fetchDashboardData() {
         isDataLoading = true
+        
+        // 1. Fetch Spendings (Stream)
         Task {[weak self] in
             guard let self = self else {return}
-            // 1. Fetch Spendings
             do {
                 // This loop stays alive and listens for updates
                 for try await spendings in spendingService.getSpendingsOfMonth(currentMonthDate ?? Date()) {
@@ -86,8 +87,11 @@ class DashboardViewModel: ObservableObject {
                     self.isDataLoading = false
                 }
             }
+        }
            
-            // 2. Fetch Budget
+        // 2. Fetch Budget (Async Request)
+        Task {[weak self] in
+            guard let self = self else {return}
             let budgetId = "\(currentMonthDate?.components.year ?? 0)_\(currentMonth)"
             let budgetResult = await budgetService.getMonthlyBudget(id: budgetId)
             if case .data(let budget) = budgetResult {

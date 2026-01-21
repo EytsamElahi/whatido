@@ -19,6 +19,7 @@ struct SpendingDto: Hashable, Identifiable, AppDataType {
     let spendingCategoryId: Int
     let fundSource: FundSource?
     let project: SpendingProjectDto?
+    let currencyCode: String?
 }
 
 struct SpendingProjectDto: Hashable, AppDataType {

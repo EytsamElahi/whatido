@@ -18,6 +18,7 @@ class Spending: FirestoreIdentifiable {
     let updated: Date?
     let source: String?
     let projectInfo: ProjectInfo?
+    let currencyCode: String?
 
     required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -31,9 +32,10 @@ class Spending: FirestoreIdentifiable {
         self.source = try container.decodeIfPresent(String.self, forKey: .source)
         self.projectInfo = try container.decodeIfPresent(ProjectInfo.self, forKey: .projectInfo)
         self.userId = try container.decodeIfPresent(String.self, forKey: .userId) ?? ""
+        self.currencyCode = try container.decodeIfPresent(String.self, forKey: .currencyCode)
     }
 
-    init(name: String, amount: Double, date: Date, spendingType: SpendingType?, created: Date, source: String?, projectType: ProjectInfo? = nil) {
+    init(name: String, amount: Double, date: Date, spendingType: SpendingType?, created: Date, source: String?, projectType: ProjectInfo? = nil, currencyCode: String? = nil) {
         self.name = name
         self.amount = amount
         self.date = date
@@ -43,6 +45,7 @@ class Spending: FirestoreIdentifiable {
         self.source = source
         self.projectInfo = projectType
         self.userId = AppData.user?.id ?? ""
+        self.currencyCode = currencyCode
     }
 
     public static func == (lhs: Spending, rhs: Spending) -> Bool {
@@ -54,7 +57,7 @@ class Spending: FirestoreIdentifiable {
     }
 
      func convertToDto() -> SpendingDto {
-         return SpendingDto(id: self.id, name: self.name, amount: self.amount, date: self.date, type: self.spendingType?.name ?? "", created: self.created ?? Date(), spendingTypeId: spendingType?.id ?? -1, spendingCategoryId: spendingType?.catId ?? -1, fundSource: FundSource(rawValue: self.source ?? "Cash"), project: SpendingProjectDto(id: projectInfo?.id, projectName: projectInfo?.name, projectIcon: projectInfo?.icon))
+         return SpendingDto(id: self.id, name: self.name, amount: self.amount, date: self.date, type: self.spendingType?.name ?? "", created: self.created ?? Date(), spendingTypeId: spendingType?.id ?? -1, spendingCategoryId: spendingType?.catId ?? -1, fundSource: FundSource(rawValue: self.source ?? "Cash"), project: SpendingProjectDto(id: projectInfo?.id, projectName: projectInfo?.name, projectIcon: projectInfo?.icon), currencyCode: self.currencyCode)
     }
 
 }

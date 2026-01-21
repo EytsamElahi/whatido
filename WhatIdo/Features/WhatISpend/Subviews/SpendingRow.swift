@@ -118,9 +118,8 @@ struct UpdatedSpendingRow: View {
 
             Spacer()
 
-            // Amount & Date
             VStack(alignment: .trailing, spacing: 4) {
-                Text("\(currencyManager.symbol ?? "") \(Int(spending.amount))")
+                Text(spending.amount.formatCurrency(with: spending.currencyCode))
                     .font(.customFont(family: .inter, name: .bold, size: .x16))
                     .foregroundStyle(Color.textPrimary) // ✅ White Text
 

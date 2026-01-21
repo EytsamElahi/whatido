@@ -14,6 +14,7 @@ class Budget: FirestoreIdentifiable, AppDataType {
     var budgetAmount: Double
     let created: Date?
     let userId: String
+    var currencyCode: String?
 
     required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -23,18 +24,21 @@ class Budget: FirestoreIdentifiable, AppDataType {
         self.month = try container.decode(String.self, forKey: .month)
         self.year = try container.decode(Int.self, forKey: .year)
         self.userId = try container.decode(String.self, forKey: .userId)
+        self.currencyCode = try container.decodeIfPresent(String.self, forKey: .currencyCode)
     }
 
     init(
         month: String,
         year: Int,
-        budgetAmount: Double
+        budgetAmount: Double,
+        currencyCode: String? = nil
     ) {
         self.month = month
         self.budgetAmount = budgetAmount
         self.year = year
         self.created = nil
         self.userId = AppData.user?.id ?? ""
+        self.currencyCode = currencyCode
     }
 
     public static func == (lhs: Budget, rhs: Budget) -> Bool {

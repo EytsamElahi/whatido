@@ -10,20 +10,25 @@ import Foundation
 extension Double {
 
     var toCurrency: String {
+        return formatCurrency(with: nil)
+    }
+
+    func formatCurrency(with code: String?) -> String {
         let manager = CurrencyManager.shared
+        let currencyOption = manager.getCurrencyOption(for: code) ?? manager.activeCurrency
 
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
-        formatter.currencyCode = manager.currencyCode
-        formatter.locale = Locale(identifier: manager.localeIdentifier ?? "")
+        formatter.currencyCode = currencyOption.code
+        formatter.locale = Locale(identifier: currencyOption.locale)
 
         // Agar currency PKR/INR hai to decimals hata dete hain (Clean lagta hai)
-        if ["PKR", "INR", "JPY"].contains(manager.currencyCode) {
+        if ["PKR", "INR", "JPY"].contains(currencyOption.code) {
             formatter.maximumFractionDigits = 0
         } else {
             formatter.maximumFractionDigits = 2
         }
 
-        return formatter.string(from: NSNumber(value: self)) ?? "\(manager.currencyCode) \(self)"
+        return formatter.string(from: NSNumber(value: self)) ?? "\(currencyOption.code) \(self)"
     }
 }

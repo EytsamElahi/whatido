@@ -86,7 +86,8 @@ class AddSpendingViewModel: ObservableObject {
             spendingType: selectedType!,
             created: created ?? Date(),
             source: selectedFundingSource,
-            projectType: ProjectInfo(id: selectedProject?.id, name: selectedProject?.name, icon: selectedProject?.icon)
+            projectType: ProjectInfo(id: selectedProject?.id, name: selectedProject?.name, icon: selectedProject?.icon),
+            currencyCode: CurrencyManager.shared.currencyCode
         )
         Task {
             self.isDataUploading = true
