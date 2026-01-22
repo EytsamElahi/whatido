@@ -13,6 +13,7 @@ struct SetBudgetView: View {
     @State private var budgetInput: Double = 0
     // Dynamic Sheet Height ke liye variable
     @State private var sheetHeight: CGFloat = .zero
+    @State private var showBudgetInfo: Bool = false
     var onGetBudget: (Budget?) -> ()
     @ObservedObject var currencyManager = CurrencyManager.shared
 
@@ -24,9 +25,33 @@ struct SetBudgetView: View {
                 .foregroundStyle(Color.gray.opacity(0.3))
                 .padding(.top, 10)
 
-            Text("Monthly Budget")
-                .font(.customFont(family: .quicksand, name: .bold, size: .x20))
-                .foregroundStyle(Color.white)
+            HStack(spacing: 8) {
+                Text("Monthly Budget")
+                    .font(.customFont(family: .quicksand, name: .bold, size: .x20))
+                    .foregroundStyle(Color.white)
+                
+                if let budget = viewModel.monthlyBudget, (budget.currencyCode ?? "USD") != currencyManager.currencyCode {
+                    Button {
+                        showBudgetInfo.toggle()
+                    } label: {
+                        Image(systemName: "info.circle")
+                            .font(.system(size: 16))
+                            .foregroundStyle(Color.appPrimaryColor)
+                    }
+                    .popover(isPresented: $showBudgetInfo) {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Converted Budget")
+                                .font(.customFont(family: .quicksand, name: .bold, size: .x16))
+                            Text("Original Budget: \(Int(budget.budgetAmount)) \(budget.currencyCode ?? "USD"). Converted to match your home currency settings.")
+                                .font(.customFont(family: .quicksand, name: .medium, size: .x14))
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .padding()
+                        .frame(maxWidth: 300)
+                        .presentationCompactAdaptation(.popover)
+                    }
+                }
+            }
 
             // MARK: - 1. Huge Amount Input
             VStack(spacing: 12) {
@@ -101,8 +126,8 @@ struct SetBudgetView: View {
             self.sheetHeight = height
         }
         .onAppear {
-            // Load existing budget into local state
-            if let currentBudget = viewModel.monthlyBudget?.budgetAmount {
+            // Load existing budget into local state (using converted amount from VM)
+            if let currentBudget = viewModel.budgetAmount {
                 budgetInput = currentBudget
             }
         }

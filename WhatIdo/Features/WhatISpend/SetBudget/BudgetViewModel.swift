@@ -24,6 +24,20 @@ class BudgetViewModel: ObservableObject {
     init(service: BudgetsServiceProtocol = BudgetsService(), budgetToEdit: Budget?) {
         self.service = service
         self.monthlyBudget = budgetToEdit
+        
+        if let budget = budgetToEdit {
+            let budgetCurrency = budget.currencyCode ?? "USD"
+            let homeCurrency = CurrencyManager.shared.activeCurrency.code
+            
+            if budgetCurrency == homeCurrency {
+                self.budgetAmount = budget.budgetAmount
+            } else {
+                let rateToUSD = CurrencyConfig.rates[budgetCurrency] ?? 1.0
+                let budgetInUSD = budget.budgetAmount / rateToUSD
+                let homeRate = CurrencyConfig.rates[homeCurrency] ?? 1.0
+                self.budgetAmount = (budgetInUSD * homeRate).rounded()
+            }
+        }
     }
     
     func setBudget() {
@@ -94,6 +108,7 @@ class BudgetViewModel: ObservableObject {
 
         self.isUploading = true
         cBudget.budgetAmount = amount
+        cBudget.currencyCode = CurrencyManager.shared.currencyCode
 
         Task { [weak self] in
             guard let self = self else { return }

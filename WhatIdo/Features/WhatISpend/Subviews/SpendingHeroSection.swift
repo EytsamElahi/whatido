@@ -13,6 +13,7 @@ struct SpendingsHeroSection: View {
     var progressBarColor: Color
     var viewAnalyticsAction: () -> Void
     @State private var showInfoTooltip: Bool = false
+    @State private var showBudgetTooltip: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 15) {
@@ -88,15 +89,41 @@ struct SpendingsHeroSection: View {
                             Button {
                                 viewModel.showBudgetSheet.toggle()
                             } label: {
-                                Text("Budget: \(Int(budget.budgetAmount))")
-                                    .font(.customFont(family: .quicksand, name: .medium, size: .x12))
-                                    .foregroundStyle(Color.white.opacity(0.6))
-                                    .underline()
+                                HStack(spacing: 4) {
+                                    Text("Budget: \(Int(viewModel.convertedBudgetAmount))")
+                                        .font(.customFont(family: .quicksand, name: .medium, size: .x12))
+                                        .foregroundStyle(Color.white.opacity(0.6))
+                                        .underline()
+                                    
+                                    if viewModel.hasForeignBudget {
+                                        Button {
+                                            showBudgetTooltip.toggle()
+                                        } label: {
+                                            Image(systemName: "info.circle")
+                                                .font(.system(size: 10))
+                                                .foregroundStyle(Color.white.opacity(0.5))
+                                        }
+                                        .popover(isPresented: $showBudgetTooltip) {
+                                            VStack(alignment: .leading, spacing: 10) {
+                                                Text("Converted Budget")
+                                                    .font(.customFont(family: .quicksand, name: .bold, size: .x16))
+                                                if let budget = viewModel.monthlyBudget {
+                                                    Text("Original Budget: \(Int(budget.budgetAmount)) \(budget.currencyCode ?? "USD"). Converted to match your home currency settings.")
+                                                        .font(.customFont(family: .quicksand, name: .medium, size: .x14))
+                                                        .fixedSize(horizontal: false, vertical: true)
+                                                }
+                                            }
+                                            .padding()
+                                            .frame(maxWidth: 300)
+                                            .presentationCompactAdaptation(.popover)
+                                        }
+                                    }
+                                }
                             }
 
                             Spacer()
 
-                            let remaining = Double(budget.budgetAmount) - viewModel.totalSpending
+                            let remaining = viewModel.convertedBudgetAmount - viewModel.totalSpending
                             Text(remaining >= 0 ? "\(Int(remaining)) left" : "Over budget")
                                 .font(.customFont(family: .quicksand, name: .semiBold, size: .x12))
                             // Remaining is white, Over is red

@@ -14,10 +14,10 @@ struct SpendsListingView: View {
     @ObservedObject var currencyManager = CurrencyManager.shared
     @State private var showCurrencySettingScreen: Bool = false
 
-    // Progress Bar Logic
     var budgetProgress: Double {
-        guard let budget = viewModel.monthlyBudget, budget.budgetAmount > 0 else { return 0 }
-        return Double(viewModel.totalSpending) / budget.budgetAmount
+        let budgetTotal = viewModel.convertedBudgetAmount
+        guard budgetTotal > 0 else { return 0 }
+        return Double(viewModel.totalSpending) / budgetTotal
     }
 
     var progressBarColor: Color {

@@ -21,6 +21,27 @@ class DashboardViewModel: ObservableObject {
     @Published var monthlyBudget: Budget?
     @Published var hasForeignTransaction: Bool = false
 
+    var convertedBudgetAmount: Double {
+        guard let budget = monthlyBudget else { return 0 }
+        let budgetCurrency = budget.currencyCode ?? "USD"
+        let homeCurrency = CurrencyManager.shared.activeCurrency.code
+        
+        if budgetCurrency == homeCurrency {
+            return budget.budgetAmount
+        }
+        
+        let rateToUSD = CurrencyConfig.rates[budgetCurrency] ?? 1.0
+        let budgetInUSD = budget.budgetAmount / rateToUSD
+        let homeRate = CurrencyConfig.rates[homeCurrency] ?? 1.0
+        
+        return (budgetInUSD * homeRate).rounded()
+    }
+    
+    var hasForeignBudget: Bool {
+        guard let budget = monthlyBudget else { return false }
+        return (budget.currencyCode ?? "USD") != CurrencyManager.shared.activeCurrency.code
+    }
+
     // Date Management
     @Published var currentMonth: String = Date().getMonthName()
     @Published var currentMonthDate: Date? = Date().getFirstDateOfMonth()
