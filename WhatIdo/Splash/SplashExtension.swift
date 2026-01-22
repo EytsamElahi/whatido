@@ -15,7 +15,6 @@ extension SplashView {
         switch route {
         case .spendings:
             SpendsListingView(viewModel: container.makeDashboardViewModel())
-                .environment(\.dependencyContainer, container)
         case .SpendingDetails:
             EmptyView()
            // SpendingDetail(viewModel: viewModel)
@@ -24,7 +23,6 @@ extension SplashView {
 
         case .projectSpendingsList(let dto):
             ProjectSpendingsListView(project: dto, viewModel: container.makeProjectsViewModel())
-                .environment(\.dependencyContainer, container)
         case .spendingAnalytics:
             // AnalyticsView(viewModel: container.makeAnalyticsViewModel())
             GoalsView(viewModel: container.makeGoalsViewModel())

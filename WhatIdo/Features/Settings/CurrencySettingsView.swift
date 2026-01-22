@@ -10,7 +10,9 @@ import SwiftUI
 
 struct CurrencySettingsView: View {
     @StateObject var currencyManager = CurrencyManager.shared
+    @ObservedObject var overlayManager = OverlayManager.shared
     @EnvironmentObject var navigation: NavigationManager
+    @Environment(\.dependencyContainer) var container
     @Environment(\.dismiss) var dismiss
     var isFromSettings: Bool = false
 
@@ -29,23 +31,33 @@ struct CurrencySettingsView: View {
                         VStack(spacing: 0) {
                             ForEach(currencyManager.currencies, id: \.code) { (currency: CurrencyOption) in
                                 Button {
-                                    currencyManager.updateCurrency(option: currency)
-                                    
-                                    // Update on Firestore as well
-                                    if let userId = AppData.user?.id {
-                                        Task {
-                                            let repo = UserRepository()
-                                            let _ = await repo.updateUserCurrency(userId: userId, currency: currency.code)
+                                    overlayManager.showPopup(title: "Update Home Currency?",
+                                                           message: "Your existing transactions will not be modified. Yaru will recalculate your dashboard totals to display them in \(currency.code).\nNote: Totals are estimates based on today's exchange rates.",
+                                                           style: .warning,
+                                                           primaryAction: PopupAction(title: "Update", role: nil, action: {
+                                        currencyManager.updateCurrency(option: currency)
+                                        
+                                        // Update on Firestore as well
+                                        if let userId = AppData.user?.id {
+                                            Task {
+                                                let repo = UserRepository()
+                                                let _ = await repo.updateUserCurrency(userId: userId, currency: currency.code)
+                                            }
                                         }
-                                    }
 
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                        if isFromSettings {
-                                            navigation.pop()
-                                        } else {
-                                            navigation.push(screen: .spendings)
-                                        }
-                                    }
+                                            overlayManager.dismissPopup()
+                                            // 📣 Send signal to reload dashboard
+                                            container.eventBus.send(.reloadDashboard)
+                                            
+                                            if isFromSettings {
+                                                navigation.pop()
+                                            } else {
+                                                navigation.push(screen: .spendings)
+                                            }
+                                        
+                                    }), secondaryAction: PopupAction(title: "Cancel", role: .cancel, action: {
+                                        overlayManager.dismissPopup()
+                                    }))
 
                                 } label: {
                                     HStack(alignment: .top) {

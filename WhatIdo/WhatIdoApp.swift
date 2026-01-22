@@ -35,6 +35,7 @@ struct WhatIdoApp: App {
         WindowGroup {
             SplashView(container: appContainer)
                 .environmentObject(navManager)
+                .environment(\.dependencyContainer, appContainer)
         }
     }
 }

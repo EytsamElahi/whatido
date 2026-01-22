@@ -17,8 +17,9 @@ class DashboardViewModel: ObservableObject {
     
     // MARK: - Data
     @Published var currentMonthSpendings: [SpendingDto]?
-    @Published var totalSpending: Int = 0
+    @Published var totalSpending: Double = 0
     @Published var monthlyBudget: Budget?
+    @Published var hasForeignTransaction: Bool = false
 
     // Date Management
     @Published var currentMonth: String = Date().getMonthName()
@@ -64,6 +65,7 @@ class DashboardViewModel: ObservableObject {
             .sink { [weak self] _ in
                 // Jab bhi signal aye, Data refresh karo!
                 print("♻️ Data Change Detected: Refreshing Dashboard...")
+                self?.calculateTotal()
                 self?.fetchDashboardData()
             }
             .store(in: &cancellables)
@@ -148,8 +150,23 @@ class DashboardViewModel: ObservableObject {
     }
     
     private func calculateTotal() {
-        guard let currentMonthSpendings = currentMonthSpendings else {return}
-        self.totalSpending = currentMonthSpendings.reduce(0) { $0 + Int($1.amount) }
+        guard let currentMonthSpendings = currentMonthSpendings else { return }
+        let homeCurrency = CurrencyManager.shared.activeCurrency.code
+        
+        // 1. Convert everything to USD (Base) and sum it up
+        let totalInUSD = currentMonthSpendings.reduce(0.0) { sum, spending in
+            let txnCurrency = spending.currencyCode ?? "USD"
+            let rateToUSD = CurrencyConfig.rates[txnCurrency] ?? 1.0
+            let amountInUSD = spending.amount / rateToUSD
+            return sum + amountInUSD
+        }
+        
+        // 2. Convert final USD sum to User's Home Currency
+        let homeRate = CurrencyConfig.rates[homeCurrency] ?? 1.0
+        self.totalSpending = totalInUSD * homeRate
+        
+        // 3. Mixed Currency Check
+        self.hasForeignTransaction = currentMonthSpendings.contains { ($0.currencyCode ?? "USD") != homeCurrency }
     }
 
     func getCurrentMonthBudget() {

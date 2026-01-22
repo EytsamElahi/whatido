@@ -54,7 +54,7 @@
 		C33839A62DD3B6C1002D4AFF /* NetworkManager.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = NetworkManager.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C3AAA0052FF0000000000001 /* WhatIdoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WhatIdoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C3AAA0072FF0000000000001 /* GoalsViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalsViewModelTests.swift; sourceTree = "<group>"; };
-		C3CBBE0B2DBFE9E300D112D8 /* WhatIdo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WhatIdo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C3CBBE0B2DBFE9E300D112D8 /* Yaru-Dev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Yaru-Dev.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -155,7 +155,7 @@
 		C3CBBE0C2DBFE9E300D112D8 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				C3CBBE0B2DBFE9E300D112D8 /* WhatIdo.app */,
+				C3CBBE0B2DBFE9E300D112D8 /* Yaru-Dev.app */,
 				C33839A62DD3B6C1002D4AFF /* NetworkManager.framework */,
 				C3AAA0052FF0000000000001 /* WhatIdoTests.xctest */,
 			);
@@ -246,7 +246,7 @@
 				C3D9D2E12F057A640049182C /* GoogleSignInSwift */,
 			);
 			productName = WhatIdo;
-			productReference = C3CBBE0B2DBFE9E300D112D8 /* WhatIdo.app */;
+			productReference = C3CBBE0B2DBFE9E300D112D8 /* Yaru-Dev.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */

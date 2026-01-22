@@ -20,21 +20,17 @@ class AppDependencyContainer {
 
     // MARK: - Long-lived Services (Singletons)
     // Yeh puri app mein sirf ek baar banengi
-    private let spendingsService: SpendingsServiceProtocol
-    private let projectsService: ProjectsServiceProtocol
-    private let budgetsService: BudgetsServiceProtocol
-    private let authService: AuthServiceProtocol
-    private let goalsService: GoalsServiceProtocol
+    private lazy var spendingsService: SpendingsServiceProtocol = SpendingsService()
+    private lazy var projectsService: ProjectsServiceProtocol = ProjectsService()
+    private lazy var budgetsService: BudgetsServiceProtocol = BudgetsService()
+    private lazy var authService: AuthServiceProtocol = FirebaseAuthService()
+    private lazy var goalsService: GoalsServiceProtocol = GoalsService()
+    
     // 🔥 THE EVENT BUS (Signal)
     let eventBus = PassthroughSubject<AppGlobalEvent, Never>()
 
     init() {
-        // Initialize Core Services
-        self.spendingsService = SpendingsService()
-        self.projectsService = ProjectsService()
-        self.budgetsService = BudgetsService()
-        self.authService = FirebaseAuthService()
-        self.goalsService = GoalsService()
+        // Services are now initialized lazily
     }
 
     // MARK: - ViewModel Factories
