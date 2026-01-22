@@ -17,93 +17,88 @@ struct SetBudgetView: View {
     @ObservedObject var currencyManager = CurrencyManager.shared
 
     var body: some View {
-        ZStack {
-            // 1. Midnight Background
-            Color.cardBackground.ignoresSafeArea()
+        VStack(spacing: 25) {
+            // Header (Drag Indicator)
+            Capsule()
+                .frame(width: 40, height: 5)
+                .foregroundStyle(Color.gray.opacity(0.3))
+                .padding(.top, 10)
 
-            VStack(spacing: 25) {
+            Text("Monthly Budget")
+                .font(.customFont(family: .quicksand, name: .bold, size: .x20))
+                .foregroundStyle(Color.white)
 
-                // Header (Drag Indicator)
-                Capsule()
-                    .frame(width: 40, height: 5)
-                    .foregroundStyle(Color.gray.opacity(0.3))
-                    .padding(.top, 10)
+            // MARK: - 1. Huge Amount Input
+            VStack(spacing: 12) {
+                Text("Limit")
+                    .font(.customFont(family: .quicksand, name: .medium, size: .x14))
+                    .foregroundStyle(Color.gray)
 
-                Text("Monthly Budget")
-                    .font(.customFont(family: .quicksand, name: .bold, size: .x20))
-                    .foregroundStyle(Color.white)
+                HStack(alignment: .firstTextBaseline, spacing: 5) {
+                    Text(currencyManager.currencyCode)
+                        .font(.customFont(family: .quicksand, name: .bold, size: .x24))
+                        .foregroundStyle(Color.appPrimaryColor)
 
-                Spacer()
-
-                // MARK: - 1. Huge Amount Input
-                VStack(spacing: 10) {
-                    Text("Limit")
-                        .font(.customFont(family: .quicksand, name: .medium, size: .x14))
-                        .foregroundStyle(Color.gray)
-
-                    HStack(alignment: .firstTextBaseline, spacing: 5) {
-                        Text(currencyManager.currencyCode)
-                            .font(.customFont(family: .quicksand, name: .bold, size: .x24))
-                            .foregroundStyle(Color.appPrimaryColor)
-
-                        TextField("0", value: $budgetInput, format: .number)
-                            .keyboardType(.numberPad)
-                            .font(.customFont(family: .inter, name: .bold, size: .x50))
-                            .foregroundStyle(Color.white)
-                            .multilineTextAlignment(.center)
-                            .fixedSize(horizontal: true, vertical: true)
-                            .tint(Color.appPrimaryColor)
-                            .onChange(of: budgetInput) { newValue in
-                                if newValue > 999_999_9 {
-                                    budgetInput = 999_999_9
-                                }
-                                if newValue < 0 {
-                                    budgetInput = 0
-                                }
+                    TextField("0", value: $budgetInput, format: .number)
+                        .keyboardType(.numberPad)
+                        .font(.customFont(family: .inter, name: .bold, size: .x50))
+                        .foregroundStyle(Color.white)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: true, vertical: true)
+                        .tint(Color.appPrimaryColor)
+                        .onChange(of: budgetInput) { oldValue, newValue in
+                            if newValue > 999_999_9 {
+                                budgetInput = 999_999_9
                             }
-                    }
+                            if newValue < 0 {
+                                budgetInput = 0
+                            }
+                        }
                 }
+            }
+            .padding(.vertical, 20)
 
-                Spacer()
+            // MARK: - 2. Action Buttons
+            VStack(spacing: 15) {
+                if viewModel.isUploading {
+                    CircularLoadingIndicator(indicatorColor: .white)
+                        .frame(height: 55) // Keep height stable
+                } else {
+                    AppPrimaryButton(title: viewModel.monthlyBudget == nil ? "Set Budget" : "Update Budget", disable: .constant(false), isLoading: .constant(false)) {
+                        hideKeyboard()
+                        viewModel.budgetAmount = budgetInput
+                        viewModel.setOrUpdateBudget()
+                    }
 
-                // MARK: - 2. Action Buttons
-                VStack(spacing: 15) {
-                    if viewModel.isUploading {
-                        CircularLoadingIndicator(indicatorColor: .white)
-                    } else {
-                        AppPrimaryButton(title: viewModel.monthlyBudget == nil ? "Set Budget" : "Update Budget", disable: .constant(false), isLoading: .constant(false)) {
+                    // Remove Button (Only if budget exists and not just updated)
+                    if viewModel.monthlyBudget != nil && !viewModel.budgetUpdated {
+                        Button {
                             hideKeyboard()
-                            viewModel.budgetAmount = budgetInput
-                            viewModel.setOrUpdateBudget()
-                        }
-
-                        // Remove Button (Only if budget exists)
-                        if viewModel.monthlyBudget != nil {
-                            Button {
-                                hideKeyboard()
-                                viewModel.deleteBudget()
-                            } label: {
-                                HStack {
-                                    Image(systemName: "trash")
-                                    Text("Remove Budget")
-                                }
-                                .font(.customFont(family: .quicksand, name: .medium, size: .x16))
-                                .foregroundStyle(Color.red)
+                            viewModel.deleteBudget()
+                        } label: {
+                            HStack {
+                                Image(systemName: "trash")
+                                Text("Remove Budget")
                             }
-                            .padding(.top, 5)
+                            .font(.customFont(family: .quicksand, name: .medium, size: .x16))
+                            .foregroundStyle(Color.red)
                         }
+                        .padding(.top, 5)
                     }
                 }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 20)
-            }.onChange(of: viewModel.budgetUpdated) {
-                onGetBudget(viewModel.monthlyBudget)
             }
-            // MARK: - Magic Logic 🪄
-            .readHeight { height in
-                // Content ki height read karke state update karega
-                self.sheetHeight = height
-            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 30)
+        }
+        .frame(maxWidth: .infinity) // Stabilize horizontal layout
+        .background(Color.cardBackground)
+        .onChange(of: viewModel.budgetUpdated) {
+            onGetBudget(viewModel.monthlyBudget)
+        }
+        // MARK: - Magic Logic 🪄
+        .readHeight { height in
+            // Content ki height read karke state update karega
+            self.sheetHeight = height
         }
         .onAppear {
             // Load existing budget into local state
@@ -112,10 +107,9 @@ struct SetBudgetView: View {
             }
         }
         .interactiveDismissDisabled(viewModel.isUploading)
-        .presentationDetents([.height(sheetHeight > 0 ? sheetHeight : 200)])
+        .presentationDetents([.height(sheetHeight > 0 ? sheetHeight : 350)])
         .presentationDragIndicator(.hidden)
         .hideKeyboardOnTapAround()
-
     }
 }
 
