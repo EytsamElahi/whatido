@@ -9,4 +9,4 @@
 // https://developer.apple.com/documentation/xcode/adding-a-build-configuration-file-to-your-project
 
 APP_NAME = Yaru-Dev
-//BUNDLE_IDENTIFIER = com.tma.epokratis.dev
+BUNDLE_IDENTIFIER = com.eytsam.yaruapp.dev
