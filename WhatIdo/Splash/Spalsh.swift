@@ -34,7 +34,14 @@ struct SplashView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .onAppear {
+                    // 1. Load Rates (Dynamic)
+                    CurrencyService.shared.loadRates()
+                    
+                    // 2. Navigation Delay
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
+                        // 3. Admin Check (Lazy Trigger)
+                        CurrencyService.shared.performAdminCheck()
+                        
                         if let _ = AppData.user {
                             if AppData.prefCurrency.isNil {
                                 navManager.push(screen: .currencySettings(false))

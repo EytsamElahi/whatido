@@ -173,12 +173,16 @@ class DashboardViewModel: ObservableObject {
     private func calculateTotal() {
         guard let currentMonthSpendings = currentMonthSpendings else { return }
         let homeCurrency = CurrencyManager.shared.activeCurrency.code
-        
+        debugPrint("Home Currency \(homeCurrency)")
         // 1. Convert everything to USD (Base) and sum it up
         let totalInUSD = currentMonthSpendings.reduce(0.0) { sum, spending in
             let txnCurrency = spending.currencyCode ?? "USD"
+            debugPrint("Transaction Currency \(txnCurrency)")
             let rateToUSD = CurrencyConfig.rates[txnCurrency] ?? 1.0
+            debugPrint("USD Rate \(rateToUSD)")
             let amountInUSD = spending.amount / rateToUSD
+            debugPrint("USD Amount \(amountInUSD)")
+            debugPrint("Total \(sum + amountInUSD)")
             return sum + amountInUSD
         }
         

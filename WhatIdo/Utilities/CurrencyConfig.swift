@@ -9,7 +9,12 @@ import Foundation
 
 struct CurrencyConfig {
     /// Source of Truth for conversion rates relative to USD (Base).
-    static let rates: [String: Double] = [
+    static var rates: [String: Double] {
+        return CurrencyService.shared.rates
+    }
+    
+    /// Fallback rates used before Firestore loads or if seeding is needed.
+    static let fallbackRates: [String: Double] = [
         "USD": 1.0,
         "PKR": 278.5,
         "EUR": 0.92,

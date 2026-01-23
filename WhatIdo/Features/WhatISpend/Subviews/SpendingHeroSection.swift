@@ -59,7 +59,7 @@ struct SpendingsHeroSection: View {
                         .font(.customFont(family: .quicksand, name: .medium, size: .x20))
                         .foregroundStyle(Color.white.opacity(0.7))
 
-                    Text("\(Int(viewModel.totalSpending))")
+                    Text("\(viewModel.totalSpending)")
                         .font(.customFont(family: .inter, name: .bold, size: .x34))
                         .foregroundStyle(Color.white) // Bright White
                 }
