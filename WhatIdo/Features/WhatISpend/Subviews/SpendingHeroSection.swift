@@ -59,7 +59,7 @@ struct SpendingsHeroSection: View {
                         .font(.customFont(family: .quicksand, name: .medium, size: .x20))
                         .foregroundStyle(Color.white.opacity(0.7))
 
-                    Text("\(viewModel.totalSpending)")
+                    Text(viewModel.totalSpending.formattedAmount())
                         .font(.customFont(family: .inter, name: .bold, size: .x34))
                         .foregroundStyle(Color.white) // Bright White
                 }
@@ -90,7 +90,7 @@ struct SpendingsHeroSection: View {
                                 viewModel.showBudgetSheet.toggle()
                             } label: {
                                 HStack(spacing: 4) {
-                                    Text("Budget: \(Int(viewModel.convertedBudgetAmount))")
+                                    Text("Budget: \(viewModel.convertedBudgetAmount.formattedAmount())")
                                         .font(.customFont(family: .quicksand, name: .medium, size: .x12))
                                         .foregroundStyle(Color.white.opacity(0.6))
                                         .underline()
@@ -124,7 +124,7 @@ struct SpendingsHeroSection: View {
                             Spacer()
 
                             let remaining = viewModel.convertedBudgetAmount - viewModel.totalSpending
-                            Text(remaining >= 0 ? "\(Int(remaining)) left" : "Over budget")
+                            Text(remaining >= 0 ? "\(remaining.formattedAmount()) left" : "Over budget")
                                 .font(.customFont(family: .quicksand, name: .semiBold, size: .x12))
                             // Remaining is white, Over is red
                                 .foregroundStyle(remaining >= 0 ? Color.white.opacity(0.9) : Color.red)

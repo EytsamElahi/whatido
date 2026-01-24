@@ -31,4 +31,26 @@ extension Double {
 
         return formatter.string(from: NSNumber(value: self)) ?? "\(currencyOption.code) \(self)"
     }
+
+    /// Formats the amount with proper decimal precision based on currency, without the currency symbol.
+    /// Uses NumberFormatter for locale-aware number formatting (grouping separators, etc.)
+    func formattedAmount(for currencyCode: String? = nil) -> String {
+        let manager = CurrencyManager.shared
+        let currencyOption = manager.getCurrencyOption(for: currencyCode) ?? manager.activeCurrency
+
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.locale = Locale(identifier: currencyOption.locale)
+
+        // Currency-specific precision: no decimals for PKR/INR/JPY, 2 decimals for others
+        if ["PKR", "INR", "JPY"].contains(currencyOption.code) {
+            formatter.maximumFractionDigits = 0
+            formatter.minimumFractionDigits = 0
+        } else {
+            formatter.maximumFractionDigits = 2
+            formatter.minimumFractionDigits = 2
+        }
+
+        return formatter.string(from: NSNumber(value: self)) ?? String(format: "%.2f", self)
+    }
 }
