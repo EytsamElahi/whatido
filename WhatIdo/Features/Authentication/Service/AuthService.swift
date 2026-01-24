@@ -56,13 +56,13 @@ public final class FirebaseAuthService: AuthServiceProtocol, FirebaseService  {
         guard let user = Auth.auth().currentUser else {
             throw NSError(domain: "Auth", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user logged in"])
         }
-        try await Firestore.firestore().clearPersistence()
+      //  try await Firestore.firestore().clearPersistence()
        // try await deleteAllUserData(userId: user.uid)
         try await user.delete()
     }
 
     func logout() async throws {
-        try await Firestore.firestore().clearPersistence()
+       // try await Firestore.firestore().clearPersistence()
         try Auth.auth().signOut()
     }
 
