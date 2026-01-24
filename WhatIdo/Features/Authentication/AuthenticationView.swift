@@ -86,11 +86,17 @@ struct AuthenticationView: View {
             withAnimation(.easeOut(duration: 1.0)) {
                 isAnimating = true
             }
-        }.onChange(of: viewModel.navigateToCurrency) {
-            navManager.push(screen: .currencySettings(false))
+        }.onChange(of: viewModel.navigateToCurrency) { _, newValue in
+            if newValue {
+                viewModel.navigateToCurrency = false
+                navManager.push(screen: .currencySettings(false))
+            }
         }
-        .onChange(of: viewModel.navigateToDashboard) {
-            navManager.push(screen: .spendings)
+        .onChange(of: viewModel.navigateToDashboard) { _, newValue in
+            if newValue {
+                viewModel.navigateToDashboard = false
+                navManager.push(screen: .spendings)
+            }
         }
         .sheet(isPresented: $viewModel.showUsernameSheet) {
             UsernameView()

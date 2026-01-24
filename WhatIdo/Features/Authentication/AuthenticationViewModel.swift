@@ -29,6 +29,9 @@ class AuthenticationViewModel: ObservableObject {
                 let user = try await authService.signIn(with: provider)
                 self.user = user
                 
+                // Show loader after auth sheet dismisses
+                self.overlayManager.showLoader()
+                
                 // 1. Check if user already exists in Firestore
                 let result = await userRepo.getUser(id: user.userId)
                 
@@ -39,6 +42,10 @@ class AuthenticationViewModel: ObservableObject {
                     
                     // Populate AppData and CurrencyManager
                     AppData.user = self.user?.toUserDto()
+                    
+                    // Hide loader before navigating
+                    self.overlayManager.hideLoader()
+                    
                     if let currencyCode = dUser.currency {
                         CurrencyManager.shared.setCurrencyBySymbol(currencyCode)
                         self.overlayManager.showToast(message: "Welcome back!", style: .success)
@@ -50,6 +57,9 @@ class AuthenticationViewModel: ObservableObject {
                     }
                 } else {
                     // New User
+                    // Hide loader before showing username sheet or creating profile
+                    self.overlayManager.hideLoader()
+                    
                     if user.name == nil {
                         self.showUsernameSheet = true
                     } else {
@@ -57,6 +67,7 @@ class AuthenticationViewModel: ObservableObject {
                     }
                 }
             } catch {
+                self.overlayManager.hideLoader()
                 self.overlayManager.showToast(message: error.localizedDescription, style: .error)
             }
         }
