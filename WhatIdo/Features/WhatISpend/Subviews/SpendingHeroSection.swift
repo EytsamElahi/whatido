@@ -112,7 +112,7 @@ struct SpendingsHeroSection: View {
                                                         .font(.customFont(family: .quicksand, name: .medium, size: .x14))
                                                         .fixedSize(horizontal: false, vertical: true)
                                                 }
-                                            }
+                                            }.foregroundStyle(Color.black)
                                             .padding()
                                             .frame(maxWidth: 300)
                                             .presentationCompactAdaptation(.popover)
