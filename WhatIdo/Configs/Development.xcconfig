@@ -11,5 +11,5 @@
 APP_NAME = Yaru-Dev
 BUNDLE_IDENTIFIER = com.eytsam.yaruapp.dev
 ENVIRONMENT = dev
-FIREBASE_PLIST_NAME = GoogleService-dev-Info
+FIREBASE_PLIST_NAME = GoogleService-Dev-Info
 GOOGLE_REVERSED_CLIENT_ID = com.googleusercontent.apps.329874699055-03eierhji6fi14c62l1hgj8os6c006ib

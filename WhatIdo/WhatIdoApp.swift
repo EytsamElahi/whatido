@@ -33,11 +33,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             #endif
             FirebaseApp.configure()
         }
-        let db = Firestore.firestore()
-        let settings = FirestoreSettings()
-        settings.cacheSettings = PersistentCacheSettings()
-        db.settings = settings
-
         return true
     }
 }
