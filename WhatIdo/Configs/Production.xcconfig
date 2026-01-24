@@ -10,3 +10,6 @@
 
 APP_NAME = Yaru
 BUNDLE_IDENTIFIER = com.eytsam.yaruapp
+ENVIRONMENT = prod
+FIREBASE_PLIST_NAME = GoogleService-Info
+GOOGLE_REVERSED_CLIENT_ID = com.googleusercontent.apps.798989383766-d7n785vhfcadfu3cnlumo51h8ladju66

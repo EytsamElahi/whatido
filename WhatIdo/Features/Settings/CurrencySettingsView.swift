@@ -31,12 +31,29 @@ struct CurrencySettingsView: View {
                         VStack(spacing: 0) {
                             ForEach(currencyManager.currencies, id: \.code) { (currency: CurrencyOption) in
                                 Button {
-                                    overlayManager.showPopup(title: "Update Home Currency?",
-                                                           message: "Your existing transactions will not be modified. Yaru will recalculate your dashboard totals to display them in \(currency.code).\nNote: Totals are estimates based on today's exchange rates.",
-                                                           style: .warning,
-                                                           primaryAction: PopupAction(title: "Update", role: nil, action: {
+                                    if isFromSettings {
+                                        overlayManager.showPopup(title: "Update Home Currency?",
+                                                               message: "Your existing transactions will not be modified. Yaru will recalculate your dashboard totals to display them in \(currency.code).\nNote: Totals are estimates based on today's exchange rates.",
+                                                               style: .warning,
+                                                                 primaryAction: PopupAction(title: "Update", role: nil, action: {
+                                            currencyManager.updateCurrency(option: currency)
+                                            // Update on Firestore as well
+                                            if let userId = AppData.user?.id {
+                                                Task {
+                                                    let repo = UserRepository()
+                                                    let _ = await repo.updateUserCurrency(userId: userId, currency: currency.code)
+                                                }
+                                            }
+                                            overlayManager.dismissPopup()
+                                            // 📣 Send signal to reload dashboard
+                                            container.eventBus.send(.reloadDashboard)
+                                            navigation.pop()
+                                        }), secondaryAction: PopupAction(title: "Cancel", role: .cancel, action: {
+                                            overlayManager.dismissPopup()
+                                        }))
+                                    } else {
                                         currencyManager.updateCurrency(option: currency)
-                                        
+
                                         // Update on Firestore as well
                                         if let userId = AppData.user?.id {
                                             Task {
@@ -44,21 +61,8 @@ struct CurrencySettingsView: View {
                                                 let _ = await repo.updateUserCurrency(userId: userId, currency: currency.code)
                                             }
                                         }
-
-                                            overlayManager.dismissPopup()
-                                            // 📣 Send signal to reload dashboard
-                                            container.eventBus.send(.reloadDashboard)
-                                            
-                                            if isFromSettings {
-                                                navigation.pop()
-                                            } else {
-                                                navigation.push(screen: .spendings)
-                                            }
-                                        
-                                    }), secondaryAction: PopupAction(title: "Cancel", role: .cancel, action: {
-                                        overlayManager.dismissPopup()
-                                    }))
-
+                                        navigation.push(screen: .spendings)
+                                    }
                                 } label: {
                                     HStack(alignment: .top) {
                                         Text(currency.symbol)
