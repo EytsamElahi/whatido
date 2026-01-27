@@ -137,7 +137,7 @@ struct SpendsListingView: View {
                 viewModel.fetchDashboardData()
             }
             .navigationBarHidden(true) // Using Custom Header
-            .onChange(of: viewModel.selectedSortType) { _, _ in
+            .onChange(of: viewModel.selectedSortType) { _ in
                 viewModel.updatedSorting()
             }
             .sheet(isPresented: $viewModel.showAddSheet) {

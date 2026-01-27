@@ -86,13 +86,13 @@ struct AuthenticationView: View {
             withAnimation(.easeOut(duration: 1.0)) {
                 isAnimating = true
             }
-        }.onChange(of: viewModel.navigateToCurrency) { _, newValue in
+        }.onChange(of: viewModel.navigateToCurrency) { newValue in
             if newValue {
                 viewModel.navigateToCurrency = false
                 navManager.push(screen: .currencySettings(false))
             }
         }
-        .onChange(of: viewModel.navigateToDashboard) { _, newValue in
+        .onChange(of: viewModel.navigateToDashboard) { newValue in
             if newValue {
                 viewModel.navigateToDashboard = false
                 navManager.push(screen: .spendings)

@@ -121,7 +121,7 @@ struct SettingsView: View {
                 .scrollContentBackground(.hidden) // 🔥 Removes default white list background
                 .listStyle(.insetGrouped)
             }
-        }.onChange(of: viewModel.accountDeleted) {old, new in
+        }.onChange(of: viewModel.accountDeleted) { new in
             if new {
                 resetState()
                 navigation.path = NavigationPath()

@@ -2,8 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>GOOGLE_REVERSED_CLIENT_ID</key>
-	<string>$(GOOGLE_REVERSED_CLIENT_ID)</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -21,6 +19,8 @@
 	<string>$(ENVIRONMENT)</string>
 	<key>FIREBASE_PLIST_NAME</key>
 	<string>$(FIREBASE_PLIST_NAME)</string>
+	<key>GOOGLE_REVERSED_CLIENT_ID</key>
+	<string>$(GOOGLE_REVERSED_CLIENT_ID)</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Quicksand-Bold.ttf</string>
@@ -28,6 +28,10 @@
 		<string>Quicksand-Medium.ttf</string>
 		<string>Quicksand-Regular.ttf</string>
 		<string>Quicksand-SemiBold.ttf</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
 	</array>
 </dict>
 </plist>

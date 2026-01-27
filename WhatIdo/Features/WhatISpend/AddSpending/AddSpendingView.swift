@@ -294,9 +294,9 @@ struct AddSpendingView: View {
                     .padding(.bottom, 30) // Extra padding for safe area
                 }
             }.scrollDismissesKeyboard(.interactively) // iOS 16 feature: Scroll to dismiss keyboard
-                .onChange(of: viewModel.dismissSheet) {
+                .onChange(of: viewModel.dismissSheet) { _ in
                     onSpendingAdded(viewModel.spending)
-                }.onChange(of: date) {oldVal, newVal in
+                }.onChange(of: date) { newVal in
                     viewModel.dateTf = newVal.toDateReturnString()
                     self.calendarId = UUID()
                 }

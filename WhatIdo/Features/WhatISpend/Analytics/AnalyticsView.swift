@@ -121,7 +121,7 @@ extension AnalyticsView {
         .clipShape(Capsule())
         .padding(.horizontal)
         .padding(.top, 15)
-        .onChange(of: viewModel.selectedRange) {
+        .onChange(of: viewModel.selectedRange) { _ in
             viewModel.fetchAnalytics()
         }
     }
@@ -163,27 +163,27 @@ extension AnalyticsView {
             }
             
             if !cleanData.isEmpty {
-                Chart(cleanData) { item in
-                    SectorMark(
-                        angle: .value("Amount", item.totalAmount),
-                        innerRadius: .ratio(0.65),
-                        outerRadius: .ratio(1.0),
-                        // Only use inset if we have enough slices, otherwise 0
-                        angularInset: cleanData.count > 1 ? 2.0 : 0
-                    )
-                    // 🔥 OPTIONAL SAFETY: Reduce corner radius slightly
-                    .cornerRadius(4)
-                    .foregroundStyle(by: .value("Category", item.spendingName))
-                }
-                .frame(height: 280)
-                .padding(.horizontal, 40)
-                .chartLegend(.hidden)
-                .chartForegroundStyleScale(
-                    domain: cleanData.map { $0.spendingName },
-                    range: cleanData.map { $0.color }
-                )
-                .id(viewModel.selectedRange)
-                .animation(nil, value: viewModel.chartData)
+//                Chart(cleanData) { item in
+//                    SectorMark(
+//                        angle: .value("Amount", item.totalAmount),
+//                        innerRadius: .ratio(0.65),
+//                        outerRadius: .ratio(1.0),
+//                        // Only use inset if we have enough slices, otherwise 0
+//                        angularInset: cleanData.count > 1 ? 2.0 : 0
+//                    )
+//                    // 🔥 OPTIONAL SAFETY: Reduce corner radius slightly
+//                    .cornerRadius(4)
+//                    .foregroundStyle(by: .value("Category", item.spendingName))
+//                }
+//                .frame(height: 280)
+//                .padding(.horizontal, 40)
+//                .chartLegend(.hidden)
+//                .chartForegroundStyleScale(
+//                    domain: cleanData.map { $0.spendingName },
+//                    range: cleanData.map { $0.color }
+//                )
+//                .id(viewModel.selectedRange)
+//                .animation(nil, value: viewModel.chartData)
                 
             } else {
                 // Empty State

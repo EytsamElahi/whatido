@@ -71,7 +71,7 @@ struct SetBudgetView: View {
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: true, vertical: true)
                         .tint(Color.appPrimaryColor)
-                        .onChange(of: budgetInput) { oldValue, newValue in
+                        .onChange(of: budgetInput) { newValue in
                             if newValue > 999_999_9 {
                                 budgetInput = 999_999_9
                             }
@@ -117,7 +117,7 @@ struct SetBudgetView: View {
         }
         .frame(maxWidth: .infinity) // Stabilize horizontal layout
         .background(Color.cardBackground)
-        .onChange(of: viewModel.budgetUpdated) {
+        .onChange(of: viewModel.budgetUpdated) { _ in
             onGetBudget(viewModel.monthlyBudget)
         }
         // MARK: - Magic Logic 🪄
