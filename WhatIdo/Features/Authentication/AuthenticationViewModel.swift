@@ -43,6 +43,9 @@ class AuthenticationViewModel: ObservableObject {
                     // Populate AppData and CurrencyManager
                     AppData.user = self.user?.toUserDto()
                     
+                    // Update FCM token for existing user
+                    let _ = await userRepo.updateFCMToken(userId: user.userId, token: AppData.fcmToken)
+
                     // Hide loader before navigating
                     self.overlayManager.hideLoader()
                     

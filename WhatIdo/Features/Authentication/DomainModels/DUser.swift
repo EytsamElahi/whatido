@@ -10,6 +10,7 @@ class DUser: FirestoreIdentifiable {
     let name: String?
     let email: String?
     var currency: String?
+    var fcmToken: String?
 
     required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -17,16 +18,19 @@ class DUser: FirestoreIdentifiable {
         self.name = try container.decodeIfPresent(String.self, forKey: .name)
         self.email = try container.decodeIfPresent(String.self, forKey: .email)
         self.currency = try container.decodeIfPresent(String.self, forKey: .currency)
+        self.fcmToken = try container.decodeIfPresent(String.self, forKey: .fcmToken)
     }
 
     init(
         name: String?,
         email: String?,
-        currency: String? = nil
+        currency: String? = nil,
+        fcmToken: String?
     ) {
         self.name = name
         self.email = email
         self.currency = currency
+        self.fcmToken = fcmToken
     }
 
     public static func == (lhs: DUser, rhs: DUser) -> Bool {

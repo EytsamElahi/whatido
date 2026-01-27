@@ -14,10 +14,11 @@ class SettingsViewModel: ObservableObject {
     @Published var accountDeleted: Bool = false
 
     private let authService: AuthServiceProtocol
+    private let userRepo: UserRepositoryType
     private let overlayManager = OverlayManager.shared
-
-    init(authService: AuthServiceProtocol) {
+    init(authService: AuthServiceProtocol, userRepo: UserRepositoryType) {
         self.authService = authService
+        self.userRepo = userRepo
     }
 
     func deleteAccount() {
@@ -96,6 +97,9 @@ class SettingsViewModel: ObservableObject {
         Task { [weak self] in
             guard let self = self else {return}
             do {
+                if let userId = Auth.auth().currentUser?.uid {
+                    let _ = await userRepo.updateFCMToken(userId: userId, token: nil)
+                }
                 AppData.clear()
                 try await authService.logout()
                 self.accountDeleted = true
