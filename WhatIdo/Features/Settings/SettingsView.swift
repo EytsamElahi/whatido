@@ -167,5 +167,5 @@ struct SettingsRow: View {
 }
 
 #Preview {
-    SettingsView(viewModel: SettingsViewModel(authService: FirebaseAuthService()))
+    SettingsView(viewModel: SettingsViewModel(authService: FirebaseAuthService(), userRepo: UserRepository()))
 }
