@@ -11,7 +11,9 @@ import SwiftUI
 struct AnalyticsView: View {
     @StateObject var viewModel: AnalyticsViewModel
     @EnvironmentObject var navigation: NavigationManager
+    @ObservedObject var currencyManager = CurrencyManager.shared
     @State private var showDatePicker = false
+    @State private var showInfoTooltip = false
     // Animation Namespace
     @Namespace private var animation
 
@@ -129,13 +131,45 @@ extension AnalyticsView {
     // 2️⃣ Total Spent Text
     var totalSpentView: some View {
         VStack(spacing: 5) {
-            Text("Total Spent")
-                .font(.customFont(family: .quicksand, name: .medium, size: .x16))
-                .foregroundStyle(Color.gray)
+            HStack(spacing: 6) {
+                Text("Total Spent")
+                    .font(.customFont(family: .quicksand, name: .medium, size: .x16))
+                    .foregroundStyle(Color.gray)
+                
+                if viewModel.hasForeignTransaction {
+                    Button {
+                        showInfoTooltip.toggle()
+                    } label: {
+                        Image(systemName: "info.circle")
+                            .font(.system(size: 14))
+                            .foregroundStyle(Color.gray.opacity(0.7))
+                    }
+                    .popover(isPresented: $showInfoTooltip) {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Estimated Market Rates")
+                                .font(.customFont(family: .quicksand, name: .bold, size: .x16))
+                            Text("This total includes foreign transactions converted using estimated market rates. Actual historical value may vary.")
+                                .font(.customFont(family: .quicksand, name: .medium, size: .x14))
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .foregroundStyle(Color.black)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 25)
+                        .frame(maxWidth: 300)
+                        .presentationCompactAdaptation(.popover)
+                    }
+                }
+            }
             
-            Text(viewModel.totalSpent.toCurrency)
-                .font(.customFont(family: .quicksand, name: .bold, size: .x34))
-                .foregroundStyle(Color.appPrimaryColor)
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text(currencyManager.symbol)
+                    .font(.customFont(family: .quicksand, name: .medium, size: .x20))
+                    .foregroundStyle(Color.appPrimaryColor.opacity(0.7))
+                
+                Text(viewModel.totalSpent.formattedAmount())
+                    .font(.customFont(family: .inter, name: .bold, size: .x34))
+                    .foregroundStyle(Color.appPrimaryColor)
+            }
         }
         .padding(.top, 10)
     }
@@ -236,9 +270,8 @@ struct AnalyticsCategoryCard: View {
 
                     Spacer()
 
-                    // Amount & Percent
                     VStack(alignment: .trailing, spacing: 4) {
-                        Text("\(AppData.prefCurrency?.symbol ?? "$") \(String(format: "%.0f", data.totalAmount))")
+                        Text(data.totalAmount.toCurrency)
                             .font(.customFont(family: .inter, name: .bold, size: .x16))
                             .foregroundStyle(.white)
 
@@ -283,7 +316,7 @@ struct AnalyticsCategoryCard: View {
                             Spacer()
 
                             // Amount
-                            Text("\(AppData.prefCurrency?.symbol ?? "$")\(String(format: "%.0f", transaction.amount))")
+                            Text(transaction.amount.formatCurrency(with: transaction.currencyCode))
                                 .font(.customFont(family: .inter, name: .semiBold, size: .x14))
                                 .foregroundStyle(.white)
                         }

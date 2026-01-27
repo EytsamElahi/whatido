@@ -19,6 +19,7 @@ class AnalyticsViewModel: ObservableObject {
     @Published var chartData: [SpendingTypeChartData] = []
     @Published var selectedRange: TimeRange = .thisMonth
     @Published var totalSpent: Double = 0.0
+    @Published var hasForeignTransaction: Bool = false
     
     @Published var customDate: Date = Date()
     @Published var isCustomMode: Bool = false
@@ -78,22 +79,43 @@ class AnalyticsViewModel: ObservableObject {
         }
         // Update the list view data source
         self.spendings = filteredData
-        // Calculate Total
-        self.totalSpent = filteredData.reduce(0) { $0 + $1.amount }
+        
+        let homeCurrency = CurrencyManager.shared.activeCurrency.code
+        let homeRate = CurrencyConfig.rates[homeCurrency] ?? 1.0
+        
+        // Calculate Total in Home Currency
+        let totalInUSD = filteredData.reduce(0.0) { sum, spending in
+            let txnCurrency = spending.currencyCode ?? "USD"
+            let rateToUSD = CurrencyConfig.rates[txnCurrency] ?? 1.0
+            return sum + (spending.amount / rateToUSD)
+        }
+        self.totalSpent = totalInUSD * homeRate
+        
+        // 3. Mixed Currency Check
+        self.hasForeignTransaction = filteredData.contains { ($0.currencyCode ?? "USD") != homeCurrency }
+        
         // Group by Category
         let groupedDict = Dictionary(grouping: filteredData, by: { $0.type })
+        
         // Convert to ChartData
         var processedData: [SpendingTypeChartData] = []
         for (categoryName, spendings) in groupedDict {
-            let total = spendings.reduce(0) { $0 + $1.amount }
-            if total > 0.01 { // Safety check
+            // Calculate Category Total in Home Currency
+            let categoryTotalInUSD = spendings.reduce(0.0) { sum, spending in
+                let txnCurrency = spending.currencyCode ?? "USD"
+                let rateToUSD = CurrencyConfig.rates[txnCurrency] ?? 1.0
+                return sum + (spending.amount / rateToUSD)
+            }
+            let categoryTotalHome = categoryTotalInUSD * homeRate
+            
+            if categoryTotalHome > 0.01 { // Safety check
                 if let firstItem = spendings.first {
                     processedData.append(SpendingTypeChartData(
                         spendingName: categoryName,
                         icon: firstItem.icon,
-                        totalAmount: total,
+                        totalAmount: categoryTotalHome,
                         color: firstItem.iconColor,
-                        transactions: spendings // ✅ Passing the array for the expandable card
+                        transactions: spendings // ✅ Original transactions for detail view
                     ))
                 }
             }
