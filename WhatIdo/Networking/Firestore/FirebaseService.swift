@@ -125,7 +125,7 @@ extension FirebaseService {
         ]
         let modelDict = data.asDictionary()
         dict.merge(modelDict) { (_, new) in new }
-        try await ref.setData(dict)
+        try await ref.setData(dict, merge: true)
     }
 
     func request<T: FirestoreIdentifiable>(_ queryParams: FirestoreQueryParam? = nil, filter date: FirestoreDateFilter? = nil, orderBy: String? = nil, endpoint: FirestoreEndpoint) async throws -> [T] {

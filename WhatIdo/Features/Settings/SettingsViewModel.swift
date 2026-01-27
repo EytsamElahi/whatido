@@ -98,7 +98,7 @@ class SettingsViewModel: ObservableObject {
             guard let self = self else {return}
             do {
                 if let userId = Auth.auth().currentUser?.uid {
-                    let _ = await userRepo.updateFCMToken(userId: userId, token: nil)
+                    let _ = await userRepo.updateFCMToken(userId: userId, token: "")
                 }
                 AppData.clear()
                 try await authService.logout()

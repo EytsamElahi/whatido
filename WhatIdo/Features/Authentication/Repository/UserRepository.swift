@@ -50,7 +50,7 @@ class UserRepository: UserRepositoryType, FirebaseService {
             // Since post with merge: true is available, we use that.
             let dUser = DUser(name: nil, email: nil, currency: currency, fcmToken: nil)
             dUser.id = userId
-            let _ = try await post(data: dUser, endpoint: endpoint)
+            let _ = try await update(data: dUser, endpoint: endpoint)
             return .success
         } catch {
             return .error(error.localizedDescription)
@@ -61,7 +61,7 @@ class UserRepository: UserRepositoryType, FirebaseService {
             let endpoint = FirestoreEndpoints.editUser(id: userId)
             let dUser = DUser(name: nil, email: nil, currency: nil, fcmToken: token)
             dUser.id = userId
-            let _ = try await post(data: dUser, endpoint: endpoint)
+            let _ = try await update(data: dUser, endpoint: endpoint)
             return .success
         } catch {
             return .error(error.localizedDescription)
