@@ -39,12 +39,12 @@ struct MonthYearPicker: View {
                             .frame(width: 44, height: 44)
                             .contentShape(Rectangle()) // Make touch area bigger
                     }
-
+                    .opacity(year > 2026 ? 1 : 0)
+                    .disabled(year <= 2026)
                     Text(String(format: "%d", year)) // Removes comma (2,025 -> 2025)
                         .font(.customFont(family: .quicksand, name: .bold, size: .x24))
                         .foregroundStyle(.white)
                         .frame(minWidth: 80)
-
                     Button {
                         withAnimation(.snappy) { year += 1 }
                     } label: {
@@ -54,6 +54,8 @@ struct MonthYearPicker: View {
                             .frame(width: 44, height: 44)
                             .contentShape(Rectangle())
                     }
+                    .opacity(year < Calendar.current.component(.year, from: Date()) ? 1 : 0)
+                    .disabled(year >= Calendar.current.component(.year, from: Date()))
                 }
                 .padding(.top, 10)
 

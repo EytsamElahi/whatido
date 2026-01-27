@@ -56,10 +56,11 @@ struct AnalyticsView: View {
                         
                         // 4. The Chart (Extracted)
                         chartView
-                        
-                        // 5. The List (Extracted)
-                        breakdownListView
-                        
+                        if !viewModel.chartData.isEmpty {
+                            // 5. The List (Extracted)
+                            breakdownListView
+                        }
+
                     } // End Main VStack
                     .padding(.bottom, 40)
                 }
