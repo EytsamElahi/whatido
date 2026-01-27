@@ -93,4 +93,12 @@ class AppDependencyContainer {
     func makeSettingsViewModel() -> SettingsViewModel {
         return SettingsViewModel(authService: authService, userRepo: userRepo)
     }
+
+    @MainActor
+    func makeCurrencySettingsViewModel() -> CurrencySettingsViewModel {
+        return CurrencySettingsViewModel(
+            userRepo: userRepo,
+            eventBus: eventBus
+        )
+    }
 }

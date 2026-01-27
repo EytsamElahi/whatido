@@ -10,6 +10,7 @@ import FirebaseCore
 import FirebaseAppCheck
 import FirebaseFirestore
 import FirebaseMessaging
+import UserNotifications
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
@@ -34,7 +35,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             FirebaseApp.configure()
         }
         // 1. Set the Messaging Delegate (CRITICAL)
-        Messaging.messaging().delegate = self
+        FirebaseMessaging.Messaging.messaging().delegate = self
         
         // 2. Register for Remote Notifications
         UNUserNotificationCenter.current().delegate = self
@@ -50,7 +51,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         let token = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
         debugPrint("Device Token: \(token)")
-        Messaging.messaging().apnsToken = deviceToken
+        FirebaseMessaging.Messaging.messaging().apnsToken = deviceToken
     }
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
@@ -63,8 +64,8 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
     }
 }
 
-extension AppDelegate: MessagingDelegate {
-    func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
+extension AppDelegate: FirebaseMessaging.MessagingDelegate {
+    func messaging(_ messaging: FirebaseMessaging.Messaging, didReceiveRegistrationToken fcmToken: String?) {
         debugPrint("Firebase registration token: \(String(describing: fcmToken))")
         AppData.fcmToken = fcmToken
     }

@@ -26,7 +26,7 @@ extension SplashView {
         case .spendingAnalytics:
              AnalyticsView(viewModel: container.makeAnalyticsViewModel())
         case .currencySettings(let fromSettings):
-            CurrencySettingsView(isFromSettings: fromSettings)
+            CurrencySettingsView(viewModel: container.makeCurrencySettingsViewModel(), isFromSettings: fromSettings)
         case .login:
             AuthenticationView(viewModel: container.makeLoginViewModel())
         case .settings:
