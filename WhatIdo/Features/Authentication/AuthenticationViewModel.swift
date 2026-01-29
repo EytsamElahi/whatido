@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UserNotifications
 
 @MainActor
 class AuthenticationViewModel: ObservableObject {
@@ -16,10 +17,15 @@ class AuthenticationViewModel: ObservableObject {
     private let overlayManager = OverlayManager.shared
     @Published var navigateToCurrency: Bool = false
     @Published var navigateToDashboard: Bool = false
-    
+
     init(authService: AuthServiceProtocol, userRepo: UserRepositoryType = UserRepository()) {
         self.authService = authService
         self.userRepo =  userRepo
+    }
+
+    private func checkNotificationAuthorizationStatus() async -> Bool {
+        let settings = await UNUserNotificationCenter.current().notificationSettings()
+        return settings.authorizationStatus == .authorized
     }
 
     func authenticate(_ provider: AuthSocialProvider) {
@@ -39,9 +45,9 @@ class AuthenticationViewModel: ObservableObject {
                     // User already exists!
                     self.user?.name = dUser.name
                     self.user?.currency = dUser.currency
-                    
-                    // Populate AppData and CurrencyManager
-                    AppData.user = self.user?.toUserDto()
+
+                    // Populate AppData and CurrencyManager (use DUser to preserve enableNotification)
+                    AppData.user = dUser.toUserDto()
                     
                     // Update FCM token for existing user
                     let _ = await userRepo.updateFCMToken(userId: user.userId, token: AppData.fcmToken)
@@ -86,9 +92,9 @@ class AuthenticationViewModel: ObservableObject {
     }
 
     private func createUserProfile() {
-        guard let user = user else {return}
-        Task {[weak self] in
-            guard let self = self else {return}
+        guard let user = user else { return }
+        Task { [weak self] in
+            guard let self = self else { return }
             overlayManager.showLoader()
             defer {
                 overlayManager.hideLoader()
@@ -99,10 +105,12 @@ class AuthenticationViewModel: ObservableObject {
                 return
             }
 
-            AppData.user = user.toUserDto()
+            let notificationEnabled = await checkNotificationAuthorizationStatus()
+            var userDto = user.toUserDto()
+            userDto.enableNotification = notificationEnabled
+            AppData.user = userDto
             self.overlayManager.showToast(message: "Profile Created", style: .success)
             navigateToCurrency = true
         }
-
     }
 }

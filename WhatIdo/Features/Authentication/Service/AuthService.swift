@@ -16,7 +16,7 @@ public struct AuthModel: AuthModelType {
     var currency: String?
 
     func toUserDto() -> UserDto {
-        return UserDto(id: userId, name: name, email: email, currency: currency)
+        return UserDto(id: userId, name: name, email: email, currency: currency, enableNotification: nil)
     }
 }
 

@@ -5,6 +5,8 @@
 //  Created by eytsam elahi on 01/01/2026.
 //
 
+import UserNotifications
+
 protocol UserRepositoryType {
     func createUser(_ user: AuthModel, currency: String?) async -> AppResult<Void>
     func deleteUser(_ id: String)  async throws
@@ -12,11 +14,19 @@ protocol UserRepositoryType {
     func editUser(_ user: DUser) async throws
     func updateUserCurrency(userId: String, currency: String) async -> AppResult<Void>
     func updateFCMToken(userId: String, token: String?) async -> AppResult<Void>
+    func updateEnableNotification(userId: String, enable: Bool) async -> AppResult<Void>
 }
 
 class UserRepository: UserRepositoryType, FirebaseService {
     func createUser(_ user: AuthModel, currency: String?) async -> AppResult<Void> {
-        let dUser = DUser(name: user.name, email: user.email, currency: currency, fcmToken: AppData.fcmToken)
+        let notificationEnabled = await checkNotificationAuthorizationStatus()
+        let dUser = DUser(
+            name: user.name,
+            email: user.email,
+            currency: currency,
+            fcmToken: AppData.fcmToken,
+            enableNotification: notificationEnabled
+        )
         do {
             let endpoint = FirestoreEndpoints.addUser(id: user.userId)
             let _ = try await post(data: dUser, endpoint: endpoint)
@@ -24,6 +34,11 @@ class UserRepository: UserRepositoryType, FirebaseService {
         } catch {
             return .error(error.localizedDescription)
         }
+    }
+
+    private func checkNotificationAuthorizationStatus() async -> Bool {
+        let settings = await UNUserNotificationCenter.current().notificationSettings()
+        return settings.authorizationStatus == .authorized
     }
     
     func deleteUser(_ id: String) async throws { }
@@ -60,6 +75,18 @@ class UserRepository: UserRepositoryType, FirebaseService {
         do {
             let endpoint = FirestoreEndpoints.editUser(id: userId)
             let dUser = DUser(name: nil, email: nil, currency: nil, fcmToken: token)
+            dUser.id = userId
+            let _ = try await update(data: dUser, endpoint: endpoint)
+            return .success
+        } catch {
+            return .error(error.localizedDescription)
+        }
+    }
+
+    func updateEnableNotification(userId: String, enable: Bool) async -> AppResult<Void> {
+        do {
+            let endpoint = FirestoreEndpoints.editUser(id: userId)
+            let dUser = DUser(name: nil, email: nil, currency: nil, fcmToken: nil, enableNotification: enable)
             dUser.id = userId
             let _ = try await update(data: dUser, endpoint: endpoint)
             return .success

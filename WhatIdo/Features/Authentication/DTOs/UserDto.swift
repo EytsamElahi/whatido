@@ -12,4 +12,5 @@ struct UserDto: Hashable, Codable {
     let name: String?
     let email: String?
     let currency: String?
+    var enableNotification: Bool?
 }

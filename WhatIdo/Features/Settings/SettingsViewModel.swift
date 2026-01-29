@@ -7,18 +7,53 @@
 
 import Foundation
 import FirebaseAuth
+import OSLog
 
 @MainActor
 class SettingsViewModel: ObservableObject {
-    @Published var notification: Bool = false
+    @Published var notification: Bool = false {
+        didSet {
+            guard oldValue != notification else { return }
+            updateNotificationSetting(notification)
+        }
+    }
     @Published var accountDeleted: Bool = false
 
     private let authService: AuthServiceProtocol
     private let userRepo: UserRepositoryType
     private let overlayManager = OverlayManager.shared
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "", category: "SettingsViewModel")
+
     init(authService: AuthServiceProtocol, userRepo: UserRepositoryType) {
         self.authService = authService
         self.userRepo = userRepo
+        loadNotificationSetting()
+    }
+
+    private func loadNotificationSetting() {
+        if let user = AppData.user {
+            notification = user.enableNotification ?? false
+        }
+    }
+
+    private func updateNotificationSetting(_ enable: Bool) {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            logger.error("No user ID available for updating notification setting")
+            return
+        }
+        Task {
+            let result = await userRepo.updateEnableNotification(userId: userId, enable: enable)
+            switch result {
+            case .success:
+                logger.info("Notification setting updated to \(enable)")
+                AppData.user?.enableNotification = enable
+            case .error(let message):
+                logger.error("Failed to update notification setting: \(message)")
+                overlayManager.showToast(message: "Failed to update notification setting", style: .error)
+            case .data:
+                break
+            }
+        }
     }
 
     func deleteAccount() {
