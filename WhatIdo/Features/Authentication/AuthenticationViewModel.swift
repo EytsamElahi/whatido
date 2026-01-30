@@ -13,6 +13,7 @@ class AuthenticationViewModel: ObservableObject {
     private let authService: AuthServiceProtocol
     private let userRepo: UserRepositoryType
     @Published var showUsernameSheet: Bool = false
+    @Published var isAuthenticating: Bool = false
     private var user: AuthModel?
     private let overlayManager = OverlayManager.shared
     @Published var navigateToCurrency: Bool = false
@@ -30,11 +31,12 @@ class AuthenticationViewModel: ObservableObject {
 
     func authenticate(_ provider: AuthSocialProvider) {
         Task { [weak self] in
-            guard let self = self else {return}
+            guard let self = self else { return }
             do {
+                self.isAuthenticating = true
                 let user = try await authService.signIn(with: provider)
                 self.user = user
-                
+
                 // Show loader after auth sheet dismisses
                 self.overlayManager.showLoader()
                 
@@ -76,6 +78,7 @@ class AuthenticationViewModel: ObservableObject {
                     }
                 }
             } catch {
+                self.isAuthenticating = false
                 self.overlayManager.hideLoader()
                 self.overlayManager.showToast(message: error.localizedDescription, style: .error)
             }

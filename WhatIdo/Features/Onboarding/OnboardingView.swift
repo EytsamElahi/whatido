@@ -65,18 +65,22 @@ struct OnboardingView: View {
         .presentationDragIndicator(.hidden)
         .presentationCornerRadius(24)
     }
+    // Dismiss sheet when auth starts (loader appears)
+    .onChange(of: authViewModel.isAuthenticating) { isAuthenticating in
+      if isAuthenticating {
+        viewModel.showSignInSheet = false
+      }
+    }
     // Handle navigation after successful auth
     .onChange(of: authViewModel.navigateToCurrency) { shouldNavigate in
       if shouldNavigate {
         authViewModel.navigateToCurrency = false
-        viewModel.showSignInSheet = false
         navigation.push(screen: .currencySettings(false))
       }
     }
     .onChange(of: authViewModel.navigateToDashboard) { shouldNavigate in
       if shouldNavigate {
         authViewModel.navigateToDashboard = false
-        viewModel.showSignInSheet = false
         navigation.push(screen: .spendings)
       }
     }

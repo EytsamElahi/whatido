@@ -40,15 +40,7 @@ struct OnboardingPageView: View {
     }
     .padding(.horizontal, 24)
     .onAppear {
-      withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.1)) {
-        isAnimating = true
-      }
-    }
-    .onChange(of: page.id) { _ in
-      isAnimating = false
-      withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.1)) {
-        isAnimating = true
-      }
+      isAnimating = true
     }
   }
 
