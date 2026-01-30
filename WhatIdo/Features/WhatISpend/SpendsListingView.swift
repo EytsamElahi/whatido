@@ -93,8 +93,14 @@ struct SpendsListingView: View {
                         .padding(.bottom, 5)
 
                     if viewModel.isDataLoading {
-                        ProgressView().tint(Color.appPrimaryColor) // Loading is now Purple
+                        ProgressView().tint(Color.appPrimaryColor)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else if let spendings = viewModel.currentMonthSpendings, spendings.isEmpty {
+                        EmptyStateView(
+                            icon: "dollarsign.circle",
+                            title: "No Expenses Yet",
+                            subtitle: "Tap '+' above to record\nyour first expense"
+                        )
                     } else {
                         List {
                             ForEach(viewModel.currentMonthSpendings ?? [], id: \.id) { spending in
@@ -102,14 +108,12 @@ struct SpendsListingView: View {
                                     .environmentObject(currencyManager)
                                     .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
                                     .listRowSeparator(.hidden)
-                                    .listRowBackground(Color.clear) // Important for Gray BG
+                                    .listRowBackground(Color.clear)
                                     .onTapGesture {
                                         viewModel.prepareEdit(spending: spending)
                                     }
                                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                         Button(role: .destructive) {
-                                            // TODO: - Check Deletion is working
-                                            // Delete Logic: Pass the spending object
                                             viewModel.spendingToDelete = spending
                                             viewModel.showDeleteConfirmationAlert = true
                                         } label: {
@@ -118,10 +122,9 @@ struct SpendsListingView: View {
                                         .tint(.red)
                                     }
                             }
-                           // .onDelete(perform: viewModel.deleteSpending)
                         }
                         .listStyle(.plain)
-                        .scrollContentBackground(.hidden) // Removes default List gray
+                        .scrollContentBackground(.hidden)
                         Spacer()
                     }
                 }

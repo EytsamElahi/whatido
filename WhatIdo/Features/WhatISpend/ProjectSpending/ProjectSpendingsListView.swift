@@ -64,16 +64,16 @@ struct ProjectSpendingsListView: View {
                     Spacer()
                 } else if let spendings = viewModel.projectSpendings {
                     if spendings.isEmpty {
-                        Spacer()
-                        VStack(spacing: 15) {
-                            Image(systemName: "tray")
-                                .font(.system(size: 50))
-                                .foregroundStyle(Color.gray.opacity(0.3))
-                            Text("No transactions yet")
-                                .font(.customFont(family: .quicksand, name: .medium, size: .x16))
-                                .foregroundStyle(Color.gray)
+                        EmptyStateView(
+                            icon: "dollarsign.circle",
+                            title: "No Expenses Yet",
+                            subtitle: "Tap '+' to add expenses\nto this project",
+                            buttonTitle: "Add Expense"
+                        ) {
+                            viewModel.selectedProject = project
+                            viewModel.spendingToEdit = nil
+                            viewModel.showAddNewSpendingSheet = true
                         }
-                        Spacer()
                     } else {
                         // Case: Loaded successfully, data exists
                         VStack(spacing: 5) {

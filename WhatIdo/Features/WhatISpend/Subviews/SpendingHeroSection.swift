@@ -131,17 +131,40 @@ struct SpendingsHeroSection: View {
                         }
                     }
                 } else {
-                    // Set Budget Button (Teal Accent)
+                    // Set Budget Section
                     Button {
                         viewModel.showBudgetSheet.toggle()
                     } label: {
-                        Text("Set a Budget")
-                            .font(.customFont(family: .quicksand, name: .semiBold, size: .x14))
-                            .foregroundStyle(Color.appPrimaryColor) // Teal Text
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Color.white.opacity(0.1)) // Subtle dark button bg
-                            .cornerRadius(8)
+                        HStack(spacing: 12) {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.appPrimaryColor.opacity(0.15))
+                                    .frame(width: 36, height: 36)
+
+                                Image(systemName: "chart.bar")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundStyle(Color.appPrimaryColor)
+                            }
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Set Monthly Budget")
+                                    .font(.customFont(family: .quicksand, name: .semiBold, size: .x14))
+                                    .foregroundStyle(Color.white)
+
+                                Text("Stay on track with spending limits")
+                                    .font(.customFont(family: .quicksand, name: .medium, size: .x12))
+                                    .foregroundStyle(Color.white.opacity(0.5))
+                            }
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(Color.appPrimaryColor)
+                        }
+                        .padding(12)
+                        .background(Color.white.opacity(0.05))
+                        .cornerRadius(12)
                     }
                 }
 
