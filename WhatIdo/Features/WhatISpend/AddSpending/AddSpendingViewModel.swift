@@ -67,7 +67,22 @@ class AddSpendingViewModel: ObservableObject {
     }
     
     private func loadSpendingTypes() {
-        self.spendingTypes = Helper.load("spending_types.json")
+        let types: [SpendingType] = Helper.load("spending_types.json")
+        self.spendingTypes = sortByUsage(types)
+    }
+
+    private func sortByUsage(_ types: [SpendingType]) -> [SpendingType] {
+        // Priority order: Most commonly used categories first
+        let priorityOrder = [
+            "Dining Out", "Groceries", "Fuel", "Public Transit / Taxi",
+            "Utility Bills", "Subscriptions", "Movies & Outings", "Rent",
+            "Pharmacy / Meds", "Clothing & Tailor", "Salon & Grooming"
+        ]
+        return types.sorted { first, second in
+            let firstIndex = priorityOrder.firstIndex(of: first.name ?? "") ?? Int.max
+            let secondIndex = priorityOrder.firstIndex(of: second.name ?? "") ?? Int.max
+            return firstIndex < secondIndex
+        }
     }
 
     // MARK: - Save Action
@@ -77,10 +92,12 @@ class AddSpendingViewModel: ObservableObject {
             return
         }
         let date = dateTf.toTimeStamp(format: "MM/dd/yyyy") ?? Date()
-        
+        // Use category name if description is empty
+        let name = spendingItemTf.isEmpty ? (selectedType?.name ?? "") : spendingItemTf
+
         // Create Object
         let spending = Spending(
-            name: spendingItemTf,
+            name: name,
             amount: amountTf,
             date: date,
             spendingType: selectedType!,
@@ -125,7 +142,8 @@ class AddSpendingViewModel: ObservableObject {
     }
     
     private func validateForm() -> Bool {
-        return !spendingItemTf.isEmpty && amountTf > 0.0 && selectedType != nil
+        // Description is optional for quick add
+        return amountTf > 0.0 && selectedType != nil
     }
 
     private func getProjects() {

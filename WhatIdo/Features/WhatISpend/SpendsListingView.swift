@@ -155,11 +155,12 @@ struct SpendsListingView: View {
                         viewModel.updatedSorting()
                     }
                 })
-                    .presentationDetents([.medium, .large])
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
             }
 //            .sheet(isPresented: $showCurrencySettingScreen) {
 //                SettingsView()
-//                    .presentationDetents([.medium, .large])
+//                    .presentationDetents([.medium])
 //            }.interactiveDismissDisabled()
             .sheet(isPresented: $viewModel.showBudgetSheet) {
                 SetBudgetView(viewModel: container.makeBudgetViewModel(budgetToEdit: viewModel.monthlyBudget), onGetBudget: { budget in

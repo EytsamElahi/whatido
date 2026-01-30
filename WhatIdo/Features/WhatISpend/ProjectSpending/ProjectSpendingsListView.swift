@@ -131,6 +131,7 @@ struct ProjectSpendingsListView: View {
                 }
             }).environmentObject(viewModel)
                 .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
         }
     }
 }
