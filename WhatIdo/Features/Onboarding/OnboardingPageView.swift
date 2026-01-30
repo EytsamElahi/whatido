@@ -136,6 +136,14 @@ struct OnboardingPageView: View {
         .multilineTextAlignment(.center)
         .lineSpacing(6)
         .fixedSize(horizontal: false, vertical: true)
+
+      // Tagline - only on "Track Every Expense" screen (index 1)
+      if page.id == 1 {
+        Text("What gets tracked, gets managed.")
+          .font(.system(size: 12, weight: .medium, design: .monospaced))
+          .foregroundStyle(Color.textSecondary.opacity(0.6))
+          .padding(.top, 4)
+      }
     }
   }
 

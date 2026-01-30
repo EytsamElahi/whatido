@@ -9,6 +9,7 @@ import SwiftUI
 
 struct OnboardingView: View {
   @StateObject var viewModel: OnboardingViewModel
+  @StateObject private var authViewModel = AuthenticationViewModel(authService: FirebaseAuthService())
   @EnvironmentObject var navigation: NavigationManager
   @State private var isAnimating = false
 
@@ -51,9 +52,32 @@ struct OnboardingView: View {
         isAnimating = true
       }
     }
-    .onChange(of: viewModel.isOnboardingComplete) { completed in
-      if completed {
+    // Skip → Navigate to full login screen
+    .onChange(of: viewModel.shouldNavigateToLogin) { shouldNavigate in
+      if shouldNavigate {
         navigation.push(screen: .login)
+      }
+    }
+    // Sign-in sheet for "Start Tracking"
+    .sheet(isPresented: $viewModel.showSignInSheet) {
+      SignInSheetView(authViewModel: authViewModel)
+        .presentationDetents([.height(320)])
+        .presentationDragIndicator(.hidden)
+        .presentationCornerRadius(24)
+    }
+    // Handle navigation after successful auth
+    .onChange(of: authViewModel.navigateToCurrency) { shouldNavigate in
+      if shouldNavigate {
+        authViewModel.navigateToCurrency = false
+        viewModel.showSignInSheet = false
+        navigation.push(screen: .currencySettings(false))
+      }
+    }
+    .onChange(of: authViewModel.navigateToDashboard) { shouldNavigate in
+      if shouldNavigate {
+        authViewModel.navigateToDashboard = false
+        viewModel.showSignInSheet = false
+        navigation.push(screen: .spendings)
       }
     }
   }
@@ -91,13 +115,7 @@ struct OnboardingView: View {
 
       // Premium glass button
       Button {
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-          if viewModel.isLastPage {
-            viewModel.completeOnboarding()
-          } else {
-            viewModel.nextPage()
-          }
-        }
+        viewModel.nextPage()
       } label: {
         ZStack {
           // Glass background
@@ -129,7 +147,7 @@ struct OnboardingView: View {
                 )
               )
 
-            Image(systemName: viewModel.isLastPage ? "checkmark" : "arrow.right")
+            Image(systemName: viewModel.isLastPage ? "arrow.right.circle.fill" : "arrow.right")
               .font(.system(size: 16, weight: .semibold))
               .foregroundStyle(Color.appPrimaryColor)
           }

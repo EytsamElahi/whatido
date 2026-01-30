@@ -11,7 +11,8 @@ import OSLog
 @MainActor
 class OnboardingViewModel: ObservableObject {
   @Published var currentPage: Int = 0
-  @Published var isOnboardingComplete: Bool = false
+  @Published var showSignInSheet: Bool = false
+  @Published var shouldNavigateToLogin: Bool = false
 
   let pages: [OnboardingPage] = OnboardingPage.pages
   private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "", category: "OnboardingViewModel")
@@ -29,20 +30,24 @@ class OnboardingViewModel: ObservableObject {
   }
 
   func nextPage() {
-    guard currentPage < pages.count - 1 else {
-      completeOnboarding()
-      return
+    if currentPage < pages.count - 1 {
+      currentPage += 1
+    } else {
+      // On last page, show sign-in sheet
+      showSignInSheet = true
+      // Mark complete in background to avoid blocking UI
+      Task.detached(priority: .background) {
+        await MainActor.run {
+          AppData.hasCompletedOnboarding = true
+        }
+      }
+      logger.info("Onboarding marked as complete")
     }
-    currentPage += 1
   }
 
   func skipOnboarding() {
-    completeOnboarding()
-  }
-
-  func completeOnboarding() {
     AppData.hasCompletedOnboarding = true
-    isOnboardingComplete = true
-    logger.info("Onboarding completed")
+    shouldNavigateToLogin = true
+    logger.info("Onboarding skipped, navigating to login")
   }
 }
