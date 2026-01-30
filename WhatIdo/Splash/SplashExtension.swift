@@ -13,6 +13,8 @@ extension SplashView {
     @ViewBuilder
     func destinationView(for route: Route) -> some View {
         switch route {
+        case .onboarding:
+            OnboardingView(viewModel: OnboardingViewModel())
         case .spendings:
             SpendsListingView(viewModel: container.makeDashboardViewModel())
         case .SpendingDetails:

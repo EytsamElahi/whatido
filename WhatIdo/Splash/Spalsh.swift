@@ -36,12 +36,18 @@ struct SplashView: View {
                 .onAppear {
                     // 1. Load Rates (Dynamic)
                     CurrencyService.shared.loadRates()
-                    
+
                     // 2. Navigation Delay
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
                         // 3. Admin Check (Lazy Trigger)
                         CurrencyService.shared.performAdminCheck()
-                        
+
+                        // 4. Check onboarding status first
+                        if !AppData.hasCompletedOnboarding {
+                            navManager.push(screen: .onboarding)
+                            return
+                        }
+
                         if let _ = AppData.user {
                             if AppData.prefCurrency.isNil {
                                 navManager.push(screen: .currencySettings(false))

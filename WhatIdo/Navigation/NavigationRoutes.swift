@@ -6,6 +6,7 @@
 //
 
 enum Route: Hashable {
+  case onboarding
   case spendings
   case SpendingDetails
   case projectListing
