@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 struct SpendsListingView: View {
     @EnvironmentObject var navigation: NavigationManager
@@ -14,6 +15,45 @@ struct SpendsListingView: View {
     @ObservedObject var currencyManager = CurrencyManager.shared
     @State private var showCurrencySettingScreen: Bool = false
     @State private var addSpendingVM: AddSpendingViewModel?
+    @State private var searchText: String = ""
+    @FocusState private var isSearchFocused: Bool
+    @State private var keyboardHeight: CGFloat = 0
+
+    // MARK: - Filtered Spendings
+    private var filteredSpendings: [SpendingDto] {
+        guard let spendings = viewModel.currentMonthSpendings else { return [] }
+        guard !searchText.isEmpty else { return spendings }
+
+        let query = searchText.lowercased().trimmingCharacters(in: .whitespaces)
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .medium
+
+        return spendings.filter { spending in
+            // Search by name
+            if spending.name.lowercased().contains(query) { return true }
+
+            // Search by type/category
+            if spending.type.lowercased().contains(query) { return true }
+
+            // Search by amount
+            let amountString = String(format: "%.2f", spending.amount)
+            if amountString.contains(query) { return true }
+
+            // Search by date
+            let dateString = dateFormatter.string(from: spending.date).lowercased()
+            if dateString.contains(query) { return true }
+
+            // Search by project name
+            if let projectName = spending.project?.projectName?.lowercased(),
+               projectName.contains(query) { return true }
+
+            // Search by currency
+            if let currency = spending.currencyCode?.lowercased(),
+               currency.contains(query) { return true }
+
+            return false
+        }
+    }
 
     var budgetProgress: Double {
         let budgetTotal = viewModel.convertedBudgetAmount
@@ -70,28 +110,39 @@ struct SpendsListingView: View {
 //            }
 
             ZStack {
-                Color.appBackground.ignoresSafeArea() 
+                Color.appBackground.ignoresSafeArea()
 
                 VStack(alignment: .leading) {
-                    // MARK: - 1. Custom Header
-                    AppHeaderView(title: viewModel.currentMonth, trailingButtonIcon: "folder.fill", backAction: {
-                        navigation.push(screen: .settings)
-                    }, trailingButtonAction: {
-                        navigation.push(screen: .projectListing)
-                    }, isBackButton: false)
+                    // MARK: - 1. Custom Header (hidden when keyboard shows for search)
+                    if !isSearchFocused || keyboardHeight == 0 {
+                        AppHeaderView(title: viewModel.currentMonth, trailingButtonIcon: "folder.fill", backAction: {
+                            navigation.push(screen: .settings)
+                        }, trailingButtonAction: {
+                            navigation.push(screen: .projectListing)
+                        }, isBackButton: false)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
 
-                    // MARK: - 2. Smart Hero Card
-                    SpendingsHeroSection(budgetProgress: budgetProgress, progressBarColor: progressBarColor){
-                        navigation.push(screen: .spendingAnalytics)
+                        // MARK: - 2. Smart Hero Card
+                        SpendingsHeroSection(budgetProgress: budgetProgress, progressBarColor: progressBarColor){
+                            navigation.push(screen: .spendingAnalytics)
+                        }
+                        .environmentObject(viewModel)
+                        .environmentObject(currencyManager)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
                     }
-                    .environmentObject(viewModel)
-                    .environmentObject(currencyManager)
 
                     AddSpendingRow()
                         .environmentObject(viewModel)
                         .padding(.horizontal, 20)
                         .padding(.top, 20)
                         .padding(.bottom, 5)
+
+                    // MARK: - Search Bar
+                    if let spendings = viewModel.currentMonthSpendings, !spendings.isEmpty {
+                        SearchBarView(searchText: $searchText, isFocused: $isSearchFocused)
+                            .padding(.horizontal, 20)
+                            .padding(.bottom, 8)
+                    }
 
                     if viewModel.isDataLoading {
                         ProgressView().tint(Color.appPrimaryColor)
@@ -103,34 +154,60 @@ struct SpendsListingView: View {
                             subtitle: "Tap '+' above to record\nyour first expense"
                         )
                     } else {
-                        List {
-                            ForEach(viewModel.currentMonthSpendings ?? [], id: \.id) { spending in
-                                UpdatedSpendingRow(spending: spending)
-                                    .environmentObject(currencyManager)
-                                    .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
-                                    .listRowSeparator(.hidden)
-                                    .listRowBackground(Color.clear)
-                                    .onTapGesture {
-                                        viewModel.prepareEdit(spending: spending)
-                                    }
-                                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                        Button(role: .destructive) {
-                                            viewModel.spendingToDelete = spending
-                                            viewModel.showDeleteConfirmationAlert = true
-                                        } label: {
-                                            Image(systemName: "trash")
-                                        }
-                                        .tint(.red)
-                                    }
+                        if filteredSpendings.isEmpty && !searchText.isEmpty {
+                            // No search results
+                            VStack(spacing: 12) {
+                                Spacer()
+                                Image(systemName: "magnifyingglass")
+                                    .font(.system(size: 40))
+                                    .foregroundStyle(Color.gray.opacity(0.5))
+                                Text("No results for \"\(searchText)\"")
+                                    .font(.customFont(family: .quicksand, name: .medium, size: .x16))
+                                    .foregroundStyle(Color.textPrimary)
+                                Text("Try searching by name, category, amount, or date")
+                                    .font(.customFont(family: .quicksand, name: .regular, size: .x14))
+                                    .foregroundStyle(Color.textPrimary.opacity(0.7))
+                                    .multilineTextAlignment(.center)
+                                Spacer()
                             }
+                            .frame(maxWidth: .infinity)
+                            .padding(.horizontal, 20)
+                        } else {
+                            List {
+                                ForEach(filteredSpendings, id: \.id) { spending in
+                                    UpdatedSpendingRow(spending: spending)
+                                        .environmentObject(currencyManager)
+                                        .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
+                                        .listRowSeparator(.hidden)
+                                        .listRowBackground(Color.clear)
+                                        .onTapGesture {
+                                            viewModel.prepareEdit(spending: spending)
+                                        }
+                                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                            Button(role: .destructive) {
+                                                viewModel.spendingToDelete = spending
+                                                viewModel.showDeleteConfirmationAlert = true
+                                            } label: {
+                                                Image(systemName: "trash")
+                                            }
+                                            .tint(.red)
+                                        }
+                                }
+                            }
+                            .listStyle(.plain)
+                            .scrollContentBackground(.hidden)
                         }
-                        .listStyle(.plain)
-                        .scrollContentBackground(.hidden)
                         Spacer()
                     }
                 }
+                .animation(.easeOut(duration: 0.25), value: isSearchFocused)
             }
             // MARK: - Modifiers & Lifecycle
+            .onReceive(Publishers.keyboardHeight) { height in
+                withAnimation(.easeOut(duration: 0.25)) {
+                    keyboardHeight = height
+                }
+            }
             .onAppear {
 //                if AppData.prefCurrency == nil {
 //                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
