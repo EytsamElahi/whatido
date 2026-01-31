@@ -349,7 +349,7 @@ struct SpendsListingView: View {
                     addSpendingVM = nil
                 }
             }
-            .flexibleSheet(isPresented: $viewModel.showAddSheet, minHeight: 420, maxHeight: UIScreen.main.bounds.height * 0.85) {
+            .flexibleSheet(isPresented: $viewModel.showAddSheet, minHeight: 520, maxHeight: UIScreen.main.bounds.height * 0.9) {
                 if let vm = addSpendingVM {
                     AddSpendingView(viewModel: vm, selectedProject: nil, onSpendingAdded: { [weak viewModel] updatedSpending in
                         viewModel?.showAddSheet = false

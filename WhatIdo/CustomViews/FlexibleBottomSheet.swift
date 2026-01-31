@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 // MARK: - Height Preference Key
 struct ContentHeightKey: PreferenceKey {
@@ -87,7 +88,7 @@ struct FlexibleBottomSheet<Content: View>: View {
         .background(Color.cardBackground)
         .clipShape(RoundedCorner(radius: 24, corners: [.topLeft, .topRight]))
         .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: -5)
-        .ignoresSafeArea(.keyboard, edges: .bottom)
+        .ignoresSafeArea(.keyboard)
         .gesture(dragGesture)
         .onPreferenceChange(ContentHeightKey.self) { height in
           withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {

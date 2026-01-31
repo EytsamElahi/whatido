@@ -18,6 +18,7 @@ struct AddSpendingView: View {
   @State private var calendarId: UUID = UUID()
   @State private var showNoteField: Bool = false
   @FocusState private var isAmountFocused: Bool
+  @State private var keyboardHeight: CGFloat = 0
 
   var body: some View {
     VStack(spacing: 0) {
