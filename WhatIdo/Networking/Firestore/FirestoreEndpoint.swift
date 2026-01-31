@@ -39,7 +39,8 @@ enum FirestoreEndpoints: FirestoreEndpoint {
     case getAllGoals
     case addGoal(id: String)
     case editGoal(id: String)
-    
+    case createFeedback
+
     var path: FirestoreReference {
         switch self {
         case .createSpending:
@@ -76,6 +77,8 @@ enum FirestoreEndpoints: FirestoreEndpoint {
             return firestore.collection("goals").document(documentId)
         case .editGoal(let documentId):
             return firestore.collection("goals").document(documentId)
+        case .createFeedback:
+            return firestore.collection("user_feedback").document()
         }
     }
 }

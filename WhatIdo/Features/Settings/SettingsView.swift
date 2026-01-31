@@ -11,6 +11,7 @@ import SwiftUI
 struct SettingsView: View {
     @StateObject var viewModel: SettingsViewModel
     @EnvironmentObject var navigation: NavigationManager
+    @State private var showFeedbackSheet: Bool = false
 
     // Helper to get App Version
     var appVersion: String {
@@ -63,8 +64,26 @@ struct SettingsView: View {
                             .padding(.bottom, 5)
                     }
                     .listRowBackground(Color.white.opacity(0.05)) // Dark Cell Background
-                    
-                    // MARK: - Section 2: Support
+
+                    // MARK: - Section 2: Beta Feedback
+                    Section {
+                        Button {
+                            showFeedbackSheet = true
+                        } label: {
+                            SettingsRow(
+                                icon: "bubble.left.and.bubble.right",
+                                title: "Send Feedback"
+                            )
+                        }
+                    } header: {
+                        Text("Beta Feedback")
+                            .font(.customFont(family: .quicksand, name: .bold, size: .x14))
+                            .foregroundStyle(Color.gray)
+                            .padding(.bottom, 5)
+                    }
+                    .listRowBackground(Color.white.opacity(0.05))
+
+                    // MARK: - Section 3: Support
                     Section {
                         Link(destination: URL(string: "https://fire-cord-c32.notion.site/Yaru-Legal-Support-2ec64ce7ca4c80b595fbcba6ce8c5152")!) {
                             SettingsRow(icon: "hand.raised.fill", title: "Privacy Policy")
@@ -91,7 +110,7 @@ struct SettingsView: View {
                     }
                     .listRowBackground(Color.white.opacity(0.05))
                     
-                    // MARK: - Section 3: Danger Zone
+                    // MARK: - Section 4: Danger Zone
                     Section {
                         Button(role: .destructive) {
                             viewModel.logout()
@@ -128,7 +147,11 @@ struct SettingsView: View {
             }
         }
         .navigationBarBackButtonHidden()
+        .sheet(isPresented: $showFeedbackSheet) {
+            FeedbackView(viewModel: FeedbackViewModel(feedbackService: FeedbackService()))
+        }
     }
+
     func resetState() {
         AppData.prefCurrency = nil
         AppData.user = nil
