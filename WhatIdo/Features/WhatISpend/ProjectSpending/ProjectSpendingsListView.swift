@@ -156,7 +156,6 @@ struct ProjectSpendingsListView: View {
                             Image(systemName: "plus.circle.fill")
                                 .font(.system(size: 30))
                                 .foregroundStyle(viewModel.isDataLoading ? Color.appPrimaryColor.opacity(0.3) : Color.appPrimaryColor)
-                                .background(Color.white.clipShape(Circle()))
                         }
                         .disabled(viewModel.isDataLoading)
                     }
