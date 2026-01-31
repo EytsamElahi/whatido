@@ -18,12 +18,98 @@ struct SpendsListingView: View {
     @State private var searchText: String = ""
     @FocusState private var isSearchFocused: Bool
     @State private var keyboardHeight: CGFloat = 0
+    @State private var filters: SpendingFilters = SpendingFilters()
+    @State private var showFilterSheet: Bool = false
+
+    // MARK: - Available Categories (extracted from spendings)
+    private var availableCategories: [String] {
+        guard let spendings = viewModel.currentMonthSpendings else { return [] }
+        let categories = Set(spendings.map { $0.type })
+        return Array(categories).sorted()
+    }
 
     // MARK: - Filtered Spendings
     private var filteredSpendings: [SpendingDto] {
         guard let spendings = viewModel.currentMonthSpendings else { return [] }
-        guard !searchText.isEmpty else { return spendings }
 
+        var result = spendings
+
+        // Apply filters first
+        result = applyFilters(to: result)
+
+        // Then apply search
+        if !searchText.isEmpty {
+            result = applySearch(to: result)
+        }
+
+        return result
+    }
+
+    private func applyFilters(to spendings: [SpendingDto]) -> [SpendingDto] {
+        var result = spendings
+
+        // Date Range Filter
+        if filters.dateRange != .all {
+            let calendar = Calendar.current
+            let now = Date()
+
+            result = result.filter { spending in
+                switch filters.dateRange {
+                case .all:
+                    return true
+                case .today:
+                    return calendar.isDateInToday(spending.date)
+                case .last7Days:
+                    guard let sevenDaysAgo = calendar.date(byAdding: .day, value: -7, to: now) else { return true }
+                    return spending.date >= sevenDaysAgo
+                case .last14Days:
+                    guard let fourteenDaysAgo = calendar.date(byAdding: .day, value: -14, to: now) else { return true }
+                    return spending.date >= fourteenDaysAgo
+                case .thisWeek:
+                    return calendar.isDate(spending.date, equalTo: now, toGranularity: .weekOfYear)
+                }
+            }
+        }
+
+        // Amount Range Filter
+        if filters.amountRange != .all {
+            result = result.filter { filters.amountRange.matches(amount: $0.amount) }
+        }
+
+        // Category Filter
+        if !filters.categories.isEmpty {
+            result = result.filter { filters.categories.contains($0.type) }
+        }
+
+        // Fund Source Filter
+        if !filters.fundSources.isEmpty {
+            result = result.filter { spending in
+                guard let fundSource = spending.fundSource else { return false }
+                return filters.fundSources.contains(fundSource)
+            }
+        }
+
+        // Project Filter
+        if filters.hasProject != .all {
+            result = result.filter { spending in
+                // Check if project has a valid id (not just exists as empty object)
+                let hasValidProject = spending.project?.id != nil && !(spending.project?.id?.isEmpty ?? true)
+
+                switch filters.hasProject {
+                case .all:
+                    return true
+                case .withProject:
+                    return hasValidProject
+                case .withoutProject:
+                    return !hasValidProject
+                }
+            }
+        }
+
+        return result
+    }
+
+    private func applySearch(to spendings: [SpendingDto]) -> [SpendingDto] {
         let query = searchText.lowercased().trimmingCharacters(in: .whitespaces)
         let dateFormatter = DateFormatter()
         dateFormatter.dateStyle = .medium
@@ -131,7 +217,7 @@ struct SpendsListingView: View {
                         .transition(.opacity.combined(with: .move(edge: .top)))
                     }
 
-                    AddSpendingRow()
+                    AddSpendingRow(filters: $filters, showFilterSheet: $showFilterSheet)
                         .environmentObject(viewModel)
                         .padding(.horizontal, 20)
                         .padding(.top, 20)
@@ -154,25 +240,55 @@ struct SpendsListingView: View {
                             subtitle: "Tap '+' above to record\nyour first expense"
                         )
                     } else {
-                        if filteredSpendings.isEmpty && !searchText.isEmpty {
-                            // No search results
+                        if filteredSpendings.isEmpty && (!searchText.isEmpty || filters.isActive) {
+                            // No results from search or filters
                             VStack(spacing: 12) {
                                 Spacer()
-                                Image(systemName: "magnifyingglass")
+                                Image(systemName: filters.isActive ? "line.3.horizontal.decrease.circle" : "magnifyingglass")
                                     .font(.system(size: 40))
                                     .foregroundStyle(Color.gray.opacity(0.5))
-                                Text("No results for \"\(searchText)\"")
-                                    .font(.customFont(family: .quicksand, name: .medium, size: .x16))
-                                    .foregroundStyle(Color.textPrimary)
-                                Text("Try searching by name, category, amount, or date")
-                                    .font(.customFont(family: .quicksand, name: .regular, size: .x14))
-                                    .foregroundStyle(Color.textPrimary.opacity(0.7))
-                                    .multilineTextAlignment(.center)
+
+                                if !searchText.isEmpty {
+                                    Text("No results for \"\(searchText)\"")
+                                        .font(.customFont(family: .quicksand, name: .medium, size: .x16))
+                                        .foregroundStyle(Color.textPrimary)
+                                } else {
+                                    Text("No matching transactions")
+                                        .font(.customFont(family: .quicksand, name: .medium, size: .x16))
+                                        .foregroundStyle(Color.textPrimary)
+                                }
+
+                                if filters.isActive {
+                                    Text("Try adjusting your filters")
+                                        .font(.customFont(family: .quicksand, name: .regular, size: .x14))
+                                        .foregroundStyle(Color.textPrimary.opacity(0.7))
+
+                                    Button {
+                                        withAnimation {
+                                            filters.reset()
+                                        }
+                                    } label: {
+                                        Text("Clear Filters")
+                                            .font(.customFont(family: .quicksand, name: .semiBold, size: .x14))
+                                            .foregroundStyle(Color.appPrimaryColor)
+                                            .padding(.horizontal, 20)
+                                            .padding(.vertical, 10)
+                                            .background(Color.appPrimaryColor.opacity(0.15))
+                                            .cornerRadius(20)
+                                    }
+                                    .padding(.top, 8)
+                                } else {
+                                    Text("Try searching by name, category, amount, or date")
+                                        .font(.customFont(family: .quicksand, name: .regular, size: .x14))
+                                        .foregroundStyle(Color.textPrimary.opacity(0.7))
+                                        .multilineTextAlignment(.center)
+                                }
+
                                 Spacer()
                             }
                             .frame(maxWidth: .infinity)
                             .padding(.horizontal, 20)
-                        } else {
+                        } else if !filteredSpendings.isEmpty {
                             List {
                                 ForEach(filteredSpendings, id: \.id) { spending in
                                     UpdatedSpendingRow(spending: spending)
@@ -258,6 +374,14 @@ struct SpendsListingView: View {
                     }
                 })
             }
+            .sheet(isPresented: $showFilterSheet) {
+                SpendingFilterView(
+                    filters: $filters,
+                    isPresented: $showFilterSheet,
+                    availableCategories: availableCategories,
+                    onApply: { }
+                )
+            }
             .alert("Confirm Deletion", isPresented: $viewModel.showDeleteConfirmationAlert, presenting: viewModel.spendingToDelete) { spending in
                 Button("Delete", role: .destructive) { viewModel.deleteSpending() }
                 Button("Cancel", role: .cancel) { viewModel.spendingToDelete = nil }
@@ -274,29 +398,82 @@ struct SpendsListingView: View {
 
 struct AddSpendingRow: View {
     @EnvironmentObject var viewModel: DashboardViewModel
+    @Binding var filters: SpendingFilters
+    @Binding var showFilterSheet: Bool
+
     var body: some View {
-        HStack {
-            Text("Transactions")
-                .font(.customFont(family: .quicksand, name: .bold, size: .x20))
-                .foregroundStyle(Color.textPrimary)
+        VStack(spacing: 12) {
+            HStack {
+                Text("Transactions")
+                    .font(.customFont(family: .quicksand, name: .bold, size: .x20))
+                    .foregroundStyle(Color.textPrimary)
 
-            Spacer()
+                Spacer()
 
-            // Add Button
-            Button {
-                viewModel.spendingToEdit = nil
-                viewModel.showAddSheet.toggle()
-            } label: {
-                Image(systemName: "plus.circle.fill")
-                    .font(.system(size: 30))
-                    .foregroundStyle(Color.appPrimaryColor) // Updated Color
-                    //.shadow(color: Color.appPrimaryColor.opacity(0.3), radius: 5, x: 0, y: 2)
+                // Add Button
+                Button {
+                    viewModel.spendingToEdit = nil
+                    viewModel.showAddSheet.toggle()
+                } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 30))
+                        .foregroundStyle(Color.appPrimaryColor)
+                }
+
+                // Filter Button
+                Button {
+                    showFilterSheet = true
+                } label: {
+                    ZStack(alignment: .topTrailing) {
+                        Image(systemName: filters.isActive ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
+                            .font(.system(size: 24))
+                            .foregroundStyle(filters.isActive ? Color.appPrimaryColor : Color.gray)
+
+                        // Badge
+                        if filters.activeFilterCount > 0 {
+                            Text("\(filters.activeFilterCount)")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundStyle(Color.white)
+                                .frame(width: 16, height: 16)
+                                .background(Color.red)
+                                .clipShape(Circle())
+                                .offset(x: 4, y: -4)
+                        }
+                    }
+                }
+
+                // Sort Menu
+                MenuView(listing: viewModel.spendingSortTypes, icon: "arrow.up.arrow.down", text: "", isPicker: true) { selectedOpt in
+                    viewModel.selectedSortType = selectedOpt
+                }
             }
 
-            // Sort Menu
-            MenuView(listing: viewModel.spendingSortTypes, icon: "slider.horizontal.3", text: "", isPicker: true) { selectedOpt in
-                viewModel.selectedSortType = selectedOpt
+            // Reset Filters Row (shown when filters are active)
+            if filters.isActive {
+                HStack {
+                    Text("\(filters.activeFilterCount) filter\(filters.activeFilterCount > 1 ? "s" : "") applied")
+                        .font(.customFont(family: .quicksand, name: .medium, size: .x12))
+                        .foregroundStyle(Color.gray)
+
+                    Spacer()
+
+                    Button {
+                        withAnimation(.easeOut(duration: 0.2)) {
+                            filters.reset()
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 12))
+                            Text("Reset")
+                                .font(.customFont(family: .quicksand, name: .semiBold, size: .x12))
+                        }
+                        .foregroundStyle(Color.red)
+                    }
+                }
+                .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
+        .animation(.easeOut(duration: 0.2), value: filters.isActive)
     }
 }
