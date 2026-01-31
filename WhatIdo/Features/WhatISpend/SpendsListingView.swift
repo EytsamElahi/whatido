@@ -20,6 +20,7 @@ struct SpendsListingView: View {
     @State private var keyboardHeight: CGFloat = 0
     @State private var filters: SpendingFilters = SpendingFilters()
     @State private var showFilterSheet: Bool = false
+    @State private var sortOption: SpendingSortOption = .default
 
     // MARK: - Available Categories (extracted from spendings)
     private var availableCategories: [String] {
@@ -28,7 +29,7 @@ struct SpendsListingView: View {
         return Array(categories).sorted()
     }
 
-    // MARK: - Filtered Spendings
+    // MARK: - Filtered & Sorted Spendings
     private var filteredSpendings: [SpendingDto] {
         guard let spendings = viewModel.currentMonthSpendings else { return [] }
 
@@ -41,6 +42,9 @@ struct SpendsListingView: View {
         if !searchText.isEmpty {
             result = applySearch(to: result)
         }
+
+        // Finally apply sorting
+        result = result.sorted(by: sortOption)
 
         return result
     }
@@ -217,7 +221,7 @@ struct SpendsListingView: View {
                         .transition(.opacity.combined(with: .move(edge: .top)))
                     }
 
-                    AddSpendingRow(filters: $filters, showFilterSheet: $showFilterSheet)
+                    AddSpendingRow(filters: $filters, showFilterSheet: $showFilterSheet, sortOption: $sortOption)
                         .environmentObject(viewModel)
                         .padding(.horizontal, 20)
                         .padding(.top, 20)
@@ -334,9 +338,6 @@ struct SpendsListingView: View {
                 viewModel.fetchDashboardData()
             }
             .navigationBarHidden(true) // Using Custom Header
-            .onChange(of: viewModel.selectedSortType) { _ in
-                viewModel.updatedSorting()
-            }
             .onChange(of: viewModel.showAddSheet) { showSheet in
                 if showSheet {
                     addSpendingVM = container.makeTransactionFormViewModel(
@@ -400,6 +401,11 @@ struct AddSpendingRow: View {
     @EnvironmentObject var viewModel: DashboardViewModel
     @Binding var filters: SpendingFilters
     @Binding var showFilterSheet: Bool
+    @Binding var sortOption: SpendingSortOption
+
+    private var isNotDefaultSort: Bool {
+        sortOption.field != .date || sortOption.direction != .descending
+    }
 
     var body: some View {
         VStack(spacing: 12) {
@@ -429,7 +435,6 @@ struct AddSpendingRow: View {
                             .font(.system(size: 24))
                             .foregroundStyle(filters.isActive ? Color.appPrimaryColor : Color.gray)
 
-                        // Badge
                         if filters.activeFilterCount > 0 {
                             Text("\(filters.activeFilterCount)")
                                 .font(.system(size: 10, weight: .bold))
@@ -443,29 +448,47 @@ struct AddSpendingRow: View {
                 }
 
                 // Sort Menu
-                MenuView(listing: viewModel.spendingSortTypes, icon: "arrow.up.arrow.down", text: "", isPicker: true) { selectedOpt in
-                    viewModel.selectedSortType = selectedOpt
-                }
+                SortMenuView(currentSort: $sortOption) { }
             }
 
-            // Reset Filters Row (shown when filters are active)
-            if filters.isActive {
+            // Active Filters/Sort Info Row
+            if filters.isActive || isNotDefaultSort {
                 HStack {
-                    Text("\(filters.activeFilterCount) filter\(filters.activeFilterCount > 1 ? "s" : "") applied")
-                        .font(.customFont(family: .quicksand, name: .medium, size: .x12))
-                        .foregroundStyle(Color.gray)
+                    // Show current sort if not default
+                    if isNotDefaultSort {
+                        HStack(spacing: 4) {
+                            Image(systemName: sortOption.field.icon)
+                                .font(.system(size: 10))
+                            Text(sortOption.displayName)
+                                .font(.customFont(family: .quicksand, name: .medium, size: .x12))
+                        }
+                        .foregroundStyle(Color.appPrimaryColor)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.appPrimaryColor.opacity(0.15))
+                        .cornerRadius(12)
+                    }
+
+                    // Show filter count
+                    if filters.isActive {
+                        Text("\(filters.activeFilterCount) filter\(filters.activeFilterCount > 1 ? "s" : "")")
+                            .font(.customFont(family: .quicksand, name: .medium, size: .x12))
+                            .foregroundStyle(Color.gray)
+                    }
 
                     Spacer()
 
+                    // Reset All Button
                     Button {
                         withAnimation(.easeOut(duration: 0.2)) {
                             filters.reset()
+                            sortOption = .default
                         }
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "xmark.circle.fill")
                                 .font(.system(size: 12))
-                            Text("Reset")
+                            Text("Reset All")
                                 .font(.customFont(family: .quicksand, name: .semiBold, size: .x12))
                         }
                         .foregroundStyle(Color.red)
@@ -475,5 +498,6 @@ struct AddSpendingRow: View {
             }
         }
         .animation(.easeOut(duration: 0.2), value: filters.isActive)
+        .animation(.easeOut(duration: 0.2), value: sortOption)
     }
 }

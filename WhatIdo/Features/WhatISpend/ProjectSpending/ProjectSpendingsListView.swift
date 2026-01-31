@@ -19,6 +19,7 @@ struct ProjectSpendingsListView: View {
     @State private var searchText: String = ""
     @State private var filters: SpendingFilters = SpendingFilters()
     @State private var showFilterSheet: Bool = false
+    @State private var sortOption: SpendingSortOption = .default
     @FocusState private var isSearchFocused: Bool
     @State private var keyboardHeight: CGFloat = 0
 
@@ -29,7 +30,7 @@ struct ProjectSpendingsListView: View {
         return Array(categories).sorted()
     }
 
-    // MARK: - Filtered Spendings
+    // MARK: - Filtered & Sorted Spendings
     private var filteredSpendings: [SpendingDto] {
         guard let spendings = viewModel.projectSpendings else { return [] }
 
@@ -42,6 +43,9 @@ struct ProjectSpendingsListView: View {
         if !searchText.isEmpty {
             result = applySearch(to: result)
         }
+
+        // Apply sorting
+        result = result.sorted(by: sortOption)
 
         return result
     }
@@ -183,7 +187,8 @@ struct ProjectSpendingsListView: View {
                 if let spendings = viewModel.projectSpendings, !spendings.isEmpty {
                     ProjectTransactionsHeader(
                         filters: $filters,
-                        showFilterSheet: $showFilterSheet
+                        showFilterSheet: $showFilterSheet,
+                        sortOption: $sortOption
                     )
                     .padding(.horizontal, 20)
                     .padding(.top, 16)
@@ -332,6 +337,11 @@ struct ProjectSpendingsListView: View {
 struct ProjectTransactionsHeader: View {
     @Binding var filters: SpendingFilters
     @Binding var showFilterSheet: Bool
+    @Binding var sortOption: SpendingSortOption
+
+    private var isNotDefaultSort: Bool {
+        sortOption.field != .date || sortOption.direction != .descending
+    }
 
     var body: some View {
         VStack(spacing: 12) {
@@ -362,26 +372,46 @@ struct ProjectTransactionsHeader: View {
                         }
                     }
                 }
+
+                // Sort Menu
+                SortMenuView(currentSort: $sortOption) { }
             }
 
-            // Reset Filters Row
-            if filters.isActive {
+            // Active Filters/Sort Info Row
+            if filters.isActive || isNotDefaultSort {
                 HStack {
-                    Text("\(filters.activeFilterCount) filter\(filters.activeFilterCount > 1 ? "s" : "") applied")
-                        .font(.customFont(family: .quicksand, name: .medium, size: .x12))
-                        .foregroundStyle(Color.gray)
+                    if isNotDefaultSort {
+                        HStack(spacing: 4) {
+                            Image(systemName: sortOption.field.icon)
+                                .font(.system(size: 10))
+                            Text(sortOption.displayName)
+                                .font(.customFont(family: .quicksand, name: .medium, size: .x12))
+                        }
+                        .foregroundStyle(Color.appPrimaryColor)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.appPrimaryColor.opacity(0.15))
+                        .cornerRadius(12)
+                    }
+
+                    if filters.isActive {
+                        Text("\(filters.activeFilterCount) filter\(filters.activeFilterCount > 1 ? "s" : "")")
+                            .font(.customFont(family: .quicksand, name: .medium, size: .x12))
+                            .foregroundStyle(Color.gray)
+                    }
 
                     Spacer()
 
                     Button {
                         withAnimation(.easeOut(duration: 0.2)) {
                             filters.reset()
+                            sortOption = .default
                         }
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "xmark.circle.fill")
                                 .font(.system(size: 12))
-                            Text("Reset")
+                            Text("Reset All")
                                 .font(.customFont(family: .quicksand, name: .semiBold, size: .x12))
                         }
                         .foregroundStyle(Color.red)
@@ -391,6 +421,7 @@ struct ProjectTransactionsHeader: View {
             }
         }
         .animation(.easeOut(duration: 0.2), value: filters.isActive)
+        .animation(.easeOut(duration: 0.2), value: sortOption)
     }
 }
 
