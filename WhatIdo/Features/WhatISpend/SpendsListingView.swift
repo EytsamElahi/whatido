@@ -13,6 +13,7 @@ struct SpendsListingView: View {
     @Environment(\.dependencyContainer) var container
     @ObservedObject var currencyManager = CurrencyManager.shared
     @State private var showCurrencySettingScreen: Bool = false
+    @State private var addSpendingVM: AddSpendingViewModel?
 
     var budgetProgress: Double {
         let budgetTotal = viewModel.convertedBudgetAmount
@@ -143,20 +144,30 @@ struct SpendsListingView: View {
             .onChange(of: viewModel.selectedSortType) { _ in
                 viewModel.updatedSorting()
             }
-            .sheet(isPresented: $viewModel.showAddSheet) {
-                let addSpendingVM = container.makeTransactionFormViewModel(spendingToEdit: viewModel.spendingToEdit, selectedProject: nil)
-                AddSpendingView(viewModel: addSpendingVM, selectedProject: nil,onSpendingAdded: { updatedSpending in
-                    self.viewModel.showAddSheet = false
-                    guard let updatedSpending = updatedSpending else {return}
-                    if let index = viewModel.currentMonthSpendings?.firstIndex(where: { $0.id == updatedSpending.id }) {
-                        viewModel.currentMonthSpendings?[index] = updatedSpending
-                    } else {
-                        viewModel.currentMonthSpendings?.append(updatedSpending)
-                        viewModel.updatedSorting()
-                    }
-                })
-                .presentationDetents([.medium, .large])
-                .presentationDragIndicator(.visible)
+            .onChange(of: viewModel.showAddSheet) { showSheet in
+                if showSheet {
+                    addSpendingVM = container.makeTransactionFormViewModel(
+                        spendingToEdit: viewModel.spendingToEdit,
+                        selectedProject: nil
+                    )
+                } else {
+                    // Clean up viewModel when sheet is dismissed (drag/tap outside)
+                    addSpendingVM = nil
+                }
+            }
+            .flexibleSheet(isPresented: $viewModel.showAddSheet, minHeight: 420, maxHeight: UIScreen.main.bounds.height * 0.85) {
+                if let vm = addSpendingVM {
+                    AddSpendingView(viewModel: vm, selectedProject: nil, onSpendingAdded: { [weak viewModel] updatedSpending in
+                        viewModel?.showAddSheet = false
+                        guard let updatedSpending = updatedSpending else { return }
+                        if let index = viewModel?.currentMonthSpendings?.firstIndex(where: { $0.id == updatedSpending.id }) {
+                            viewModel?.currentMonthSpendings?[index] = updatedSpending
+                        } else {
+                            viewModel?.currentMonthSpendings?.append(updatedSpending)
+                            viewModel?.updatedSorting()
+                        }
+                    })
+                }
             }
 //            .sheet(isPresented: $showCurrencySettingScreen) {
 //                SettingsView()
@@ -202,7 +213,7 @@ struct AddSpendingRow: View {
                 Image(systemName: "plus.circle.fill")
                     .font(.system(size: 30))
                     .foregroundStyle(Color.appPrimaryColor) // Updated Color
-                    .shadow(color: Color.appPrimaryColor.opacity(0.3), radius: 5, x: 0, y: 2)
+                    //.shadow(color: Color.appPrimaryColor.opacity(0.3), radius: 5, x: 0, y: 2)
             }
 
             // Sort Menu

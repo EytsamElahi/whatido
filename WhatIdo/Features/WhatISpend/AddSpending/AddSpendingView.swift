@@ -20,35 +20,30 @@ struct AddSpendingView: View {
   @FocusState private var isAmountFocused: Bool
 
   var body: some View {
-    ZStack {
-      Color.cardBackground.ignoresSafeArea()
+    VStack(spacing: 0) {
+      // Amount Section
+      amountSection
+        .padding(.top, 16)
 
-      VStack(spacing: 0) {
-        // Amount Section
-        amountSection
-          .padding(.top, 24)
+      // Note field (collapsible)
+      noteSection
+        .padding(.top, 16)
 
-        // Note field (collapsible)
-        noteSection
-          .padding(.top, 16)
+      // Context chips
+      contextChips
+        .padding(.top, 16)
 
-        // Context chips
-        contextChips
-          .padding(.top, 16)
+      // Categories horizontal scroll
+      categoriesSection
+        .padding(.top, 20)
 
-        // Categories horizontal scroll
-        categoriesSection
-          .padding(.top, 20)
-
-        Spacer()
-          .frame(minHeight: 24)
-
-        // Save button
-        saveButton
-          .padding(.bottom, 30)
-      }
-      .padding(.horizontal, 20)
+      // Save button
+      saveButton
+        .padding(.top, 24)
+        .padding(.bottom, 20)
     }
+    .padding(.horizontal, 20)
+    .background(Color.cardBackground)
     .onAppear {
       // Show note field if editing and has existing note
       if viewModel.spendingIdToEdit != nil && !viewModel.spendingItemTf.isEmpty {
@@ -58,15 +53,33 @@ struct AddSpendingView: View {
         isAmountFocused = true
       }
     }
-    .onChange(of: viewModel.dismissSheet) { _ in
-      onSpendingAdded(viewModel.spending)
+    .onChange(of: viewModel.dismissSheet) { shouldDismiss in
+      guard shouldDismiss else { return }
+      // Dismiss keyboard first
+      UIApplication.shared.sendAction(
+        #selector(UIResponder.resignFirstResponder),
+        to: nil,
+        from: nil,
+        for: nil
+      )
+      // Wait for keyboard to dismiss, then close sheet
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+        onSpendingAdded(viewModel.spending)
+      }
     }
     .onChange(of: date) { newVal in
       viewModel.dateTf = newVal.toDateReturnString()
       calendarId = UUID()
     }
-    .interactiveDismissDisabled(viewModel.isDataUploading)
-    .hideKeyboardOnTapAround()
+    .contentShape(Rectangle())
+    .onTapGesture {
+      UIApplication.shared.sendAction(
+        #selector(UIResponder.resignFirstResponder),
+        to: nil,
+        from: nil,
+        for: nil
+      )
+    }
     .alert(isPresented: $viewModel.showErrorAlert) {
       Alert(
         title: Text("Missing Info"),

@@ -46,6 +46,10 @@ class AddSpendingViewModel: ObservableObject {
     private let overlayManager = OverlayManager.shared
     private let eventBus: PassthroughSubject<AppGlobalEvent, Never>
 
+    // Task management for proper cancellation
+    private var savingTask: Task<Void, Never>?
+    private var projectsTask: Task<Void, Never>?
+
     init(service: SpendingsServiceProtocol = SpendingsService(), projectSerivce: ProjectsServiceProtocol = ProjectsService(), spendingToEdit: SpendingDto? = nil, selectedProject: ProjectDto? = nil, eventBus: PassthroughSubject<AppGlobalEvent, Never>) {
         self.service = service
         self.projectService = projectSerivce
@@ -62,8 +66,12 @@ class AddSpendingViewModel: ObservableObject {
             self.selectedTypeName = spending.type
             self.selectedFundingSource = spending.fundSource?.rawValue ?? "Cash"
             self.created = spending.created
-            // Project pre-fill logic view se pass hogi ya yahan handle hogi
         }
+    }
+
+    deinit {
+        savingTask?.cancel()
+        projectsTask?.cancel()
     }
     
     private func loadSpendingTypes() {
@@ -106,23 +114,22 @@ class AddSpendingViewModel: ObservableObject {
             projectType: ProjectInfo(id: selectedProject?.id, name: selectedProject?.name, icon: selectedProject?.icon),
             currencyCode: CurrencyManager.shared.currencyCode
         )
-        Task {
+        savingTask = Task { [weak self] in
+            guard let self else { return }
             self.isDataUploading = true
             defer {
                 self.isDataUploading = false
             }
-            let result: AppResult<SpendingDto>
             if let id = spendingIdToEdit {
                 spending.id = id
                 let apiResult = await service.editSpending(spending, id: id)
-                 if case .error(let error) = apiResult {
-                     self.overlayManager.showToast(message: error, style: .error)
-                     return
-                 }
+                if case .error(let error) = apiResult {
+                    self.overlayManager.showToast(message: error, style: .error)
+                    return
+                }
                 self.overlayManager.showToast(message: PopupMessages.dataUpdatedMessage("Spending"), style: .success)
                 eventBus.send(.reloadDashboard)
                 self.spending = spending.convertToDto()
-
             } else {
                 let apiResult = await service.addSpending(spending)
                 switch apiResult {
@@ -134,10 +141,10 @@ class AddSpendingViewModel: ObservableObject {
                     self.overlayManager.showToast(message: error, style: .error)
                     return
                 default:
-                    debugPrint("")
+                    break
                 }
             }
-            dismissSheet = true
+            self.dismissSheet = true
         }
     }
     
@@ -147,7 +154,8 @@ class AddSpendingViewModel: ObservableObject {
     }
 
     private func getProjects() {
-        Task {
+        projectsTask = Task { [weak self] in
+            guard let self else { return }
             let result = await projectService.getProjects()
             if case .data(let data) = result {
                 self.projects = data

@@ -14,6 +14,7 @@ struct ProjectSpendingsListView: View {
     @StateObject var viewModel: ProjectsViewModel
     @Environment(\.dependencyContainer) var container
     @ObservedObject var currencyManager = CurrencyManager.shared
+    @State private var addSpendingVM: AddSpendingViewModel?
 
     var body: some View {
         ZStack {
@@ -116,22 +117,34 @@ struct ProjectSpendingsListView: View {
             // Load data when view opens
             viewModel.fetchProjectSpendings(project.id)
         }
-        .sheet(isPresented: $viewModel.showAddNewSpendingSheet) {
-            AddSpendingView(viewModel: container.makeTransactionFormViewModel(spendingToEdit: viewModel.spendingToEdit, selectedProject: viewModel.selectedProject), selectedProject: viewModel.selectedProject,onSpendingAdded: { updatedSpending in
-                viewModel.showAddNewSpendingSheet = false
-                guard let updatedSpending = updatedSpending else {return}
-                if let index = viewModel.projectSpendings?.firstIndex(where: { $0.id == updatedSpending.id }) {
-                    viewModel.projectSpendings?[index] = updatedSpending
-                } else {
-                    viewModel.projectSpendings?.insert(updatedSpending, at: 0)
-                }
-                Task { [weak viewModel] in
-                    guard let viewModel else { return }
-                    await viewModel.updateTotalSpending()
-                }
-            }).environmentObject(viewModel)
-                .presentationDetents([.medium, .large])
-                .presentationDragIndicator(.visible)
+        .onChange(of: viewModel.showAddNewSpendingSheet) { showSheet in
+            if showSheet {
+                addSpendingVM = container.makeTransactionFormViewModel(
+                    spendingToEdit: viewModel.spendingToEdit,
+                    selectedProject: viewModel.selectedProject
+                )
+            } else {
+                // Clean up viewModel when sheet is dismissed
+                addSpendingVM = nil
+            }
+        }
+        .flexibleSheet(isPresented: $viewModel.showAddNewSpendingSheet, minHeight: 420, maxHeight: UIScreen.main.bounds.height * 0.85) {
+            if let vm = addSpendingVM {
+                AddSpendingView(viewModel: vm, selectedProject: viewModel.selectedProject, onSpendingAdded: { [weak viewModel] updatedSpending in
+                    viewModel?.showAddNewSpendingSheet = false
+                    guard let updatedSpending = updatedSpending else { return }
+                    if let index = viewModel?.projectSpendings?.firstIndex(where: { $0.id == updatedSpending.id }) {
+                        viewModel?.projectSpendings?[index] = updatedSpending
+                    } else {
+                        viewModel?.projectSpendings?.insert(updatedSpending, at: 0)
+                    }
+                    Task { [weak viewModel] in
+                        guard let viewModel else { return }
+                        await viewModel.updateTotalSpending()
+                    }
+                })
+                .environmentObject(viewModel)
+            }
         }
     }
 }
