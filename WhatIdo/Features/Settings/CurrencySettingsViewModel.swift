@@ -18,6 +18,7 @@ class CurrencySettingsViewModel: ObservableObject {
     private let userRepo: UserRepositoryType
     private let overlayManager: OverlayManager = .shared
     private let eventBus: PassthroughSubject<AppGlobalEvent, Never>
+    private let analytics = AnalyticsManager.shared
     
     init(currencyManager: CurrencyManager = .shared,
          userRepo: UserRepositoryType,
@@ -60,8 +61,12 @@ class CurrencySettingsViewModel: ObservableObject {
     }
     
     private func performUpdate(currency: CurrencyOption) {
+        let previousCurrency = currencyManager.activeCurrency.code
         currencyManager.updateCurrency(option: currency)
-        
+
+        // Log analytics event
+        analytics.logCurrencyChanged(from: previousCurrency, to: currency.code)
+
         // Update on Firestore as well
         if let userId = AppData.user?.id {
             Task {

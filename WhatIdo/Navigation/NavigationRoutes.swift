@@ -14,6 +14,7 @@ enum Route: Hashable {
   case spendingAnalytics
   case currencySettings(Bool)
   case settings
+  case analyticsTest
   case login
   case goals
 }

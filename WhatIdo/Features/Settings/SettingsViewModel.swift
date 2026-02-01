@@ -23,11 +23,13 @@ class SettingsViewModel: ObservableObject {
     private let userRepo: UserRepositoryType
     private let overlayManager = OverlayManager.shared
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "", category: "SettingsViewModel")
+    private let analytics = AnalyticsManager.shared
 
     init(authService: AuthServiceProtocol, userRepo: UserRepositoryType) {
         self.authService = authService
         self.userRepo = userRepo
         loadNotificationSetting()
+        analytics.logSettingsOpened()
     }
 
     private func loadNotificationSetting() {

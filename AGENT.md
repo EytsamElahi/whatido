@@ -40,7 +40,28 @@ To build and maintain a robust, scalable iOS application that tracks user goals,
 - **Mocks:** Every Service/Repository must have a corresponding Mock implementation for testing.
 - **Coverage:** Ensure ViewModels are testable. Write tests for all business logic scenarios (Success, Failure, Edge Cases).
 
+## 5. Analytics (MANDATORY)
+**Every new feature or user action MUST include Firebase Analytics tracking.**
+
+- **Manager:** Use `AnalyticsManager.shared` singleton from `Utilities/AnalyticsManager.swift`
+- **Integration:** Add `private let analytics = AnalyticsManager.shared` to ViewModels
+- **New Events:**
+  1. Add event to `AnalyticsEvent` enum
+  2. Add parameters to `AnalyticsParam` enum if needed
+  3. Create convenience method in `AnalyticsManager`
+  4. Call from ViewModel after successful action
+- **Debug:** Use Settings > Developer > Analytics Test to verify events (DEBUG only)
+
+### Required Tracking
+| Action Type | Example Events |
+|-------------|----------------|
+| User Journey | signup, onboarding, first-time actions |
+| CRUD Operations | item_added, item_edited, item_deleted |
+| Feature Usage | feature_opened, feature_completed |
+| Settings Changes | setting_changed (with from/to values) |
+
 # Behavior Constraints
 - If a solution requires a third-party library, verify it is absolutely necessary; prefer native Apple frameworks.
 - When generating code, prioritize readability and modern Swift concurrency (`async`/`await`) over closures.
 - If you encounter ambiguous requirements, ask for clarification regarding the specific data model or user flow before implementing.
+- **ALWAYS implement analytics tracking** when adding new features or user actions. No feature is complete without proper analytics.

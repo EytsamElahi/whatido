@@ -45,6 +45,7 @@ class AddSpendingViewModel: ObservableObject {
     private var created: Date?
     private let overlayManager = OverlayManager.shared
     private let eventBus: PassthroughSubject<AppGlobalEvent, Never>
+    private let analytics = AnalyticsManager.shared
 
     // Task management for proper cancellation
     private var savingTask: Task<Void, Never>?
@@ -127,6 +128,7 @@ class AddSpendingViewModel: ObservableObject {
                     self.overlayManager.showToast(message: error, style: .error)
                     return
                 }
+                self.analytics.logExpenseEdited()
                 self.overlayManager.showToast(message: PopupMessages.dataUpdatedMessage("Spending"), style: .success)
                 eventBus.send(.reloadDashboard)
                 self.spending = spending.convertToDto()
@@ -135,6 +137,11 @@ class AddSpendingViewModel: ObservableObject {
                 switch apiResult {
                 case .data(let newSpending):
                     self.spending = newSpending
+                    self.analytics.logExpenseAdded(
+                        category: selectedType?.name ?? "Unknown",
+                        amount: amountTf,
+                        fundSource: selectedFundingSource
+                    )
                     eventBus.send(.reloadDashboard)
                     self.overlayManager.showToast(message: PopupMessages.dataAddedMessage("Spending"), style: .success)
                 case .error(let error):

@@ -26,6 +26,8 @@ class AnalyticsViewModel: ObservableObject {
     
     @Published var isLoading = false
     private let overlayManager = OverlayManager.shared
+    private let analyticsManager = AnalyticsManager.shared
+
     init(service: SpendingsServiceProtocol = SpendingsService()) {
         self.spendingService = service
     }
@@ -33,6 +35,7 @@ class AnalyticsViewModel: ObservableObject {
     // Filter trigger
     func fetchAnalytics() {
         self.isLoading = true
+        logAnalyticsViewedEvent()
         Task {[weak self] in
             guard let self = self else {return}
             do {
@@ -124,6 +127,22 @@ class AnalyticsViewModel: ObservableObject {
         let sortedData = processedData.sorted { $0.totalAmount > $1.totalAmount }
         // Assign to Published property
         self.chartData = sortedData
-      
+    }
+
+    private func logAnalyticsViewedEvent() {
+        let timeRange: String
+        if isCustomMode {
+            timeRange = "custom"
+        } else {
+            switch selectedRange {
+            case .thisWeek:
+                timeRange = "week"
+            case .thisMonth:
+                timeRange = "month"
+            case .thisYear:
+                timeRange = "year"
+            }
+        }
+        analyticsManager.logAnalyticsViewed(timeRange: timeRange)
     }
 }

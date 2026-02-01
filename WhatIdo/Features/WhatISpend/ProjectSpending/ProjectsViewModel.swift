@@ -29,6 +29,7 @@ class ProjectsViewModel: BaseViewModel {
 
     private let eventBus: PassthroughSubject<AppGlobalEvent, Never>
     private let overlayManager = OverlayManager.shared
+    private let analytics = AnalyticsManager.shared
 
     init(projectService: ProjectsServiceProtocol = ProjectsService(), 
          spendingService: SpendingsServiceProtocol = SpendingsService(),
@@ -88,6 +89,7 @@ class ProjectsViewModel: BaseViewModel {
                 var temProj = newProject
                 temProj.createdAt = Date()
                 self.projects.insert(temProj, at: 0)
+                self.analytics.logProjectCreated(icon: icon)
                 OverlayManager.shared.showToast(message: PopupMessages.dataAddedMessage("Project"), style: .success)
                 self.showAddProjectSheet = false
 

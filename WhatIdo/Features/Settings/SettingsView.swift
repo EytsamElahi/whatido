@@ -110,14 +110,30 @@ struct SettingsView: View {
                     }
                     .listRowBackground(Color.white.opacity(0.05))
                     
-                    // MARK: - Section 4: Danger Zone
+                    #if DEBUG
+                    // MARK: - Section 4: Developer
+                    Section {
+                        SettingsRow(icon: "chart.bar.xaxis", title: "Analytics Test")
+                            .onTapGesture {
+                                navigation.push(screen: .analyticsTest)
+                            }
+                    } header: {
+                        Text("Developer")
+                            .font(.customFont(family: .quicksand, name: .bold, size: .x14))
+                            .foregroundStyle(Color.gray)
+                            .padding(.bottom, 5)
+                    }
+                    .listRowBackground(Color.white.opacity(0.05))
+                    #endif
+
+                    // MARK: - Section 5: Danger Zone
                     Section {
                         Button(role: .destructive) {
                             viewModel.logout()
                         } label: {
                             SettingsRow(icon: "rectangle.portrait.and.arrow.right", title: "Log Out", isDestructive: false) // Keep neutral or make red
                         }
-                        
+
                         Button(role: .destructive) {
                             viewModel.reAuthenticate()
                         } label: {

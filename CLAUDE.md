@@ -87,6 +87,50 @@
 
 ---
 
+## Analytics (Firebase Analytics)
+
+**IMPORTANT:** Every new feature or user action MUST include analytics tracking.
+
+### Setup
+- Use `AnalyticsManager.shared` singleton (located in `Utilities/AnalyticsManager.swift`)
+- Add `private let analytics = AnalyticsManager.shared` to ViewModels
+
+### When to Add Analytics
+- **New features:** Track when users interact with the feature
+- **CRUD operations:** Track create, update, delete actions
+- **Navigation events:** Track when users open key screens
+- **User milestones:** Track onboarding steps, first-time actions
+
+### How to Add New Events
+1. Add event name to `AnalyticsEvent` enum in `AnalyticsManager.swift`
+2. Add parameter keys to `AnalyticsParam` enum if needed
+3. Create a convenience method in `AnalyticsManager` (e.g., `logFeatureUsed()`)
+4. Call the method from the appropriate ViewModel after successful action
+
+### Existing Events Reference
+| Event | Parameters | Trigger Location |
+|-------|------------|------------------|
+| `user_signup` | provider | AuthenticationViewModel |
+| `onboarding_completed` | - | OnboardingViewModel |
+| `user_onboarded` | - | Auto (first expense) |
+| `expense_added` | category, amount_range, fund_source | AddSpendingViewModel |
+| `expense_edited` | - | AddSpendingViewModel |
+| `expense_deleted` | - | DashboardViewModel |
+| `budget_set` | amount_range | BudgetViewModel |
+| `budget_edited` | - | BudgetViewModel |
+| `project_created` | icon | ProjectsViewModel |
+| `project_completed` | - | (When implemented) |
+| `analytics_viewed` | time_range | AnalyticsViewModel |
+| `currency_changed` | from_currency, to_currency | CurrencySettingsViewModel |
+| `settings_opened` | - | SettingsViewModel |
+| `app_opened` | days_since_first_use, total_expenses_count | DashboardViewModel |
+
+### Debug View
+- Access via: Settings > Developer > Analytics Test (DEBUG builds only)
+- Use to verify events are firing correctly during development
+
+---
+
 ## Pre-Flight Checklist (Before Making Changes)
 
 - [ ] Read this file (CLAUDE.md) for project guidelines
@@ -95,3 +139,4 @@
 - [ ] Ensure changes follow MVVM architecture
 - [ ] Verify no force unwraps or print statements
 - [ ] Keep functions under 50 lines, Views under 300 lines
+- [ ] **Add analytics tracking for new features/actions**

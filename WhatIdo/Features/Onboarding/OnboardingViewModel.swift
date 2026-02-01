@@ -16,6 +16,7 @@ class OnboardingViewModel: ObservableObject {
 
   let pages: [OnboardingPage] = OnboardingPage.pages
   private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "", category: "OnboardingViewModel")
+  private let analytics = AnalyticsManager.shared
 
   var isFirstPage: Bool {
     currentPage == 0
@@ -41,6 +42,7 @@ class OnboardingViewModel: ObservableObject {
           AppData.hasCompletedOnboarding = true
         }
       }
+      analytics.logOnboardingCompleted()
       logger.info("Onboarding marked as complete")
     }
   }

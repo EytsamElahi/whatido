@@ -12,6 +12,7 @@ import UserNotifications
 class AuthenticationViewModel: ObservableObject {
     private let authService: AuthServiceProtocol
     private let userRepo: UserRepositoryType
+    private let analytics = AnalyticsManager.shared
     @Published var showUsernameSheet: Bool = false
     @Published var isAuthenticating: Bool = false
     private var user: AuthModel?
@@ -67,10 +68,12 @@ class AuthenticationViewModel: ObservableObject {
                         self.navigateToCurrency = true
                     }
                 } else {
-                    // New User
+                    // New User - Log signup event
+                    self.analytics.logUserSignup(provider: provider.rawValue)
+
                     // Hide loader before showing username sheet or creating profile
                     self.overlayManager.hideLoader()
-                    
+
                     if user.name == nil {
                         self.showUsernameSheet = true
                     } else {

@@ -63,6 +63,7 @@ class DashboardViewModel: ObservableObject {
     @Published var isDataLoading: Bool = false
 
     private let overlayManager = OverlayManager.shared
+    private let analytics = AnalyticsManager.shared
 
     // Edit State
     var spendingToEdit: SpendingDto? // Isay use kar ke hum TransactionFormViewModel init karenge
@@ -96,7 +97,8 @@ class DashboardViewModel: ObservableObject {
     // MARK: - Fetch Logic
     func fetchDashboardData() {
         isDataLoading = true
-        
+        analytics.logAppOpened()
+
         fetchTask?.cancel()
         
         // 1. Fetch Spendings (Stream)
@@ -150,11 +152,12 @@ class DashboardViewModel: ObservableObject {
     
     func deleteSpending() {
         guard let spending = spendingToDelete else { return }
-        
+
         Task {[weak self] in
             guard let self = self else {return}
             let result = await spendingService.deleteSpending(spending.id)
             if case .success = result {
+                self.analytics.logExpenseDeleted()
                 self.overlayManager.showToast(message: "Spending deleted successfully", style: .success)
             }
             if case(.error(let string)) = result {
