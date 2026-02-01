@@ -20,6 +20,17 @@ struct SettingsView: View {
         return "\(version) (\(build))"
     }
 
+    // User initials for avatar
+    private var userInitials: String {
+        let name = viewModel.userName
+        if name.isEmpty { return "?" }
+        let components = name.split(separator: " ")
+        if components.count >= 2 {
+            return String(components[0].prefix(1) + components[1].prefix(1)).uppercased()
+        }
+        return String(name.prefix(2)).uppercased()
+    }
+
     var body: some View {
         ZStack {
             // 1. Global Background
@@ -29,6 +40,53 @@ struct SettingsView: View {
                     navigation.pop()
                 })
                 List {
+                    // MARK: - Profile Section
+                    Section {
+                        Button {
+                            viewModel.showProfileSheet = true
+                        } label: {
+                            HStack(spacing: 14) {
+                                // Avatar
+                                ZStack {
+                                    Circle()
+                                        .fill(
+                                            LinearGradient(
+                                                colors: [Color.appPrimaryColor, Color.appPrimaryColor.opacity(0.6)],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            )
+                                        )
+                                        .frame(width: 56, height: 56)
+
+                                    Text(userInitials)
+                                        .font(.system(size: 20, weight: .semibold, design: .rounded))
+                                        .foregroundStyle(.white)
+                                }
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(viewModel.userName.isEmpty ? "Set your name" : viewModel.userName)
+                                        .font(.customFont(family: .quicksand, name: .bold, size: .x18))
+                                        .foregroundStyle(viewModel.userName.isEmpty ? Color.gray : Color.white)
+
+                                    if !viewModel.userEmail.isEmpty {
+                                        Text(viewModel.userEmail)
+                                            .font(.customFont(family: .quicksand, name: .medium, size: .x14))
+                                            .foregroundStyle(Color.gray)
+                                            .lineLimit(1)
+                                    }
+                                }
+
+                                Spacer()
+
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundStyle(Color.gray)
+                            }
+                            .padding(.vertical, 8)
+                        }
+                    }
+                    .listRowBackground(Color.white.opacity(0.05))
+
                     // MARK: - Section 1: Preferences
                     Section {
                         // Currency Row
@@ -166,6 +224,11 @@ struct SettingsView: View {
         .sheet(isPresented: $showFeedbackSheet) {
             FeedbackView(viewModel: FeedbackViewModel(feedbackService: FeedbackService()))
         }
+        .sheet(isPresented: $viewModel.showProfileSheet) {
+            ProfileSheetView(viewModel: viewModel)
+                .presentationDetents([.height(280)])
+                .presentationDragIndicator(.visible)
+        }
     }
 
     func resetState() {
@@ -201,6 +264,112 @@ struct SettingsRow: View {
 
             // Chevron is added automatically by NavigationLink,
             // but for Buttons/Links we might want to add a spacer or custom chevron if needed.
+        }
+    }
+}
+
+// MARK: - Profile Sheet View
+struct ProfileSheetView: View {
+    @ObservedObject var viewModel: SettingsViewModel
+    @State private var editableName: String = ""
+    @FocusState private var isNameFocused: Bool
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header
+            Text("Edit Profile")
+                .font(.customFont(family: .quicksand, name: .bold, size: .x20))
+                .foregroundStyle(Color.textPrimary)
+                .padding(.top, 20)
+                .padding(.bottom, 24)
+
+            VStack(alignment: .leading, spacing: 16) {
+                // Email (Read-only)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Email")
+                        .font(.customFont(family: .quicksand, name: .medium, size: .x12))
+                        .foregroundStyle(Color.textSecondary)
+
+                    HStack {
+                        Image(systemName: "envelope.fill")
+                            .font(.system(size: 14))
+                            .foregroundStyle(Color.textSecondary)
+
+                        Text(viewModel.userEmail.isEmpty ? "No email" : viewModel.userEmail)
+                            .font(.customFont(family: .quicksand, name: .medium, size: .x16))
+                            .foregroundStyle(Color.textSecondary)
+
+                        Spacer()
+
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 12))
+                            .foregroundStyle(Color.textSecondary.opacity(0.5))
+                    }
+                    .padding(14)
+                    .background(Color.white.opacity(0.03))
+                    .cornerRadius(12)
+                }
+
+                // Name (Editable)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Name")
+                        .font(.customFont(family: .quicksand, name: .medium, size: .x12))
+                        .foregroundStyle(Color.textSecondary)
+
+                    HStack {
+                        Image(systemName: "person.fill")
+                            .font(.system(size: 14))
+                            .foregroundStyle(Color.appPrimaryColor)
+
+                        TextField("Enter your name", text: $editableName)
+                            .font(.customFont(family: .quicksand, name: .medium, size: .x16))
+                            .foregroundStyle(Color.textPrimary)
+                            .focused($isNameFocused)
+                            .submitLabel(.done)
+                            .onSubmit {
+                                saveNameIfChanged()
+                            }
+
+                        if editableName != viewModel.userName && !editableName.isEmpty {
+                            Button {
+                                saveNameIfChanged()
+                            } label: {
+                                if viewModel.isUpdatingName {
+                                    ProgressView()
+                                        .tint(Color.appPrimaryColor)
+                                        .scaleEffect(0.8)
+                                } else {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .font(.system(size: 20))
+                                        .foregroundStyle(Color.appPrimaryColor)
+                                }
+                            }
+                            .disabled(viewModel.isUpdatingName)
+                        }
+                    }
+                    .padding(14)
+                    .background(Color.white.opacity(0.05))
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(isNameFocused ? Color.appPrimaryColor : Color.clear, lineWidth: 1)
+                    )
+                }
+            }
+            .padding(.horizontal, 20)
+
+            Spacer()
+        }
+        .background(Color.appBackground)
+        .onAppear {
+            editableName = viewModel.userName
+        }
+    }
+
+    private func saveNameIfChanged() {
+        let trimmed = editableName.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed != viewModel.userName && !trimmed.isEmpty {
+            viewModel.updateUserName(trimmed)
         }
     }
 }

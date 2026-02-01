@@ -18,6 +18,10 @@ class SettingsViewModel: ObservableObject {
         }
     }
     @Published var accountDeleted: Bool = false
+    @Published var showProfileSheet: Bool = false
+    @Published var userName: String = ""
+    @Published var userEmail: String = ""
+    @Published var isUpdatingName: Bool = false
 
     private let authService: AuthServiceProtocol
     private let userRepo: UserRepositoryType
@@ -29,7 +33,54 @@ class SettingsViewModel: ObservableObject {
         self.authService = authService
         self.userRepo = userRepo
         loadNotificationSetting()
+        loadUserProfile()
         analytics.logSettingsOpened()
+    }
+
+    private func loadUserProfile() {
+        if let user = AppData.user {
+            userName = user.name ?? ""
+            userEmail = user.email ?? ""
+        }
+    }
+
+    func updateUserName(_ newName: String) {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            logger.error("No user ID available for updating name")
+            return
+        }
+
+        let trimmedName = newName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else {
+            overlayManager.showToast(message: "Name cannot be empty", style: .error)
+            return
+        }
+
+        isUpdatingName = true
+        Task { [weak self] in
+            guard let self = self else {return}
+            let result = await userRepo.updateUserName(userId: userId, name: trimmedName)
+            isUpdatingName = false
+
+            switch result {
+            case .success:
+                userName = trimmedName
+                AppData.user = UserDto(
+                    id: userId,
+                    name: trimmedName,
+                    email: AppData.user?.email,
+                    currency: AppData.user?.currency,
+                    enableNotification: AppData.user?.enableNotification
+                )
+                overlayManager.showToast(message: "Name updated", style: .success)
+                showProfileSheet = false
+            case .error(let message):
+                logger.error("Failed to update name: \(message)")
+                overlayManager.showToast(message: "Failed to update name", style: .error)
+            case .data:
+                break
+            }
+        }
     }
 
     private func loadNotificationSetting() {

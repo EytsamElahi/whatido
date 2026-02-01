@@ -15,6 +15,7 @@ protocol UserRepositoryType {
     func updateUserCurrency(userId: String, currency: String) async -> AppResult<Void>
     func updateFCMToken(userId: String, token: String?) async -> AppResult<Void>
     func updateEnableNotification(userId: String, enable: Bool) async -> AppResult<Void>
+    func updateUserName(userId: String, name: String) async -> AppResult<Void>
 }
 
 class UserRepository: UserRepositoryType, FirebaseService {
@@ -95,4 +96,15 @@ class UserRepository: UserRepositoryType, FirebaseService {
         }
     }
 
+    func updateUserName(userId: String, name: String) async -> AppResult<Void> {
+        do {
+            let endpoint = FirestoreEndpoints.editUser(id: userId)
+            let dUser = DUser(name: name, email: nil, currency: nil, fcmToken: nil)
+            dUser.id = userId
+            let _ = try await update(data: dUser, endpoint: endpoint)
+            return .success
+        } catch {
+            return .error(error.localizedDescription)
+        }
+    }
 }

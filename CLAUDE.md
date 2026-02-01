@@ -43,6 +43,13 @@
 - Handle ALL business logic and state transformations
 - Decouple from implementations via protocols
 - Must be testable with mock dependencies
+- **Always use `[weak self]` in Task closures** to prevent retain cycles:
+  ```swift
+  Task { [weak self] in
+      guard let self = self else { return }
+      // async work here
+  }
+  ```
 
 ### Models
 - Immutable `struct`s
