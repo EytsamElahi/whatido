@@ -71,14 +71,23 @@ struct SpendingsHeroSection: View {
         if !isExpanded {
           if let _ = viewModel.monthlyBudget {
             let remaining = viewModel.convertedBudgetAmount - viewModel.totalSpending
+            let percentLeft = viewModel.convertedBudgetAmount > 0
+              ? remaining / viewModel.convertedBudgetAmount
+              : 0
+            let statusColor = budgetStatusColor(percentLeft: percentLeft)
+
             VStack(alignment: .trailing, spacing: 2) {
               Text(remaining >= 0 ? "\(remaining.formattedAmount())" : "Over")
-                .font(.customFont(family: .inter, name: .semiBold, size: .x14))
-                .foregroundStyle(remaining >= 0 ? Color.white : Color.red)
+                .font(.customFont(family: .inter, name: .bold, size: .x14))
+                .foregroundStyle(statusColor)
               Text(remaining >= 0 ? "left" : "budget")
-                .font(.customFont(family: .quicksand, name: .medium, size: .x10))
-                .foregroundStyle(Color.white.opacity(0.5))
+                .font(.customFont(family: .quicksand, name: .semiBold, size: .x10))
+                .foregroundStyle(statusColor.opacity(0.8))
             }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(statusColor.opacity(0.15))
+            .cornerRadius(10)
           }
 
           // Quick Analytics Button when collapsed
@@ -263,6 +272,20 @@ struct SpendingsHeroSection: View {
         }
       }
       .padding(.top, 5)
+    }
+  }
+
+  // MARK: - Budget Status Color
+  private func budgetStatusColor(percentLeft: Double) -> Color {
+    switch percentLeft {
+    case _ where percentLeft <= 0:
+      return .red
+    case 0..<0.2:
+      return .red
+    case 0.2..<0.5:
+      return .orange
+    default:
+      return .green
     }
   }
 }
