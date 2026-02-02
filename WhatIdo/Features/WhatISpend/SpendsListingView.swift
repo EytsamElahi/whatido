@@ -243,15 +243,23 @@ struct SpendsListingView: View {
 
                     // MARK: - Search Bar (On Demand)
                     if showSearchBar {
-                        SearchBarView(searchText: $searchText, isFocused: $isSearchFocused)
-                            .padding(.horizontal, 20)
-                            .padding(.bottom, 8)
-                            .transition(.opacity.combined(with: .scale(scale: 0.95)))
-                            .onAppear {
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                    isSearchFocused = true
+                        SearchBarView(
+                            searchText: $searchText,
+                            isFocused: $isSearchFocused,
+                            onDismiss: {
+                                withAnimation(.easeOut(duration: 0.25)) {
+                                    showSearchBar = false
                                 }
                             }
+                        )
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 8)
+                        .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                        .onAppear {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                isSearchFocused = true
+                            }
+                        }
                     }
 
                     if viewModel.isDataLoading {
@@ -434,6 +442,15 @@ struct AddSpendingRow: View {
         !searchText.isEmpty
     }
 
+    // Check if any tool is active (for badge)
+    private var activeToolsCount: Int {
+        var count = 0
+        if isSearchActive { count += 1 }
+        if filters.isActive { count += filters.activeFilterCount }
+        if isNotDefaultSort { count += 1 }
+        return count
+    }
+
     var body: some View {
         VStack(spacing: 12) {
             HStack {
@@ -443,65 +460,106 @@ struct AddSpendingRow: View {
 
                 Spacer()
 
-                // Search Button (only if has transactions)
-                if hasTransactions {
-                    Button {
-                        withAnimation(.easeOut(duration: 0.25)) {
-                            showSearchBar.toggle()
-                            if !showSearchBar {
-                                searchText = ""
-                            }
-                        }
-                    } label: {
-                        ZStack(alignment: .topTrailing) {
-                            Image(systemName: showSearchBar ? "magnifyingglass.circle.fill" : "magnifyingglass.circle")
-                                .font(.system(size: 24))
-                                .foregroundStyle(showSearchBar || isSearchActive ? Color.appPrimaryColor : Color.gray)
-
-                            // Show dot if search is active
-                            if isSearchActive && !showSearchBar {
-                                Circle()
-                                    .fill(Color.appPrimaryColor)
-                                    .frame(width: 8, height: 8)
-                                    .offset(x: 2, y: -2)
-                            }
-                        }
-                    }
-                }
-
-                // Add Button
+                // Add Button (Primary Action - Prominent)
                 Button {
                     viewModel.spendingToEdit = nil
                     viewModel.showAddSheet.toggle()
                 } label: {
                     Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 30))
+                        .font(.system(size: 32))
                         .foregroundStyle(Color.appPrimaryColor)
                 }
 
-                // Filter Button
-                Button {
-                    showFilterSheet = true
-                } label: {
-                    ZStack(alignment: .topTrailing) {
-                        Image(systemName: filters.isActive ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
-                            .font(.system(size: 24))
-                            .foregroundStyle(filters.isActive ? Color.appPrimaryColor : Color.gray)
+                // Tools Menu (Search, Filter, Sort)
+                if hasTransactions {
+                    Menu {
+                        // Search Option
+                        Button {
+                            withAnimation(.easeOut(duration: 0.25)) {
+                                showSearchBar.toggle()
+                                if !showSearchBar {
+                                    searchText = ""
+                                }
+                            }
+                        } label: {
+                            Label(
+                                showSearchBar ? "Hide Search" : (isSearchActive ? "Search (active)" : "Search"),
+                                systemImage: "magnifyingglass"
+                            )
+                        }
 
-                        if filters.activeFilterCount > 0 {
-                            Text("\(filters.activeFilterCount)")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundStyle(Color.white)
-                                .frame(width: 16, height: 16)
-                                .background(Color.red)
-                                .clipShape(Circle())
-                                .offset(x: 4, y: -4)
+                        // Filter Option
+                        Button {
+                            showFilterSheet = true
+                        } label: {
+                            Label(
+                                filters.isActive ? "Filter (\(filters.activeFilterCount))" : "Filter",
+                                systemImage: "line.3.horizontal.decrease"
+                            )
+                        }
+
+                        Divider()
+
+                        // Sort Options
+                        Menu {
+                            ForEach(SortField.allCases) { field in
+                                Button {
+                                    withAnimation {
+                                        if sortOption.field == field {
+                                            sortOption.direction.toggle()
+                                        } else {
+                                            sortOption = SpendingSortOption(field: field, direction: .descending)
+                                        }
+                                    }
+                                } label: {
+                                    HStack {
+                                        Text(field.rawValue)
+                                        if sortOption.field == field {
+                                            Image(systemName: sortOption.direction == .ascending ? "chevron.up" : "chevron.down")
+                                        }
+                                    }
+                                }
+                            }
+                        } label: {
+                            Label(
+                                isNotDefaultSort ? "Sort: \(sortOption.field.rawValue)" : "Sort",
+                                systemImage: "arrow.up.arrow.down"
+                            )
+                        }
+
+                        // Reset All (if any tool is active)
+                        if activeToolsCount > 0 {
+                            Divider()
+                            Button(role: .destructive) {
+                                withAnimation(.easeOut(duration: 0.2)) {
+                                    filters.reset()
+                                    sortOption = .default
+                                    searchText = ""
+                                    showSearchBar = false
+                                }
+                            } label: {
+                                Label("Reset All", systemImage: "xmark.circle")
+                            }
+                        }
+                    } label: {
+                        ZStack(alignment: .topTrailing) {
+                            Image(systemName: "ellipsis.circle")
+                                .font(.system(size: 26))
+                                .foregroundStyle(activeToolsCount > 0 ? Color.appPrimaryColor : Color.gray)
+
+                            // Badge showing active tools count
+                            if activeToolsCount > 0 {
+                                Text("\(activeToolsCount)")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundStyle(Color.white)
+                                    .frame(width: 16, height: 16)
+                                    .background(Color.appPrimaryColor)
+                                    .clipShape(Circle())
+                                    .offset(x: 4, y: -4)
+                            }
                         }
                     }
                 }
-
-                // Sort Menu
-                SortMenuView(currentSort: $sortOption) { }
             }
 
             // Active Filters/Sort Info Row

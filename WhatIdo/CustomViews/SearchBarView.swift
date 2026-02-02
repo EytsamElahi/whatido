@@ -10,6 +10,7 @@ import SwiftUI
 struct SearchBarView: View {
   @Binding var searchText: String
   var isFocused: FocusState<Bool>.Binding
+  var onDismiss: (() -> Void)?
 
   var body: some View {
     HStack(spacing: 10) {
@@ -25,6 +26,7 @@ struct SearchBarView: View {
         .autocorrectionDisabled()
         .textInputAutocapitalization(.never)
 
+      // Clear text button
       if !searchText.isEmpty {
         Button {
           searchText = ""
@@ -32,6 +34,19 @@ struct SearchBarView: View {
           Image(systemName: "xmark.circle.fill")
             .font(.system(size: 16))
             .foregroundStyle(Color.gray)
+        }
+      }
+
+      // Dismiss search bar button
+      if let onDismiss = onDismiss {
+        Button {
+          searchText = ""
+          isFocused.wrappedValue = false
+          onDismiss()
+        } label: {
+          Text("Cancel")
+            .font(.customFont(family: .quicksand, name: .medium, size: .x14))
+            .foregroundStyle(Color.appPrimaryColor)
         }
       }
     }
