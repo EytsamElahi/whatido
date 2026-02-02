@@ -21,6 +21,7 @@ struct SpendsListingView: View {
     @State private var filters: SpendingFilters = SpendingFilters()
     @State private var showFilterSheet: Bool = false
     @State private var sortOption: SpendingSortOption = .default
+    @State private var showSearchBar: Bool = false
 
     // MARK: - Available Categories (extracted from spendings)
     private var availableCategories: [String] {
@@ -203,14 +204,17 @@ struct SpendsListingView: View {
                 Color.appBackground.ignoresSafeArea()
 
                 VStack(alignment: .leading) {
-                    // MARK: - 1. Custom Header (hidden when keyboard shows for search)
-                    if !isSearchFocused || keyboardHeight == 0 {
+                    // MARK: - 1. Custom Header (hidden when search is active)
+                    if !showSearchBar {
                         AppHeaderView(title: viewModel.currentMonth, trailingButtonIcon: "folder.fill", backAction: {
                             navigation.push(screen: .settings)
                         }, trailingButtonAction: {
                             navigation.push(screen: .projectListing)
                         }, isBackButton: false)
-                        .transition(.opacity.combined(with: .move(edge: .top)))
+                        .transition(.asymmetric(
+                            insertion: .opacity.combined(with: .move(edge: .top)),
+                            removal: .opacity
+                        ))
 
                         // MARK: - 2. Smart Hero Card
                         SpendingsHeroSection(budgetProgress: budgetProgress, progressBarColor: progressBarColor){
@@ -218,20 +222,36 @@ struct SpendsListingView: View {
                         }
                         .environmentObject(viewModel)
                         .environmentObject(currencyManager)
-                        .transition(.opacity.combined(with: .move(edge: .top)))
+                        .transition(.asymmetric(
+                            insertion: .opacity.combined(with: .move(edge: .top)),
+                            removal: .opacity
+                        ))
                     }
 
-                    AddSpendingRow(filters: $filters, showFilterSheet: $showFilterSheet, sortOption: $sortOption)
-                        .environmentObject(viewModel)
-                        .padding(.horizontal, 20)
-                        .padding(.top, 20)
-                        .padding(.bottom, 5)
+                    AddSpendingRow(
+                        filters: $filters,
+                        showFilterSheet: $showFilterSheet,
+                        sortOption: $sortOption,
+                        showSearchBar: $showSearchBar,
+                        searchText: $searchText,
+                        hasTransactions: viewModel.currentMonthSpendings?.isEmpty == false
+                    )
+                    .environmentObject(viewModel)
+                    .padding(.horizontal, 20)
+                    .padding(.top, showSearchBar ? 10 : 20)
+                    .padding(.bottom, 5)
 
-                    // MARK: - Search Bar
-                    if let spendings = viewModel.currentMonthSpendings, !spendings.isEmpty {
+                    // MARK: - Search Bar (On Demand)
+                    if showSearchBar {
                         SearchBarView(searchText: $searchText, isFocused: $isSearchFocused)
                             .padding(.horizontal, 20)
                             .padding(.bottom, 8)
+                            .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                            .onAppear {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                    isSearchFocused = true
+                                }
+                            }
                     }
 
                     if viewModel.isDataLoading {
@@ -320,7 +340,7 @@ struct SpendsListingView: View {
                         Spacer()
                     }
                 }
-                .animation(.easeOut(duration: 0.25), value: isSearchFocused)
+                .animation(.easeInOut(duration: 0.3), value: showSearchBar)
             }
             // MARK: - Modifiers & Lifecycle
             .onReceive(Publishers.keyboardHeight) { height in
@@ -402,9 +422,16 @@ struct AddSpendingRow: View {
     @Binding var filters: SpendingFilters
     @Binding var showFilterSheet: Bool
     @Binding var sortOption: SpendingSortOption
+    @Binding var showSearchBar: Bool
+    @Binding var searchText: String
+    var hasTransactions: Bool
 
     private var isNotDefaultSort: Bool {
         sortOption.field != .date || sortOption.direction != .descending
+    }
+
+    private var isSearchActive: Bool {
+        !searchText.isEmpty
     }
 
     var body: some View {
@@ -415,6 +442,32 @@ struct AddSpendingRow: View {
                     .foregroundStyle(Color.textPrimary)
 
                 Spacer()
+
+                // Search Button (only if has transactions)
+                if hasTransactions {
+                    Button {
+                        withAnimation(.easeOut(duration: 0.25)) {
+                            showSearchBar.toggle()
+                            if !showSearchBar {
+                                searchText = ""
+                            }
+                        }
+                    } label: {
+                        ZStack(alignment: .topTrailing) {
+                            Image(systemName: showSearchBar ? "magnifyingglass.circle.fill" : "magnifyingglass.circle")
+                                .font(.system(size: 24))
+                                .foregroundStyle(showSearchBar || isSearchActive ? Color.appPrimaryColor : Color.gray)
+
+                            // Show dot if search is active
+                            if isSearchActive && !showSearchBar {
+                                Circle()
+                                    .fill(Color.appPrimaryColor)
+                                    .frame(width: 8, height: 8)
+                                    .offset(x: 2, y: -2)
+                            }
+                        }
+                    }
+                }
 
                 // Add Button
                 Button {
