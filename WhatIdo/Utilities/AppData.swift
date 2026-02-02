@@ -23,6 +23,9 @@ class AppData {
     @AppStorageObject(key: "user", defaultValue: nil)
     static var user: UserDto?
 
+    @AppStorage(key: "isHeroSectionExpanded", defaultValue: true)
+    static var isHeroSectionExpanded: Bool
+
     static func clear() {
         budget = nil
         prefCurrency = nil
