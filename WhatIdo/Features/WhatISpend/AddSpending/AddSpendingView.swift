@@ -171,8 +171,12 @@ struct AddSpendingView: View {
             displayedComponents: .date
           ) {}
             .labelsHidden()
+            .contentShape(Rectangle())
             .opacity(0.011)
             .id(calendarId)
+            .onTapGesture(count: 99, perform: {
+              // overrides tap gesture to fix ios 17.1 bug
+            })
         }
 
         // Funding source chip

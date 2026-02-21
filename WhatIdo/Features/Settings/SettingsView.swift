@@ -195,7 +195,7 @@ struct SettingsView: View {
                         Button(role: .destructive) {
                             viewModel.reAuthenticate()
                         } label: {
-                            SettingsRow(icon: "trash.fill", title: "Delete My Account", isDestructive: true)
+                            SettingsRow(icon: "trash.fill", title: "Delete Account", isDestructive: true)
                         }
                     } header: {
                         Text("Account")
