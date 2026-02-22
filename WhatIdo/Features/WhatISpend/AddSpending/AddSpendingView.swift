@@ -18,6 +18,7 @@ struct AddSpendingView: View {
   @State private var calendarId: UUID = UUID()
   @State private var showNoteField: Bool = false
   @FocusState private var isAmountFocused: Bool
+  @FocusState private var isNoteFocused: Bool
   @State private var keyboardHeight: CGFloat = 0
 
   var body: some View {
@@ -119,12 +120,18 @@ struct AddSpendingView: View {
     Group {
       if showNoteField {
         HStack(spacing: 10) {
-          AppTextfield(inputText: $viewModel.spendingItemTf, placeHolder: "What's this for?", maxLength: 40)
-            .frame(height: 46)
+          AppTextfield(
+            inputText: $viewModel.spendingItemTf,
+            placeHolder: "What's this for?",
+            maxLength: 40,
+            isFocused: $isNoteFocused
+          )
+          .frame(height: 46)
 
           Button {
             withAnimation { showNoteField = false }
             viewModel.spendingItemTf = ""
+            isNoteFocused = false
           } label: {
             Image(systemName: "xmark.circle.fill")
               .font(.system(size: 22))
@@ -134,6 +141,10 @@ struct AddSpendingView: View {
       } else {
         Button {
           withAnimation { showNoteField = true }
+          DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            isAmountFocused = false
+            isNoteFocused = true
+          }
         } label: {
           HStack(spacing: 6) {
             Image(systemName: "square.and.pencil")
@@ -294,6 +305,7 @@ struct AddSpendingView: View {
     case "Family Support": return "Family"
     case "Subscriptions": return "Subs"
     case "Maintenance": return "Repairs"
+    case "Investment": return "Invest"
     default: return name
     }
   }
@@ -330,10 +342,12 @@ struct AddSpendingView: View {
     case "public transit / taxi", "travel", "transport": return "car.fill"
     case "groceries": return "cart.fill"
     case "dining out", "food", "dining": return "fork.knife"
+    case "snacks": return "takeoutbag.and.cup.and.straw.fill"
     case "doctor & checkups", "health": return "stethoscope"
     case "pharmacy / meds", "medicine": return "pills.fill"
     case "loan repayment", "debt": return "banknote.fill"
     case "emergency fund", "savings": return "lock.shield.fill"
+    case "investment": return "chart.line.uptrend.xyaxis"
     case "subscriptions", "subscription": return "repeat.circle.fill"
     case "movies & outings", "entertainment": return "popcorn.fill"
     case "course & books", "education": return "book.closed.fill"
