@@ -17,7 +17,7 @@ struct SpendingDto: Hashable, Identifiable, AppDataType {
     let created: Date
     let spendingTypeId: Int
     let spendingCategoryId: Int
-    let fundSource: FundSource?
+    // let fundSource: FundSource? // disabled — source field removed from UI
     let project: SpendingProjectDto?
     let currencyCode: String?
 }

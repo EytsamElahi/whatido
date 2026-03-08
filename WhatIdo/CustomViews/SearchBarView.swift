@@ -18,7 +18,7 @@ struct SearchBarView: View {
         .font(.system(size: 16, weight: .medium))
         .foregroundStyle(Color.gray)
 
-      TextField("Search transactions...", text: $searchText)
+      TextField("", text: $searchText, prompt: Text("Search transactions...").foregroundColor(Color(white: 0.6)))
         .font(.customFont(family: .quicksand, name: .medium, size: .x14))
         .foregroundStyle(Color.textPrimary)
         .focused(isFocused)

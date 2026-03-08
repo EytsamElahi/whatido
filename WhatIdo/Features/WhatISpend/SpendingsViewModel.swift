@@ -20,8 +20,8 @@ class SpendingsViewModel: BaseViewModel {
         }
     }
     @Published var spendingTypes: [SpendingType] = []
-    @Published var fundingSources: [FundSource] = FundSource.allCases
-    @Published var fundingSName: String = ""
+    // @Published var fundingSources: [FundSource] = FundSource.allCases // disabled — source field removed from UI
+    // @Published var fundingSName: String = "" // disabled
     @Published private(set) var totalSpending: Int = 0
     @Published var budgetAmountTf: String = ""
     private(set) var spendingSortTypes: [MenuItem] = [MenuItem(id: 0, name: "Date"), MenuItem(id: 1, name: "Amount")]
@@ -125,7 +125,7 @@ extension SpendingsViewModel {
         self.amountTf = spending.amount
         self.dateTf = spending.date.toDateReturnString()
         spendingTypeName = spending.type
-        self.fundingSName = spending.fundSource?.rawValue ?? "Cash"
+        // self.fundingSName = spending.fundSource?.rawValue ?? "Cash" // disabled
         self.spendingType = spendingTypes.first { $0.name == spending.type }
         self.selectedProject = projects?.first {$0.id == spending.project?.id}
         self.showAddNewSpendingSheet = true
@@ -183,7 +183,7 @@ extension SpendingsViewModel {
         }
         let date = dateTf.toTimeStamp(format: "MM/dd/yyyy")
         guard let spendingType = spendingType else {return}
-        newSpending = Spending(name: spendingItemTf, amount: amountTf, date: date ?? Date(), spendingType: spendingType, created: self.tempSpending?.created ?? Date(), source: fundingSName, projectType: ProjectInfo(id: selectedProject?.id, name: selectedProject?.name, icon: selectedProject?.icon))
+        newSpending = Spending(name: spendingItemTf, amount: amountTf, date: date ?? Date(), spendingType: spendingType, created: self.tempSpending?.created ?? Date(), projectType: ProjectInfo(id: selectedProject?.id, name: selectedProject?.name, icon: selectedProject?.icon))
     }
 
     private func validateAddSpendingForm() -> Bool {
@@ -199,7 +199,7 @@ extension SpendingsViewModel {
         self.dateTf = ""
         self.spendingType = nil
         self.spendingTypeName = ""
-        self.fundingSName = ""
+        // self.fundingSName = "" // disabled
         self.showAddNewSpendingSheet = false
     }
 }

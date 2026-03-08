@@ -12,14 +12,14 @@ struct SpendingFilters: Equatable {
   var dateRange: DateRangeFilter = .all
   var amountRange: AmountRangeFilter = .all
   var categories: Set<String> = []
-  var fundSources: Set<FundSource> = []
+  // var fundSources: Set<FundSource> = [] // disabled — source field removed from UI
   var hasProject: ProjectFilter = .all
 
   var isActive: Bool {
     dateRange != .all ||
     amountRange != .all ||
     !categories.isEmpty ||
-    !fundSources.isEmpty ||
+    // !fundSources.isEmpty || // disabled
     hasProject != .all
   }
 
@@ -28,7 +28,7 @@ struct SpendingFilters: Equatable {
     if dateRange != .all { count += 1 }
     if amountRange != .all { count += 1 }
     if !categories.isEmpty { count += 1 }
-    if !fundSources.isEmpty { count += 1 }
+    // if !fundSources.isEmpty { count += 1 } // disabled
     if hasProject != .all { count += 1 }
     return count
   }
@@ -37,7 +37,7 @@ struct SpendingFilters: Equatable {
     dateRange = .all
     amountRange = .all
     categories = []
-    fundSources = []
+    // fundSources = [] // disabled
     hasProject = .all
   }
 }
@@ -146,23 +146,23 @@ struct SpendingFilterView: View {
               }
             }
 
-            // MARK: - Fund Source
-            filterSection(title: "Payment Method", icon: "creditcard") {
-              FlowLayout(spacing: 8) {
-                ForEach(FundSource.allCases, id: \.self) { source in
-                  FilterChip(
-                    title: source.rawValue,
-                    isSelected: tempFilters.fundSources.contains(source)
-                  ) {
-                    if tempFilters.fundSources.contains(source) {
-                      tempFilters.fundSources.remove(source)
-                    } else {
-                      tempFilters.fundSources.insert(source)
-                    }
-                  }
-                }
-              }
-            }
+            // MARK: - Fund Source (disabled — source field removed from UI)
+//            filterSection(title: "Payment Method", icon: "creditcard") {
+//              FlowLayout(spacing: 8) {
+//                ForEach(FundSource.allCases, id: \.self) { source in
+//                  FilterChip(
+//                    title: source.rawValue,
+//                    isSelected: tempFilters.fundSources.contains(source)
+//                  ) {
+//                    if tempFilters.fundSources.contains(source) {
+//                      tempFilters.fundSources.remove(source)
+//                    } else {
+//                      tempFilters.fundSources.insert(source)
+//                    }
+//                  }
+//                }
+//              }
+//            }
 
             // MARK: - Project Filter
             filterSection(title: "Project", icon: "folder") {

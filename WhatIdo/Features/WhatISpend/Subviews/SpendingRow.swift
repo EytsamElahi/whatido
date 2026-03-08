@@ -23,11 +23,12 @@ struct SpendingRow: View {
                     Image(systemName: "tag.fill")
                     Text(spending.type)
                         .font(.customFont(name: .regular, size: .x16))
-                    if let source = spending.fundSource?.rawValue {
-                        Text("•") // Separator
-                        Text(source) // Source
-                            .font(.customFont(name: .regular, size: .x16))
-                    }
+                    // Source disabled — source field removed from UI
+//                    if let source = spending.fundSource?.rawValue {
+//                        Text("•") // Separator
+//                        Text(source) // Source
+//                            .font(.customFont(name: .regular, size: .x16))
+//                    }
                 }
                 Spacer()
                 Text(spending.date.formatDateShort())
@@ -83,11 +84,11 @@ struct UpdatedSpendingRow: View {
 
                 HStack(spacing: 4) {
                     Text(spending.type)
-                    if let source = spending.fundSource?.rawValue {
-                        Text("•")
-                        Text(source)
-                    }
-
+                    // Source disabled — source field removed from UI
+//                    if let source = spending.fundSource?.rawValue {
+//                        Text("•")
+//                        Text(source)
+//                    }
                 }
                 .font(.customFont(family: .quicksand, name: .medium, size: .x12))
                 .foregroundStyle(Color.textSecondary) // ✅ Grey Text

@@ -137,8 +137,8 @@ struct AnalyticsTestView: View {
 
       HStack(spacing: 12) {
         eventButton("Expense Added") {
-          analytics.logExpenseAdded(category: "Dining Out", amount: 75.0, fundSource: "Card")
-          logEvent("expense_added (Dining Out, 50-200, Card)")
+          analytics.logExpenseAdded(category: "Dining Out", amount: 75.0)
+          logEvent("expense_added (Dining Out, 50-200)")
         }
 
         eventButton("Expense Edited") {

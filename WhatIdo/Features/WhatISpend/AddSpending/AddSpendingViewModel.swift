@@ -23,11 +23,11 @@ class AddSpendingViewModel: ObservableObject {
             selectedType = spendingTypes.first(where: {$0.name == selectedTypeName})
         }
     }
-    @Published var selectedFundingSource: String = "Cash"
+    // @Published var selectedFundingSource: String = "Cash" // disabled — source field removed from UI
     @Published var currentMonthInDateFormat: Date? = Date().getFirstDateOfMonth()
     // Dropdown Data
     @Published var spendingTypes: [SpendingType] = []
-    @Published var fundingSources: [FundSource] = FundSource.allCases
+    // @Published var fundingSources: [FundSource] = FundSource.allCases // disabled
     @Published var selectedType: SpendingType?
     
     // Linked Project
@@ -65,7 +65,7 @@ class AddSpendingViewModel: ObservableObject {
             self.amountTf = spending.amount
             self.dateTf = spending.date.toDateReturnString() // Helper method
             self.selectedTypeName = spending.type
-            self.selectedFundingSource = spending.fundSource?.rawValue ?? "Cash"
+            // self.selectedFundingSource = spending.fundSource?.rawValue ?? "Cash" // disabled
             self.created = spending.created
         }
     }
@@ -111,7 +111,6 @@ class AddSpendingViewModel: ObservableObject {
             date: date,
             spendingType: selectedType!,
             created: created ?? Date(),
-            source: selectedFundingSource,
             projectType: ProjectInfo(id: selectedProject?.id, name: selectedProject?.name, icon: selectedProject?.icon),
             currencyCode: CurrencyManager.shared.currencyCode
         )
@@ -139,8 +138,7 @@ class AddSpendingViewModel: ObservableObject {
                     self.spending = newSpending
                     self.analytics.logExpenseAdded(
                         category: selectedType?.name ?? "Unknown",
-                        amount: amountTf,
-                        fundSource: selectedFundingSource
+                        amount: amountTf
                     )
                     eventBus.send(.reloadDashboard)
                     self.overlayManager.showToast(message: PopupMessages.dataAddedMessage("Spending"), style: .success)

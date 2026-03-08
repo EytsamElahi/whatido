@@ -42,7 +42,7 @@ enum AnalyticsParam: String {
   // Expense
   case category = "category"
   case amountRange = "amount_range"
-  case fundSource = "fund_source"
+  // case fundSource = "fund_source" // disabled — source field removed from UI
 
   // Project
   case icon = "icon"
@@ -136,13 +136,13 @@ final class AnalyticsManager {
   }
 
   // MARK: - Expense Events
-  func logExpenseAdded(category: String, amount: Double, fundSource: String) {
+  func logExpenseAdded(category: String, amount: Double) {
     AnalyticsManager.totalExpensesCount += 1
 
     logEvent(.expenseAdded, parameters: [
       AnalyticsParam.category.rawValue: category,
-      AnalyticsParam.amountRange.rawValue: AmountRange.from(amount: amount),
-      AnalyticsParam.fundSource.rawValue: fundSource
+      AnalyticsParam.amountRange.rawValue: AmountRange.from(amount: amount)
+      // AnalyticsParam.fundSource.rawValue: fundSource // disabled
     ])
 
     // Check if this is the first expense (user_onboarded)

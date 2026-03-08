@@ -86,13 +86,13 @@ struct ProjectSpendingsListView: View {
             result = result.filter { filters.categories.contains($0.type) }
         }
 
-        // Fund Source Filter
-        if !filters.fundSources.isEmpty {
-            result = result.filter { spending in
-                guard let fundSource = spending.fundSource else { return false }
-                return filters.fundSources.contains(fundSource)
-            }
-        }
+        // Fund Source Filter — disabled (source field removed from UI)
+//        if !filters.fundSources.isEmpty {
+//            result = result.filter { spending in
+//                guard let fundSource = spending.fundSource else { return false }
+//                return filters.fundSources.contains(fundSource)
+//            }
+//        }
 
         // Skip project filter - already in project context
 
@@ -488,23 +488,23 @@ struct ProjectSpendingFilterView: View {
                             }
                         }
 
-                        // Fund Source
-                        filterSection(title: "Payment Method", icon: "creditcard") {
-                            FlowLayout(spacing: 8) {
-                                ForEach(FundSource.allCases, id: \.self) { source in
-                                    FilterChip(
-                                        title: source.rawValue,
-                                        isSelected: tempFilters.fundSources.contains(source)
-                                    ) {
-                                        if tempFilters.fundSources.contains(source) {
-                                            tempFilters.fundSources.remove(source)
-                                        } else {
-                                            tempFilters.fundSources.insert(source)
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        // Fund Source — disabled (source field removed from UI)
+//                        filterSection(title: "Payment Method", icon: "creditcard") {
+//                            FlowLayout(spacing: 8) {
+//                                ForEach(FundSource.allCases, id: \.self) { source in
+//                                    FilterChip(
+//                                        title: source.rawValue,
+//                                        isSelected: tempFilters.fundSources.contains(source)
+//                                    ) {
+//                                        if tempFilters.fundSources.contains(source) {
+//                                            tempFilters.fundSources.remove(source)
+//                                        } else {
+//                                            tempFilters.fundSources.insert(source)
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
 
                         Spacer(minLength: 100)
                     }

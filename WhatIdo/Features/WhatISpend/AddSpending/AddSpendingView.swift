@@ -190,24 +190,24 @@ struct AddSpendingView: View {
             })
         }
 
-        // Funding source chip
-        Menu {
-          ForEach(viewModel.fundingSources.compactMap { $0.rawValue }, id: \.self) { source in
-            Button(source) { viewModel.selectedFundingSource = source }
-          }
-        } label: {
-          HStack(spacing: 6) {
-            Image(systemName: "creditcard.fill")
-              .font(.system(size: 14))
-              .foregroundStyle(Color.appPrimaryColor)
-            Text(viewModel.selectedFundingSource)
-              .font(.customFont(family: .quicksand, name: .medium, size: .x14))
-              .foregroundStyle(.white)
-          }
-          .padding(.horizontal, 12)
-          .padding(.vertical, 8)
-          .background(Capsule().fill(Color.white.opacity(0.1)))
-        }
+        // Funding source chip — disabled (source field removed from UI)
+//        Menu {
+//          ForEach(viewModel.fundingSources.compactMap { $0.rawValue }, id: \.self) { source in
+//            Button(source) { viewModel.selectedFundingSource = source }
+//          }
+//        } label: {
+//          HStack(spacing: 6) {
+//            Image(systemName: "creditcard.fill")
+//              .font(.system(size: 14))
+//              .foregroundStyle(Color.appPrimaryColor)
+//            Text(viewModel.selectedFundingSource)
+//              .font(.customFont(family: .quicksand, name: .medium, size: .x14))
+//              .foregroundStyle(.white)
+//          }
+//          .padding(.horizontal, 12)
+//          .padding(.vertical, 8)
+//          .background(Capsule().fill(Color.white.opacity(0.1)))
+//        }
 
         // Project chip
         Menu {

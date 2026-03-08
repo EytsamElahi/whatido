@@ -86,13 +86,13 @@ struct SpendsListingView: View {
             result = result.filter { filters.categories.contains($0.type) }
         }
 
-        // Fund Source Filter
-        if !filters.fundSources.isEmpty {
-            result = result.filter { spending in
-                guard let fundSource = spending.fundSource else { return false }
-                return filters.fundSources.contains(fundSource)
-            }
-        }
+        // Fund Source Filter — disabled (source field removed from UI)
+//        if !filters.fundSources.isEmpty {
+//            result = result.filter { spending in
+//                guard let fundSource = spending.fundSource else { return false }
+//                return filters.fundSources.contains(fundSource)
+//            }
+//        }
 
         // Project Filter
         if filters.hasProject != .all {
