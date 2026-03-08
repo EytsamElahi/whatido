@@ -6,24 +6,28 @@
 //
 
 import FirebaseAuth
+import FirebaseFirestore
 
 protocol AuthModelType {}
 public struct AuthModel: AuthModelType {
     let userId: String
     let email: String?
     var name: String?
+    var currency: String?
 
     func toUserDto() -> UserDto {
-        return UserDto(id: userId, name: name, email: email)
+        return UserDto(id: userId, name: name, email: email, currency: currency, enableNotification: nil)
     }
 }
 
 
 protocol AuthServiceProtocol {
     func signIn(with provider: AuthSocialProvider) async throws -> AuthModel
+    func delete() async throws
+    func logout() async throws
 }
 
-public final class FirebaseAuthService: AuthServiceProtocol  {
+public final class FirebaseAuthService: AuthServiceProtocol, FirebaseService  {
     private let socialAuthenticator: SocialAuthenticator
 
     public init( socialAuthenticator: SocialAuthenticator = SocialAuthenticator()) {
@@ -46,5 +50,20 @@ public final class FirebaseAuthService: AuthServiceProtocol  {
          let user = result.user
          return AuthModel(userId: user.uid, email: user.email, name: user.displayName)
      }
+
+    func delete() async throws {
+        // 1. Check current user
+        guard let user = Auth.auth().currentUser else {
+            throw NSError(domain: "Auth", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user logged in"])
+        }
+      //  try await Firestore.firestore().clearPersistence()
+       // try await deleteAllUserData(userId: user.uid)
+        try await user.delete()
+    }
+
+    func logout() async throws {
+       // try await Firestore.firestore().clearPersistence()
+        try Auth.auth().signOut()
+    }
 
 }

@@ -13,11 +13,12 @@ struct SpendingTypeChartData: Identifiable, Hashable {
     let icon: String
     let totalAmount: Double
     let color: Color
+    let transactions: [SpendingDto]
 }
 
 // Time Filter ke liye Enum
 enum TimeRange: String, CaseIterable {
     case thisWeek = "This Week"
     case thisMonth = "This Month"
-    case allTime = "All Time"
+    case thisYear = "This Year"
 }

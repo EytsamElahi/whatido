@@ -32,21 +32,26 @@ struct AuthenticationView: View {
 
                 // 3. LOGO & BRANDING
                 VStack(spacing: 15) {
-                    Image(systemName: "chart.bar.doc.horizontal.fill") // Yahan apna Logo lagana
+                    Image(.splashIcon) // Yahan apna Logo lagana
                         .resizable()
                         .scaledToFit()
                         .frame(width: 80, height: 80)
                         .foregroundStyle(appPrimary)
-                        .shadow(color: appPrimary.opacity(0.8), radius: 20, x: 0, y: 0)
+                        //.shadow(color: appPrimary.opacity(0.8), radius: 20, x: 0, y: 0)
 
-                    Text("WhatIDo")
+                    Text("Yaru")
                         .font(.system(size: 40, weight: .bold, design: .rounded))
                         .foregroundStyle(.white)
+                    VStack(spacing: 5) {
+                        Text("Track your spending")
+                            .font(.body)
+                            .foregroundStyle(.white)
+                            .tracking(2) // Letter spacing
+                        Text("What gets measured, gets managed.")
+                            .font(.system(size: 14, weight: .medium, design: .monospaced))
+                            .foregroundStyle(.gray)
 
-                    Text("Track. Save. Grow.")
-                        .font(.body)
-                        .foregroundStyle(.gray)
-                        .tracking(2) // Letter spacing
+                    }
                 }
                 .opacity(isAnimating ? 1 : 0)
                 .offset(y: isAnimating ? 0 : 20)
@@ -58,7 +63,7 @@ struct AuthenticationView: View {
                     SocialButtonView(image: .google, title: "Continue with Google", backgroundColor: .googleBackground, fontColor: .black, imageWidth: 20, imageHeight: 20, action: {
                         viewModel.authenticate(.google)
                     }).padding(.horizontal)
-                    SocialButtonView(image: .apple, title: "Continue with Apple", backgroundColor: .black, fontColor: .white,imageWidth: 18, imageHeight: 22, action: {
+                    SocialButtonView(image: .apple, title: "Continue with Apple", backgroundColor: .cardBackground, fontColor: .white,imageWidth: 18, imageHeight: 22, action: {
                         viewModel.authenticate(.apple)
                     }).padding(.horizontal)
 
@@ -69,7 +74,7 @@ struct AuthenticationView: View {
                 .offset(y: isAnimating ? 0 : 20)
 
                 // 5. FOOTER (Terms)
-                Text("By continuing, you agree to our Terms & Privacy Policy.")
+                Text("By continuing, you agree to our [Terms & Privacy Policy](https://fire-cord-c32.notion.site/Yaru-Legal-Support-2ec64ce7ca4c80b595fbcba6ce8c5152).")
                     .font(.caption2)
                     .foregroundStyle(.gray.opacity(0.6))
                     .multilineTextAlignment(.center)
@@ -81,8 +86,17 @@ struct AuthenticationView: View {
             withAnimation(.easeOut(duration: 1.0)) {
                 isAnimating = true
             }
-        }.onChange(of: viewModel.navigateToCurrency) {
-            navManager.push(screen: .currencySettings)
+        }.onChange(of: viewModel.navigateToCurrency) { newValue in
+            if newValue {
+                viewModel.navigateToCurrency = false
+                navManager.push(screen: .currencySettings(false))
+            }
+        }
+        .onChange(of: viewModel.navigateToDashboard) { newValue in
+            if newValue {
+                viewModel.navigateToDashboard = false
+                navManager.push(screen: .spendings)
+            }
         }
         .sheet(isPresented: $viewModel.showUsernameSheet) {
             UsernameView()
@@ -92,3 +106,7 @@ struct AuthenticationView: View {
     }
 }
 
+
+#Preview {
+    AuthenticationView(viewModel: AuthenticationViewModel(authService: FirebaseAuthService()))
+}

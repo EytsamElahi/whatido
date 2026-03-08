@@ -9,6 +9,7 @@
 public enum AuthSocialProvider: String, CaseIterable, Identifiable, Equatable{
     case google
     case apple
+    case unknown
 
     public var id: String { rawValue }
 
@@ -16,6 +17,7 @@ public enum AuthSocialProvider: String, CaseIterable, Identifiable, Equatable{
         switch self {
         case .google:        return "google.com"
         case .apple:         return "apple.com"
+        default: return ""
         }
     }
 
@@ -23,6 +25,7 @@ public enum AuthSocialProvider: String, CaseIterable, Identifiable, Equatable{
         switch self {
         case .google:        return "Google"
         case .apple:         return "Apple"
+        default: return ""
         }
     }
 
@@ -31,6 +34,7 @@ public enum AuthSocialProvider: String, CaseIterable, Identifiable, Equatable{
         switch self {
         case .google:        return "Google"
         case .apple:         return "Apple"
+        default: return ""
         }
     }
 
@@ -39,6 +43,7 @@ public enum AuthSocialProvider: String, CaseIterable, Identifiable, Equatable{
         switch self {
         case .google:        return "g.circle"
         case .apple:         return "apple.logo"
+        default: return ""
         }
     }
 }

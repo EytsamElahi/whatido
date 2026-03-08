@@ -102,7 +102,7 @@ final class WhatISpendService: WhatISpendServiceType, FirebaseService {
 
     func addMonthlyBudget(_ budget: Budget) async  -> AppResult<Budget> {
         do {
-            let endpoint = FirestoreEndpoints.addBudget(year: budget.year, month: budget.month)
+            let endpoint = FirestoreEndpoints.addBudget(userId: "", year: budget.year, month: budget.month)
             //let budget = try await postV2(data: budget, endpoint: endpoint)
             return .success
         } catch {

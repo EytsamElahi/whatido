@@ -13,6 +13,6 @@ struct ProjectDto: Identifiable, Hashable, Codable, AppDataType {
     let name: String        // e.g., "House Construction"
     let icon: String        // e.g., "house.fill"
     let budget: Double?     // Optional: Project ka total budget
-    let createdAt: Date?
+    var createdAt: Date?
     let status: String      // "Active", "Completed"
 }

@@ -1,0 +1,15 @@
+//
+//  Production.xcconfig
+//  WhatIdo
+//
+//  Created by eytsam elahi on 13/01/2026.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://developer.apple.com/documentation/xcode/adding-a-build-configuration-file-to-your-project
+
+APP_NAME = Yaru
+BUNDLE_IDENTIFIER = com.eytsam.yaruapp
+ENVIRONMENT = prod
+FIREBASE_PLIST_NAME = GoogleService-Info
+GOOGLE_REVERSED_CLIENT_ID = com.googleusercontent.apps.633270476369-knhdh2ucgcffshdtslrn2f6dsshqq06e

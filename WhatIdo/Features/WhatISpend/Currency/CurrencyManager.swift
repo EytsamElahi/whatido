@@ -49,6 +49,18 @@ class CurrencyManager: ObservableObject {
         self.activeCurrency = option
         AppData.prefCurrency = option
     }
+
+    func setCurrencyBySymbol(_ code: String) {
+        if let option = currencies.first(where: { $0.code == code }) {
+            self.activeCurrency = option
+            AppData.prefCurrency = option
+        }
+    }
+
+    func getCurrencyOption(for code: String?) -> CurrencyOption? {
+        guard let code = code else { return nil }
+        return currencies.first(where: { $0.code == code })
+    }
 }
 
 struct CurrencyOption: Identifiable, Hashable, Codable {

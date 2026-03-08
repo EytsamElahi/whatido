@@ -8,10 +8,11 @@
 import Foundation
 import SwiftUI
 
-enum FundSource: String, CaseIterable, Codable {
-    case salary = "Salary Account"
-    case savings = "Savings"
-    case cash = "Cash"
-    case emergencyFund = "Emergency Fund"
-    case credit = "Credit Card"
-}
+// MARK: - FundSource (disabled — source field removed from UI)
+//enum FundSource: String, CaseIterable, Codable {
+//    case salary = "Salary Account"
+//    case savings = "Savings"
+//    case cash = "Cash"
+//    case emergencyFund = "Emergency Fund"
+//    case credit = "Credit Card"
+//}

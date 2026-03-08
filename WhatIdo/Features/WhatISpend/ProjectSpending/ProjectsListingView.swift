@@ -61,7 +61,7 @@ struct ProjectsListingView: View {
                                 Text("No projects yet")
                                     .font(.customFont(family: .quicksand, name: .medium, size: .x16))
                                     .foregroundStyle(Color.gray)
-                                Text("Create a project to track specific events like 'House Construction' or 'Dubai Trip'")
+                                Text("Create a project to track specific events like 'House Construction' or 'Dubai Trip'. Track all expenses related to a specific goal separately from your daily budget.")
                                     .font(.customFont(family: .quicksand, name: .regular, size: .x14))
                                     .foregroundStyle(Color.gray.opacity(0.7))
                                     .multilineTextAlignment(.center)
@@ -84,14 +84,12 @@ struct ProjectsListingView: View {
                         .frame(height: 55)
                         .background(Color.appPrimaryColor)
                         .cornerRadius(16)
-                        .shadow(color: Color.appPrimaryColor.opacity(0.3), radius: 10, x: 0, y: 5)
+                        //.shadow(color: Color.appPrimaryColor.opacity(0.3), radius: 10, x: 0, y: 5)
                     }
                     .padding(.horizontal)
                     .padding(.bottom)
                 }
 
-            }.onAppear {
-                viewModel.fetchProjects()
             } .loadingIndicator($viewModel.dataIsDeleting)
         }   .navigationBarHidden(true)
         //        // Sheet for Adding New Project

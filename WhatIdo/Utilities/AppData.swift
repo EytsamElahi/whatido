@@ -8,19 +8,34 @@
 import Foundation
 
 class AppData {
-    @AppStorage(key: "budget", defaultValue: nil)
-    static var budget: [String:Double]?
+  @AppStorage(key: "budget", defaultValue: nil)
+  static var budget: [String:Double]?
 
-    @AppStorageObject(key: "preferredCurrency", defaultValue: nil)
-    static var prefCurrency: CurrencyOption?
+  @AppStorage(key: "fcmToken", defaultValue: nil)
+  static var fcmToken: String?
 
-    @AppStorageObject(key: "user", defaultValue: nil)
-    static var user: UserDto?
+  @AppStorage(key: "hasCompletedOnboarding", defaultValue: false)
+  static var hasCompletedOnboarding: Bool
 
-    @AppStorageObject(key: "defaultAccount", defaultValue: nil)
-    static var defaultSpendingAccount: SpendingAccountDto?
+  @AppStorageObject(key: "preferredCurrency", defaultValue: nil)
+  static var prefCurrency: CurrencyOption?
 
-    @AppStorage(key: "addAccountPopupShowed", defaultValue: false)
-    static var addAccountPopupShowed: Bool
+  @AppStorageObject(key: "user", defaultValue: nil)
+  static var user: UserDto?
+
+  @AppStorageObject(key: "defaultAccount", defaultValue: nil)
+  static var defaultSpendingAccount: SpendingAccountDto?
+
+  @AppStorage(key: "addAccountPopupShowed", defaultValue: false)
+  static var addAccountPopupShowed: Bool
+
+  @AppStorage(key: "isHeroSectionExpanded", defaultValue: true)
+  static var isHeroSectionExpanded: Bool
+
+  static func clear() {
+    budget = nil
+    prefCurrency = nil
+    user = nil
+  }
 
 }

@@ -10,85 +10,138 @@ import Combine
 
 @MainActor
 class AnalyticsViewModel: ObservableObject {
-    
-    // Services
-    private let spendingService: SpendingsServiceProtocol
 
-    // Data
-    @Published var spendings: [SpendingDto] = []
-    @Published var chartData: [SpendingTypeChartData] = []
-    @Published var selectedRange: TimeRange = .thisMonth
-    @Published var totalSpent: Double = 0.0
-    
-    @Published var isLoading = false
-    init(service: SpendingsServiceProtocol = SpendingsService()) {
-        self.spendingService = service
-    }
+  // Services
+  private let spendingService: SpendingsServiceProtocol
 
-    // Filter trigger
-    func fetchAnalytics() {
-        self.isLoading = true
-        
-        Task {
-            // NOTE: Asal app mein aap Date Range ke hisaab se DB query karoge.
-            // Abhi ke liye hum saara data la kar filter kar rahe hain (Simple logic)
-            let result = await spendingService.getAllSpendings() // Ya getSpendingsByDate()
-            
-            if case .data(let allSpendings) = result {
-                self.filterAndProcessData(allSpendings.filter {!$0.isArchived})
-            }
-            
+  // Data
+  @Published var spendings: [SpendingDto] = []
+  @Published var chartData: [SpendingTypeChartData] = []
+  @Published var selectedRange: TimeRange = .thisMonth
+  @Published var totalSpent: Double = 0.0
+  @Published var hasForeignTransaction: Bool = false
+
+  @Published var customDate: Date = Date()
+  @Published var isCustomMode: Bool = false
+
+  @Published var isLoading = false
+  private let overlayManager = OverlayManager.shared
+  private let analyticsManager = AnalyticsManager.shared
+
+  init(service: SpendingsServiceProtocol = SpendingsService()) {
+    self.spendingService = service
+  }
+
+  // Filter trigger
+  func fetchAnalytics() {
+    self.isLoading = true
+    logAnalyticsViewedEvent()
+    Task { [weak self] in
+      guard let self = self else { return }
+      do {
+        // This loop stays alive and listens for updates
+        for try await allSpendings in spendingService.getAllSpendings() {
+          self.filterAndProcessData(allSpendings)
+          withAnimation(.easeOut(duration: 0.4)) {
             self.isLoading = false
+          }
         }
+      } catch {
+        self.overlayManager.showToast(message: error.localizedDescription, style: .error)
+        withAnimation(.easeOut(duration: 0.4)) {
+          self.isLoading = false
+        }
+      }
     }
-    
-    // Main Logic: Raw Data -> Chart Data
-    private func filterAndProcessData(_ allData: [SpendingDto]) {
-        var filteredData: [SpendingDto] = []
+  }
 
-        // 1. Filter by Date
-        let calendar = Calendar.current
-        let now = Date()
+  // Main Logic: Raw Data -> Chart Data
+  private func filterAndProcessData(_ allData: [SpendingDto]) {
+    var filteredData: [SpendingDto] = []
+    // Date Logic
+    let calendar = Calendar.current
+    let now = Date()
 
-        switch selectedRange {
-        case .thisWeek:
-            filteredData = allData.filter { calendar.isDate($0.date, equalTo: now, toGranularity: .weekOfYear) }
-        case .thisMonth:
-            filteredData = allData.filter { calendar.isDate($0.date, equalTo: now, toGranularity: .month) }
-        case .allTime:
-            filteredData = allData
-        }
-
-        self.spendings = filteredData
-
-        // 2. Calculate Total
-        self.totalSpent = filteredData.reduce(0) { $0 + $1.amount }
-
-        // 3. Group by Category
-        // Dictionary banayenge: ["Food": 500, "Fuel": 200]
-        let groupedDict = Dictionary(grouping: filteredData, by: { $0.type }) // 'type' is category name
-
-        // Dictionary ko ChartData Array mein convert karein
-        var processedData: [SpendingTypeChartData] = []
-
-        for (categoryName, spendings) in groupedDict {
-            let total = spendings.reduce(0) { $0 + $1.amount }
-
-            // 🔥 CRITICAL FIX: Agar amount 0 ya minus hai to chart mein mat add karo
-            if total > 0.01 { // 0 ki jagah 0.01 check karein (Floating point safety)
-                if let firstItem = spendings.first {
-                    processedData.append(SpendingTypeChartData(
-                        spendingName: categoryName,
-                        icon: firstItem.icon,
-                        totalAmount: total,
-                        color: firstItem.iconColor
-                    ))
-                }
-            }
-        }
-
-        // Sort: Sabse zyada kharcha upar
-        let sortedData = processedData.sorted { $0.totalAmount > $1.totalAmount }
-        self.chartData = sortedData
+    if isCustomMode {
+      // Filter by the selected 'customDate' Month & Year
+      filteredData = allData.filter {
+        calendar.isDate($0.date, equalTo: customDate, toGranularity: .month) &&
+        calendar.isDate($0.date, equalTo: customDate, toGranularity: .year)
+      }
+    } else {
+      // Normal Tabs Logic
+      switch selectedRange {
+      case .thisWeek:
+        filteredData = allData.filter { calendar.isDate($0.date, equalTo: now, toGranularity: .weekOfYear) }
+      case .thisMonth:
+        filteredData = allData.filter { calendar.isDate($0.date, equalTo: now, toGranularity: .month) }
+      case .thisYear:
+        filteredData = allData.filter { calendar.isDate($0.date, equalTo: now, toGranularity: .year) }
+      }
     }
+    // Update the list view data source
+    self.spendings = filteredData
+
+    let homeCurrency = CurrencyManager.shared.activeCurrency?.code ?? "USD"
+    let homeRate = CurrencyConfig.rates[homeCurrency] ?? 1.0
+
+    // Calculate Total in Home Currency
+    let totalInUSD = filteredData.reduce(0.0) { sum, spending in
+      let txnCurrency = spending.currencyCode ?? "USD"
+      let rateToUSD = CurrencyConfig.rates[txnCurrency] ?? 1.0
+      return sum + (spending.amount / rateToUSD)
+    }
+    self.totalSpent = totalInUSD * homeRate
+
+    // 3. Mixed Currency Check
+    self.hasForeignTransaction = filteredData.contains { ($0.currencyCode ?? "USD") != homeCurrency }
+
+    // Group by Category
+    let groupedDict = Dictionary(grouping: filteredData, by: { $0.type })
+
+    // Convert to ChartData
+    var processedData: [SpendingTypeChartData] = []
+    for (categoryName, spendings) in groupedDict {
+      // Calculate Category Total in Home Currency
+      let categoryTotalInUSD = spendings.reduce(0.0) { sum, spending in
+        let txnCurrency = spending.currencyCode ?? "USD"
+        let rateToUSD = CurrencyConfig.rates[txnCurrency] ?? 1.0
+        return sum + (spending.amount / rateToUSD)
+      }
+      let categoryTotalHome = categoryTotalInUSD * homeRate
+
+      if categoryTotalHome > 0.01 { // Safety check
+        if let firstItem = spendings.first {
+          processedData.append(SpendingTypeChartData(
+            spendingName: categoryName,
+            icon: firstItem.icon,
+            totalAmount: categoryTotalHome,
+            color: firstItem.iconColor,
+            transactions: spendings
+          ))
+        }
+      }
+    }
+    // Sort: Highest spending first
+    let sortedData = processedData.sorted { $0.totalAmount > $1.totalAmount }
+    // Assign to Published property
+    self.chartData = sortedData
+  }
+
+  private func logAnalyticsViewedEvent() {
+    let timeRange: String
+    if isCustomMode {
+      timeRange = "custom"
+    } else {
+      switch selectedRange {
+      case .thisWeek:
+        timeRange = "week"
+      case .thisMonth:
+        timeRange = "month"
+      case .thisYear:
+        timeRange = "year"
+      }
+    }
+    analyticsManager.logAnalyticsViewed(timeRange: timeRange)
+  }
 }

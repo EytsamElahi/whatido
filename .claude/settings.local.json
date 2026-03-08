@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd enableNotification sync for settings toggle\n\n- Add enableNotification property to DUser and UserDto models\n- Add updateEnableNotification method to UserRepository\n- Sync notification toggle state with Firestore on change\n- Initialize toggle based on device notification permission for new users\n- Load saved preference from Firestore for returning users\n- Add CLAUDE.md project guidelines file\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push)",
+      "Bash(xcodebuild:*)"
+    ]
+  }
+}

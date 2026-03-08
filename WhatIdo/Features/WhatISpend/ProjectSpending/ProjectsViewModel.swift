@@ -16,7 +16,7 @@ class ProjectsViewModel: BaseViewModel {
     
     @Published var projects: [ProjectDto] = []
     @Published var selectedProject: ProjectDto? // For Edit
-    @Published var projectSpendings: [SpendingDto] = []
+    @Published var projectSpendings: [SpendingDto]?
     @Published var totalProjectSpending: Int = 0
     // Edit State
     var spendingToEdit: SpendingDto? 
@@ -29,6 +29,7 @@ class ProjectsViewModel: BaseViewModel {
 
     private let eventBus: PassthroughSubject<AppGlobalEvent, Never>
     private let overlayManager = OverlayManager.shared
+    private let analytics = AnalyticsManager.shared
 
     init(projectService: ProjectsServiceProtocol = ProjectsService(), 
          spendingService: SpendingsServiceProtocol = SpendingsService(),
@@ -36,6 +37,8 @@ class ProjectsViewModel: BaseViewModel {
         self.projectService = projectService
         self.spendingService = spendingService
         self.eventBus = eventBus
+        super.init()
+        self.fetchProjects()
     }
     
     // MARK: - CRUD
@@ -83,7 +86,10 @@ class ProjectsViewModel: BaseViewModel {
             let result = await projectService.addProject(project)
             switch result {
             case .data(let newProject):
-                self.projects.insert(newProject, at: 0)
+                var temProj = newProject
+                temProj.createdAt = Date()
+                self.projects.insert(temProj, at: 0)
+                self.analytics.logProjectCreated(icon: icon)
                 OverlayManager.shared.showToast(message: PopupMessages.dataAddedMessage("Project"), style: .success)
                 self.showAddProjectSheet = false
 
@@ -169,20 +175,40 @@ class ProjectsViewModel: BaseViewModel {
         }
     }
     // MARK: - Fetch Details
+//    func fetchProjectSpendings(_ id: String) {
+//        isDataLoading = true
+//        Task {
+//            defer {self.isDataLoading = false}
+//            let result = await spendingService.getSpendingsForProject(id)
+//            if case .data(let spendings) = result {
+//                self.projectSpendings = spendings
+//                await self.updateTotalSpending()
+//            }
+//        }
+//    }
     func fetchProjectSpendings(_ id: String) {
-        isDataLoading = true
+        isDataLoading = true // Start loading spinner (for the initial cache load)
+        
         Task {
-            let result = await spendingService.getSpendingsForProject(id)
-            if case .data(let spendings) = result {
-                self.projectSpendings = spendings
-                self.updateTotalSpending()
+            do {
+                // This loop stays alive and listens for updates
+                for try await dtos in spendingService.getSpendingsForProject(id) {
+                    
+                    self.projectSpendings = dtos
+                    await self.updateTotalSpending()
+                    
+                    // Stop spinner immediately after the first batch (Cache) arrives
+                    self.isDataLoading = false
+                }
+            } catch {
+                print("Stream error: \(error.localizedDescription)")
+                self.isDataLoading = false
             }
-            isDataLoading = false
         }
     }
 
-    func updateTotalSpending() {
-        guard !projectSpendings.isEmpty else {return}
+    func updateTotalSpending() async {
+        guard let projectSpendings, !projectSpendings.isEmpty else {return}
         self.totalProjectSpending = projectSpendings.reduce(0) { $0 + Int($1.amount) }
     }
 }

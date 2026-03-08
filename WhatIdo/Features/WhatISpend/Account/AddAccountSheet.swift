@@ -59,7 +59,7 @@ struct AddAccountSheet: View {
                                 .padding(.horizontal, 15)
                                 .foregroundStyle(Color.white)
                                 .tint(Color.appPrimaryColor)
-                                .onChange(of: balance ?? 0.0) {oldValue, newValue in
+                                .onChange(of: balance ?? 0.0) { newValue in
                                     if newValue > 999_999_9 {
                                         balance = 999_999_9
                                     }
@@ -130,7 +130,7 @@ struct AddAccountSheet: View {
                 }.padding(.vertical, 10)
                     .disabled(viewModel.isLoading)
             }.padding()
-        }.onChange(of: selectedAccountTypeString) {old, new in
+        }.onChange(of: selectedAccountTypeString) { new in
             let type = AccountType(rawValue: new)
             self.selectedType = type ?? .bank
         }

@@ -16,26 +16,56 @@ struct SplashView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             NavigationStack(path: $navManager.path) {
-                VStack {
-                    Text("What i do")
-                        .font(.headline)
-                }.frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .onAppear {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
-                            if let _ = AppData.user {
-                                navManager.push(screen: .spendings)
-                            } else {
-                                navManager.push(screen: .login)
-                            }
+                ZStack {
+                    Color.cardBackground.ignoresSafeArea()
+                    // 2. AMBIENT GLOW (Yellow Effect peeche)
+                    Circle()
+                        .fill(Color.appPrimaryColor)
+                        .frame(width: 250, height: 250)
+                        .blur(radius: 100) // Neon Glow effect
+                        .offset(y: -150)
+                        .opacity(0.4)
+                    VStack {
+                        Image(.splashIcon)
+                            .resizable()
+                            .frame(width: 200, height: 200)
+                            .clipShape(RoundedRectangle(cornerRadius: 10.0))
+                    }.foregroundStyle(Color.white)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .onAppear {
+                    // 1. Load Rates (Dynamic)
+                    CurrencyService.shared.loadRates()
 
-                        })
-                    }
-                    .navigationDestination(for: Route.self) { routes in
-                        // MARK: - NAVIGATIONS
-                        destinationView(for: routes)
-                    }
-            }.disabled(overlayManager.isLoading) // Loading ke waqt touch disable
-                .blur(radius: overlayManager.isLoading ? 2 : 0) // Thora blur effect
+                    // 2. Navigation Delay
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
+                        // 3. Admin Check (Lazy Trigger)
+                        CurrencyService.shared.performAdminCheck()
+
+                        // 4. Check onboarding status first
+                        if !AppData.hasCompletedOnboarding {
+                            navManager.push(screen: .onboarding)
+                            return
+                        }
+
+                        if let _ = AppData.user {
+                            if AppData.prefCurrency.isNil {
+                                navManager.push(screen: .currencySettings(false))
+                            } else {
+                                navManager.push(screen: .spendings)
+                            }
+                        } else {
+                            navManager.push(screen: .login)
+                        }
+
+                    })
+                }
+                .navigationDestination(for: Route.self) { routes in
+                    // MARK: - NAVIGATIONS
+                    destinationView(for: routes)
+                }
+            }.disabled(overlayManager.isLoading) 
+                .blur(radius: overlayManager.isLoading ? 2 : 0)
 
             // 2. LOADING OVERLAY
             if overlayManager.isLoading {
@@ -55,7 +85,7 @@ struct SplashView: View {
                     .zIndex(20)
                     .onTapGesture {
                         // Optional: Background tap pe close karna hai ya nahi
-                       // overlayManager.dismissPopup()
+                        // overlayManager.dismissPopup()
                     }
 
                 // The Popup Card
@@ -90,4 +120,9 @@ extension EnvironmentValues {
         get { self[DependencyContainerKey.self] }
         set { self[DependencyContainerKey.self] = newValue }
     }
+}
+
+#Preview {
+    SplashView(container: AppDependencyContainer())
+        .environmentObject(NavigationManager())
 }

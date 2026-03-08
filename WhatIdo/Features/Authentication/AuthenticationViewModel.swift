@@ -6,66 +6,118 @@
 //
 
 import Foundation
+import UserNotifications
 
 @MainActor
 class AuthenticationViewModel: ObservableObject {
-    private let authService: AuthServiceProtocol
-    private let userRepo: UserRepositoryType
-    @Published var showUsernameSheet: Bool = false
-    private var user: AuthModel?
-    private let overlayManager = OverlayManager.shared
-    @Published var navigateToCurrency: Bool = false
-    init(authService: AuthServiceProtocol, userRepo: UserRepositoryType = UserRepository()) {
-        self.authService = authService
-        self.userRepo =  userRepo
-    }
+  private let authService: AuthServiceProtocol
+  private let userRepo: UserRepositoryType
+  private let analytics = AnalyticsManager.shared
+  @Published var showUsernameSheet: Bool = false
+  @Published var isAuthenticating: Bool = false
+  private var user: AuthModel?
+  private let overlayManager = OverlayManager.shared
+  @Published var navigateToCurrency: Bool = false
+  @Published var navigateToDashboard: Bool = false
 
-    func authenticate(_ provider: AuthSocialProvider) {
-        Task { [weak self] in
-            guard let self = self else {return}
-            do {
-                let user = try await authService.signIn(with: provider)
-                self.user = user
-                if user.name == nil {
-                    self.showUsernameSheet = true
-                } else {
-                    createUserProfile()
-                }
-            } catch {
-                self.overlayManager.showToast(message: error.localizedDescription, style: .error)
-            }
-        }
-    }
-    func setUserName(username: String) {
-        showUsernameSheet = false
-        if username == "" {
+  init(authService: AuthServiceProtocol, userRepo: UserRepositoryType = UserRepository()) {
+    self.authService = authService
+    self.userRepo = userRepo
+  }
+
+  private func checkNotificationAuthorizationStatus() async -> Bool {
+    let settings = await UNUserNotificationCenter.current().notificationSettings()
+    return settings.authorizationStatus == .authorized
+  }
+
+  func authenticate(_ provider: AuthSocialProvider) {
+    Task { [weak self] in
+      guard let self = self else { return }
+      do {
+        self.isAuthenticating = true
+        let user = try await authService.signIn(with: provider)
+        self.user = user
+
+        // Show loader after auth sheet dismisses
+        self.overlayManager.showLoader()
+
+        // 1. Check if user already exists in Firestore
+        let result = await userRepo.getUser(id: user.userId)
+
+        if case .data(let dUser) = result {
+          // User already exists!
+          self.user?.name = dUser.name
+          self.user?.currency = dUser.currency
+
+          // Populate AppData and CurrencyManager (use DUser to preserve enableNotification)
+          AppData.user = dUser.toUserDto()
+
+          // Update FCM token for existing user
+          let _ = await userRepo.updateFCMToken(userId: user.userId, token: AppData.fcmToken)
+
+          // Hide loader before navigating
+          self.overlayManager.hideLoader()
+
+          if let currencyCode = dUser.currency {
+            CurrencyManager.shared.setCurrencyBySymbol(currencyCode)
+            self.overlayManager.showToast(message: "Welcome back!", style: .success)
+            self.navigateToDashboard = true
+          } else {
+            // User exists but no currency preference saved
+            self.overlayManager.showToast(message: "Please select your preferred currency", style: .success)
+            self.navigateToCurrency = true
+          }
+        } else {
+          // New User - Log signup event
+          self.analytics.logUserSignup(provider: provider.rawValue)
+
+          // Hide loader before showing username sheet or creating profile
+          self.overlayManager.hideLoader()
+
+          if user.name == nil {
+            self.showUsernameSheet = true
+          } else {
             createUserProfile()
-            return
+          }
         }
-        self.user?.name = username
-        createUserProfile()
+      } catch {
+        self.isAuthenticating = false
+        self.overlayManager.hideLoader()
+        self.overlayManager.showToast(message: error.localizedDescription, style: .error)
+      }
     }
+  }
 
-    private func createUserProfile() {
-        guard let user = user else {return}
-        Task {[weak self] in
-            guard let self = self else {return}
-            overlayManager.showLoader()
-            defer {
-                overlayManager.hideLoader()
-            }
-            let result = await userRepo.createUser(user)
-            if case .error(let string) = result {
-                self.overlayManager.showToast(message: string, style: .error)
-                return
-            }
-
-            AppData.user = user.toUserDto()
-            self.overlayManager.showToast(message: "User Authenticated Successfully", style: .success)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                self.navigateToCurrency = true
-            }
-        }
-
+  func setUserName(username: String) {
+    showUsernameSheet = false
+    if username == "" {
+      createUserProfile()
+      return
     }
+    self.user?.name = username
+    createUserProfile()
+  }
+
+  private func createUserProfile() {
+    guard let user = user else { return }
+    Task { [weak self] in
+      guard let self = self else { return }
+      overlayManager.showLoader()
+      defer {
+        overlayManager.hideLoader()
+      }
+      let result = await userRepo.createUser(user, currency: nil)
+      if case .error(let string) = result {
+        self.overlayManager.showToast(message: string, style: .error)
+        return
+      }
+
+      let notificationEnabled = await checkNotificationAuthorizationStatus()
+      var userDto = user.toUserDto()
+      userDto.enableNotification = notificationEnabled
+      AppData.user = userDto
+      self.overlayManager.showToast(message: "Profile Created", style: .success)
+      navigateToCurrency = true
+    }
+  }
 }
