@@ -32,10 +32,14 @@ class AppData {
   @AppStorage(key: "isHeroSectionExpanded", defaultValue: true)
   static var isHeroSectionExpanded: Bool
 
+  @AppStorage(key: "lastSnapshotMonth", defaultValue: nil)
+  static var lastSnapshotMonth: String?
+
   static func clear() {
     budget = nil
     prefCurrency = nil
     user = nil
+    lastSnapshotMonth = nil
   }
 
 }

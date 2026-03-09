@@ -14,7 +14,7 @@ struct AddAccountSheet: View {
     @State private var name = ""
     @State private var balance: Double?
     @State private var selectedType: AccountType = .bank
-    @State private var selectedAccountTypeString: String = ""
+    @State private var selectedAccountTypeString: String = AccountType.bank.displayName
     @State private var sourceId: String?
     @State private var editing: Bool = false
 
@@ -27,10 +27,15 @@ struct AddAccountSheet: View {
     }
 
     private var actionBtnTitle: String {
-        if !editing {
-            return "Add"
+        editing ? "Update" : "Add"
+    }
+
+    private var sheetHeight: CGFloat {
+        let hasSources = !viewModel.incomeSources.isEmpty
+        if editing {
+            return hasSources ? 300 : 240
         } else {
-            return "Update"
+            return hasSources ? 360 : 300
         }
     }
 
@@ -77,61 +82,61 @@ struct AddAccountSheet: View {
     var body: some View {
         ZStack {
             Color.cardBackground.ignoresSafeArea()
-            VStack(spacing: 15) {
+            VStack(spacing: 12) {
                 Capsule()
                     .frame(width: 40, height: 5)
                     .foregroundStyle(Color.gray.opacity(0.3))
-                    .padding(.top, 10)
-                VStack {
-                    Text(title)
-                        .font(.customFont(family: .quicksand, name: .bold, size: .x20))
-                        .foregroundStyle(Color.white)
-                    VStack(spacing: 15) {
-                        HStack {
-                            AppTextfield(inputText: $name, placeHolder: "Account Name", maxLength: 40)
-                                .frame(height: 50)
+                    .padding(.top, 6)
 
-                            CustomPickerView(listing: AccountType.allCases.compactMap { $0.rawValue },
-                                             pickedItem: $selectedAccountTypeString)
-                            .frame(height: 50)
-                        }
-                        if !editing {
-                            InitialBalanceField()
-                        }
+                Text(title)
+                    .font(.customFont(family: .quicksand, name: .bold, size: .x20))
+                    .foregroundStyle(Color.white)
+
+                VStack(spacing: 10) {
+                    HStack {
+                        AppTextfield(inputText: $name, placeHolder: "Account Name", maxLength: 40)
+                            .frame(height: 48)
+                        CustomPickerView(listing: AccountType.allCases.map { $0.displayName },
+                                         pickedItem: $selectedAccountTypeString)
+                        .frame(height: 48)
                     }
-                    if !viewModel.incomeSources.isEmpty {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Source")
-                                .font(.customFont(family: .quicksand, name: .bold, size: .x16))
-                                .foregroundStyle(Color.white)
-                            // .padding(.leading)
+                    if !editing {
+                        InitialBalanceField()
+                    }
+                }
 
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack {
-                                    ForEach(viewModel.incomeSources, id: \.id) { source in
-                                        let selected = source.id == sourceId
-                                        Button {
-                                            withAnimation {
-                                                sourceId = source.id
-                                            }
-                                        } label: {
-                                            CapsuleView(name: source.name, isSelected: selected)
-                                        }
+                if !viewModel.incomeSources.isEmpty {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Source")
+                            .font(.customFont(family: .quicksand, name: .bold, size: .x14))
+                            .foregroundStyle(Color.white)
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                ForEach(viewModel.incomeSources, id: \.id) { source in
+                                    let selected = source.id == sourceId
+                                    Button {
+                                        withAnimation { sourceId = source.id }
+                                    } label: {
+                                        CapsuleView(name: source.name, isSelected: selected)
                                     }
                                 }
                             }
                         }
-                        .padding(.top, 5)
                     }
                 }
-                AppPrimaryButton(title: actionBtnTitle, disable: editing ? .constant(name == "") : .constant(balance == nil), isLoading: $viewModel.isLoading) {
+
+                AppPrimaryButton(
+                    title: actionBtnTitle,
+                    disable: editing ? .constant(name.isEmpty) : .constant(balance == nil),
+                    isLoading: $viewModel.isLoading
+                ) {
                     hideKeyboard()
                     actionButton()
-                }.padding(.vertical, 10)
-                    .disabled(viewModel.isLoading)
-            }.padding()
+                }
+                .disabled(viewModel.isLoading)
+            }.padding(.horizontal).padding(.bottom, 8)
         }.onChange(of: selectedAccountTypeString) { new in
-            let type = AccountType(rawValue: new)
+            let type = AccountType.allCases.first(where: { $0.displayName == new })
             self.selectedType = type ?? .bank
         }
         .onAppear {
@@ -140,11 +145,11 @@ struct AddAccountSheet: View {
                 self.name = account.name
                 self.selectedType = account.type
                 self.sourceId = account.sourceId
-                self.selectedAccountTypeString = account.type.rawValue
+                self.selectedAccountTypeString = account.type.displayName
             }
         }
         .interactiveDismissDisabled(viewModel.isLoading)
-        .presentationDetents([.height((editing || viewModel.incomeSources.isEmpty) ? 300 : 350)])
+        .presentationDetents([.height(sheetHeight)])
         //.presentationDragIndicator(.hidden)
         .hideKeyboardOnTapAround()
 

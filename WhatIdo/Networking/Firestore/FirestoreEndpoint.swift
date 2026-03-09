@@ -44,6 +44,13 @@ enum FirestoreEndpoints: FirestoreEndpoint {
   case addGoal(id: String)
   case editGoal(id: String)
   case createFeedback
+  case createAccountTransaction(id: String)
+  case createIncomeTransaction(id: String)
+  case getAllIncomeTransactions
+  case createAccountTransfer(id: String)
+  case getAllAccountTransfers
+  case createNetWorthSnapshot(id: String)
+  case getAllNetWorthSnapshots
 
   var path: FirestoreReference {
     switch self {
@@ -92,6 +99,20 @@ enum FirestoreEndpoints: FirestoreEndpoint {
       return firestore.collection("goals").document(documentId)
     case .createFeedback:
       return firestore.collection("user_feedback").document()
+    case .createAccountTransaction(let id):
+      return firestore.collection("accountTransactions").document(id)
+    case .createIncomeTransaction(let id):
+      return firestore.collection("incomeTransactions").document(id)
+    case .getAllIncomeTransactions:
+      return firestore.collection("incomeTransactions")
+    case .createAccountTransfer(let id):
+      return firestore.collection("accountTransfers").document(id)
+    case .getAllAccountTransfers:
+      return firestore.collection("accountTransfers")
+    case .createNetWorthSnapshot(let id):
+      return firestore.collection("netWorthSnapshots").document(id)
+    case .getAllNetWorthSnapshots:
+      return firestore.collection("netWorthSnapshots")
     }
   }
 }

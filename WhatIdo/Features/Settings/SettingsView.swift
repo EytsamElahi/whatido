@@ -89,8 +89,12 @@ struct SettingsView: View {
 
                     // MARK: - Section 1: Preferences
                     Section {
+                        // Accounts & Wallets Row
+                        SettingsRow(icon: "creditcard.fill", title: "Accounts & Wallets").onTapGesture {
+                            navigation.push(screen: .myAccounts)
+                        }
+
                         // Currency Row
-                        
                         SettingsRow(icon: "banknote", title: "Currency").onTapGesture {
                             navigation.push(screen: .currencySettings(true))
                         }

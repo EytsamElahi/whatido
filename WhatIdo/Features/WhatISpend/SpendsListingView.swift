@@ -160,11 +160,21 @@ struct SpendsListingView: View {
         VStack(alignment: .leading) {
           // MARK: - 1. Custom Header (hidden when search is active)
           if !showSearchBar {
-            AppHeaderView(title: viewModel.currentMonth, trailingButtonIcon: "folder.fill", backAction: {
-              navigation.push(screen: .settings)
-            }, trailingButtonAction: {
-              navigation.push(screen: .projectListing)
-            }, isBackButton: false)
+            AppHeaderView(
+              title: viewModel.currentMonth,
+              trailingButtonIcon: "folder.fill",
+              secondTrailingButtonIcon: "creditcard.fill",
+              backAction: {
+                navigation.push(screen: .settings)
+              },
+              trailingButtonAction: {
+                navigation.push(screen: .projectListing)
+              },
+              secondTrailingButtonAction: {
+                navigation.push(screen: .myAccounts)
+              },
+              isBackButton: false
+            )
             .transition(.asymmetric(
               insertion: .opacity.combined(with: .move(edge: .top)),
               removal: .opacity
