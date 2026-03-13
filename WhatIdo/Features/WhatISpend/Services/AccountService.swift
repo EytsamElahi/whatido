@@ -19,6 +19,7 @@ protocol AccountServiceProtocol {
   func addIncomeTransaction(_ tx: IncomeTransaction) async -> AppResult<IncomeTransaction>
   func getIncomeTransactions() async -> AppResult<[IncomeTransaction]>
   func addTransfer(_ transfer: AccountTransfer) async -> AppResult<Void>
+  func getTransfers() async -> AppResult<[AccountTransfer]>
   func saveNetWorthSnapshot(_ snapshot: NetWorthSnapshot) async -> AppResult<Void>
   func recomputeAndSyncBalance(accountId: String) async -> AppResult<Double>
 }
@@ -244,6 +245,15 @@ final class AccountService: FirebaseService, AccountServiceProtocol {
     do {
       try await batch.commit()
       return .success
+    } catch {
+      return .error(error.localizedDescription)
+    }
+  }
+
+  func getTransfers() async -> AppResult<[AccountTransfer]> {
+    do {
+      let data: [AccountTransfer] = try await request(orderBy: "created", endpoint: FirestoreEndpoints.getAllAccountTransfers)
+      return .data(data)
     } catch {
       return .error(error.localizedDescription)
     }

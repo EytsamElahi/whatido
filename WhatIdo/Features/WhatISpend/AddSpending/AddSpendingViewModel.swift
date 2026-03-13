@@ -63,6 +63,7 @@ class AddSpendingViewModel: ObservableObject {
   // Task management for proper cancellation
   private var savingTask: Task<Void, Never>?
   private var projectsTask: Task<Void, Never>?
+  private var pendingEditAccountId: String?
 
   init(service: SpendingsServiceProtocol = SpendingsService(), projectSerivce: ProjectsServiceProtocol = ProjectsService(), accountService: AccountServiceProtocol = AccountService(), spendingToEdit: SpendingDto? = nil, selectedProject: ProjectDto? = nil, eventBus: PassthroughSubject<AppGlobalEvent, Never>) {
     self.service = service
@@ -72,7 +73,6 @@ class AddSpendingViewModel: ObservableObject {
     self.selectedProject = selectedProject
     self.loadSpendingTypes()
     self.getProjects()
-    self.fetchAccounts()
 
     if let spending = spendingToEdit {
       self.spendingToEdit = spending
@@ -82,7 +82,10 @@ class AddSpendingViewModel: ObservableObject {
       self.dateTf = spending.date.toDateReturnString() // Helper method
       self.selectedTypeName = spending.type
       self.created = spending.created
+      self.pendingEditAccountId = spending.account?.id
     }
+
+    self.fetchAccounts()
   }
 
   deinit {
@@ -188,7 +191,9 @@ class AddSpendingViewModel: ObservableObject {
       switch result {
       case .data(let data):
         self.accounts = data.filter { !$0.isArchived }
-        if let account = accounts.first(where: { $0.isDefault == true }) {
+        if let editId = self.pendingEditAccountId {
+          self.selectAccount(id: editId)
+        } else if let account = accounts.first(where: { $0.isDefault == true }) {
           self.selectAccount(id: account.id)
         }
       case .error(let err): self.overlayManager.showToast(message: err, style: .error)

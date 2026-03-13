@@ -28,6 +28,7 @@ struct AccountsView: View {
     .onAppear {
       viewModel.fetchData()
       viewModel.fetchIncomeTransactions()
+      viewModel.fetchTransfers()
     }
     .sheet(isPresented: $viewModel.showAddSheet) {
       if viewModel.selectedTab == .accounts {
@@ -109,6 +110,8 @@ private struct AccountTabContentView: View {
       AccountsListView(viewModel: viewModel)
     case .income:
       IncomeTransactionsListView(viewModel: viewModel)
+    case .transfers:
+      TransfersListView(viewModel: viewModel)
     case .sources:
       SourcesListView(viewModel: viewModel)
     }
@@ -246,6 +249,83 @@ private struct IncomeTransactionRowView: View {
   }
 }
 
+// MARK: - Transfers List
+
+private struct TransfersListView: View {
+  @ObservedObject var viewModel: AccountsViewModel
+
+  var body: some View {
+    if viewModel.transfers.isEmpty {
+      Spacer()
+      VStack(spacing: 12) {
+        Image(systemName: "arrow.left.arrow.right.circle")
+          .font(.largeTitle)
+          .foregroundColor(.gray)
+        Text("No transfers yet")
+          .font(.subheadline)
+          .foregroundColor(.gray)
+      }
+      Spacer()
+    } else {
+      List {
+        ForEach(viewModel.transfers, id: \.id) { transfer in
+          TransferRowView(transfer: transfer)
+            .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
+        }
+      }
+      .listStyle(.plain)
+      .scrollContentBackground(.hidden)
+    }
+  }
+}
+
+private struct TransferRowView: View {
+  let transfer: AccountTransfer
+
+  var body: some View {
+    HStack(spacing: 12) {
+      Image(systemName: transfer.toAccountIsLiability ? "creditcard.fill" : "arrow.left.arrow.right")
+        .font(.title2)
+        .foregroundColor(transfer.toAccountIsLiability ? .red : Color.appPrimaryColor)
+        .frame(width: 40, height: 40)
+        .background(Color.gray.opacity(0.2))
+        .clipShape(Circle())
+      VStack(alignment: .leading, spacing: 4) {
+        Text(transfer.toAccountIsLiability ? "Debt Payment" : "Transfer")
+          .font(.headline)
+          .foregroundColor(.white)
+        Text("\(transfer.fromAccountName) → \(transfer.toAccountName)")
+          .font(.caption)
+          .foregroundColor(.gray)
+        if let note = transfer.note {
+          Text(note)
+            .font(.caption2)
+            .foregroundColor(.gray.opacity(0.7))
+        }
+      }
+      Spacer()
+      VStack(alignment: .trailing, spacing: 4) {
+        Text("\(CurrencyManager.shared.currencyCode) \(transfer.amount, specifier: "%.0f")")
+          .font(.headline)
+          .foregroundColor(transfer.toAccountIsLiability ? .red : .white)
+        if let fee = transfer.fee, fee > 0 {
+          Text("+ fee \(fee, specifier: "%.0f")")
+            .font(.caption2)
+            .foregroundColor(.gray)
+        }
+        Text(transfer.createdAt, style: .date)
+          .font(.caption)
+          .foregroundColor(.gray)
+      }
+    }
+    .padding()
+    .background(Color(uiColor: .systemGray6).opacity(0.1))
+    .cornerRadius(12)
+  }
+}
+
 // MARK: - Sources List
 
 private struct SourcesListView: View {
@@ -288,7 +368,7 @@ private struct AccountFabView: View {
       HStack {
         Spacer()
         HStack(spacing: 12) {
-          if viewModel.selectedTab == .accounts {
+          if viewModel.selectedTab == .accounts || viewModel.selectedTab == .transfers {
             Button {
               viewModel.showTransferSheet = true
             } label: {
@@ -355,6 +435,8 @@ struct AdjustBalanceSheet: View {
   @State private var newBalance: Double? = nil
   @State private var newBalanceString: String = ""
 
+  private var isLiability: Bool { viewModel.selectedAccount?.type.isLiability ?? false }
+
   var body: some View {
     ZStack {
       Color.cardBackground.ignoresSafeArea()
@@ -364,24 +446,24 @@ struct AdjustBalanceSheet: View {
           .foregroundStyle(Color.gray.opacity(0.3))
           .padding(.top, 10)
         VStack(spacing: 10) {
-          Text("Adjust Balance")
+          Text(isLiability ? "Adjust Debt" : "Adjust Balance")
             .font(.customFont(family: .quicksand, name: .bold, size: .x20))
             .foregroundStyle(Color.white)
           VStack(spacing: 5) {
-            Text("Current Recorded Balance")
+            Text(isLiability ? "Current Debt Recorded" : "Current Recorded Balance")
               .font(.customFont(family: .quicksand, name: .medium, size: .x14))
               .foregroundStyle(Color.gray)
             Text("\(CurrencyManager.shared.symbol) \(viewModel.selectedAccount?.currentBalance ?? 0, specifier: "%.2f")")
               .font(.customFont(family: .quicksand, name: .bold, size: .x24))
-              .foregroundStyle(Color.appPrimaryColor)
+              .foregroundStyle(isLiability ? Color.red : Color.appPrimaryColor)
           }
           .padding(.vertical, 10)
           VStack(alignment: .leading, spacing: 12) {
-            Text("New Actual Balance")
+            Text(isLiability ? "Actual Debt Amount" : "New Actual Balance")
               .font(.customFont(family: .quicksand, name: .bold, size: .x16))
               .foregroundStyle(Color.white)
             AppTextfield(inputText: $newBalanceString,
-                         placeHolder: "Enter actual amount...", keyboardType: .decimalPad)
+                         placeHolder: isLiability ? "Enter actual debt..." : "Enter actual amount...", keyboardType: .decimalPad)
               .frame(height: 50)
           }
         }

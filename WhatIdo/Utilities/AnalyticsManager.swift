@@ -25,6 +25,11 @@ enum AnalyticsEvent: String {
   case projectCreated = "project_created"
   case projectCompleted = "project_completed"
 
+  // Accounts
+  case accountCreated = "account_created"
+  case transferMade = "transfer_made"
+  case incomeRecorded = "income_recorded"
+
   // Engagement
   case analyticsViewed = "analytics_viewed"
   case currencyChanged = "currency_changed"
@@ -46,6 +51,9 @@ enum AnalyticsParam: String {
 
   // Project
   case icon = "icon"
+
+  // Accounts
+  case accountType = "account_type"
 
   // Analytics
   case timeRange = "time_range"
@@ -179,6 +187,26 @@ final class AnalyticsManager {
 
   func logProjectCompleted() {
     logEvent(.projectCompleted)
+  }
+
+  // MARK: - Account Events
+
+  func logAccountCreated(type: String) {
+    logEvent(.accountCreated, parameters: [
+      AnalyticsParam.accountType.rawValue: type
+    ])
+  }
+
+  func logTransferMade(amount: Double) {
+    logEvent(.transferMade, parameters: [
+      AnalyticsParam.amountRange.rawValue: AmountRange.from(amount: amount)
+    ])
+  }
+
+  func logIncomeRecorded(amount: Double) {
+    logEvent(.incomeRecorded, parameters: [
+      AnalyticsParam.amountRange.rawValue: AmountRange.from(amount: amount)
+    ])
   }
 
   // MARK: - Engagement Events

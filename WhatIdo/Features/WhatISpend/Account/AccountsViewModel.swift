@@ -7,9 +7,10 @@ import Foundation
 import SwiftUI
 
 enum AccountTab: String, CaseIterable {
-  case accounts = "Accounts"
-  case income   = "Income"
-  case sources  = "Sources"
+  case accounts  = "Accounts"
+  case income    = "Income"
+  case transfers = "Transfers"
+  case sources   = "Sources"
 }
 
 @MainActor
@@ -18,6 +19,7 @@ class AccountsViewModel: ObservableObject {
   @Published var accounts: [AccountDto] = []
   @Published var incomeSources: [IncomeSourceDto] = []
   @Published var incomeTransactions: [IncomeTransactionDto] = []
+  @Published var transfers: [AccountTransfer] = []
   @Published var isLoading = false
   @Published var errorMessage: String? = nil
   @Published var showAddSheet: Bool = false
@@ -34,6 +36,7 @@ class AccountsViewModel: ObservableObject {
 
   private let overlayManager = OverlayManager.shared
   private let service: AccountServiceProtocol
+  private let analytics = AnalyticsManager.shared
 
   // MARK: - Init
   init(service: AccountServiceProtocol) {
@@ -76,6 +79,16 @@ class AccountsViewModel: ObservableObject {
         self.takeMonthlySnapshotIfNeeded()
       case .error(let err): self.overlayManager.showToast(message: err, style: .error)
       default: break
+      }
+    }
+  }
+
+  func fetchTransfers() {
+    Task { [weak self] in
+      guard let self = self else { return }
+      let result = await service.getTransfers()
+      if case .data(let data) = result {
+        self.transfers = data.sorted { $0.createdAt > $1.createdAt }
       }
     }
   }
@@ -126,6 +139,7 @@ class AccountsViewModel: ObservableObject {
       case .data(let saved):
         self.incomeTransactions.insert(saved.convertToDto(accountName: accountName), at: 0)
         self.showAddIncomeSheet = false
+        self.analytics.logIncomeRecorded(amount: amount)
         self.overlayManager.showToast(message: "Income recorded", style: .success)
         await self.refreshAccount(id: accountId)
       case .error(let err):
@@ -169,8 +183,10 @@ class AccountsViewModel: ObservableObject {
       switch result {
       case .success:
         self.showTransferSheet = false
+        self.analytics.logTransferMade(amount: amount)
         self.overlayManager.showToast(message: "Transfer complete", style: .success)
         self.fetchData()
+        self.fetchTransfers()
       case .error(let err):
         self.overlayManager.showToast(message: err, style: .error)
       default: break
@@ -253,6 +269,8 @@ class AccountsViewModel: ObservableObject {
       showAddSheet = true
     case .income:
       showAddIncomeSheet = true
+    case .transfers:
+      showTransferSheet = true
     case .sources:
       selectedIncomeSource = nil
       showAddSheet = true
@@ -312,6 +330,7 @@ extension AccountsViewModel {
       case .data(let dto):
         self.accounts.append(dto)
         self.calculateNetWorth()
+        self.analytics.logAccountCreated(type: type.rawValue)
         self.overlayManager.showToast(message: "Account created successfully", style: .success)
         self.showAddSheet = false
       case .error(let err):
