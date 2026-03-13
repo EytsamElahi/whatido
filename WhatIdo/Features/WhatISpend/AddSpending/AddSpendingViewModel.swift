@@ -29,12 +29,18 @@ class AddSpendingViewModel: ObservableObject {
   @Published var spendingTypes: [SpendingType] = []
   @Published var selectedType: SpendingType?
   @Published var accounts: [AccountDto] = []
-  @Published var selectedAccountName: String = "" {
-    didSet {
-      selectedAccount = accounts.first(where: {$0.name == selectedAccountName})
-    }
-  }
+  @Published var selectedAccountName: String = ""
   @Published var selectedAccount: AccountDto?
+
+  func selectAccount(id: String) {
+    selectedAccount = accounts.first(where: { $0.id == id })
+    selectedAccountName = selectedAccount?.name ?? ""
+  }
+
+  func deselectAccount() {
+    selectedAccount = nil
+    selectedAccountName = ""
+  }
 
   // Linked Project
   @Published var selectedProject: ProjectDto?
@@ -137,7 +143,12 @@ class AddSpendingViewModel: ObservableObject {
       defer {
         self.isDataUploading = false
       }
-      if let id = spendingIdToEdit, let oldSpending = spendingToEdit {
+      if let id = spendingIdToEdit, var oldSpending = spendingToEdit {
+        // Correct isLiability from live accounts list — old Firestore docs may lack this field
+        if let accountId = oldSpending.account?.id,
+           let currentAcc = accounts.first(where: { $0.id == accountId }) {
+          oldSpending.account?.isLiability = currentAcc.type.isLiability
+        }
         spending.id = id
         let apiResult = await service.editSpending(oldSpending: oldSpending, newSpending: spending, spendingId: id)
         if case .error(let error) = apiResult {
@@ -176,10 +187,9 @@ class AddSpendingViewModel: ObservableObject {
       let result = await accountService.getAllAccounts()
       switch result {
       case .data(let data):
-        self.accounts = data.filter {!$0.isArchived}
-        if let account = accounts.first(where: {$0.isDefault == true}) {
-          self.selectedAccount = account
-          self.selectedAccountName = account.name
+        self.accounts = data.filter { !$0.isArchived }
+        if let account = accounts.first(where: { $0.isDefault == true }) {
+          self.selectAccount(id: account.id)
         }
       case .error(let err): self.overlayManager.showToast(message: err, style: .error)
       default: break

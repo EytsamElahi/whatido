@@ -38,7 +38,9 @@ struct AddSpendingView: View {
         noteFieldExpanded
       }
 
-      accountChipsSection
+      if !viewModel.accounts.isEmpty {
+        accountChipsSection
+      }
 
       categoriesSection
 
@@ -266,7 +268,7 @@ struct AddSpendingView: View {
     let borderColor: Color = isLiability && !isSelected ? Color.red.opacity(0.25) : .clear
 
     return Button {
-      viewModel.selectedAccountName = isSelected ? "" : acc.name
+      if isSelected { viewModel.deselectAccount() } else { viewModel.selectAccount(id: acc.id) }
     } label: {
       HStack(spacing: 5) {
         Image(systemName: acc.type.icon)

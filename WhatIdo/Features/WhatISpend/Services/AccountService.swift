@@ -211,9 +211,11 @@ final class AccountService: FirebaseService, AccountServiceProtocol {
 
     let creditId = UUID().uuidString
     let creditRef = db.collection("accountTransactions").document(creditId)
+    // Liability payment reduces debt — store as negative so recomputeAndSyncBalance is accurate
+    let creditAmount = transfer.toAccountIsLiability ? -transfer.amount : transfer.amount
     let creditTx = AccountTransaction(
       accountId: transfer.toAccountId,
-      amount: transfer.amount,
+      amount: creditAmount,
       type: .transfer,
       referenceId: transfer.id,
       note: transfer.note
@@ -262,20 +264,33 @@ final class AccountService: FirebaseService, AccountServiceProtocol {
 
   func recomputeAndSyncBalance(accountId: String) async -> AppResult<Double> {
     let db = Firestore.firestore()
+    let userId = AppData.user?.id ?? ""
     do {
       let accountSnap = try await db.collection("accounts").document(accountId).getDocument()
       guard accountSnap.exists, let data = accountSnap.data() else {
         return .error("Account not found")
       }
       let openingBalance = data["openingBalance"] as? Double ?? 0
+      let typeRaw = data["type"] as? String ?? ""
+      let isLiability = AccountType.fromFirestore(typeRaw).isLiability
 
+      // Sum income + transfer transactions
       let txSnap = try await db.collection("accountTransactions")
         .whereField("accountId", isEqualTo: accountId)
-        .whereField("userId", isEqualTo: AppData.user?.id ?? "")
+        .whereField("userId", isEqualTo: userId)
         .getDocuments()
-
       let totalTx = txSnap.documents.compactMap { $0.data()["amount"] as? Double }.reduce(0, +)
-      let newBalance = openingBalance + totalTx
+
+      // Sum spending transactions (not written to accountTransactions — queried separately)
+      let spendingsSnap = try await db.collection("spendings")
+        .whereField("accountType.accountId", isEqualTo: accountId)
+        .whereField("userId", isEqualTo: userId)
+        .whereField("isArchived", isEqualTo: false)
+        .getDocuments()
+      let totalSpending = spendingsSnap.documents.compactMap { $0.data()["amount"] as? Double }.reduce(0, +)
+      let spendingDelta = isLiability ? totalSpending : -totalSpending
+
+      let newBalance = openingBalance + totalTx + spendingDelta
 
       try await db.collection("accounts").document(accountId).updateData([
         "currentBalance": newBalance,
