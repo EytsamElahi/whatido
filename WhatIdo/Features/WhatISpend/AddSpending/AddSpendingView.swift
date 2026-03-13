@@ -26,31 +26,24 @@ struct AddSpendingView: View {
   @State private var keyboardHeight: CGFloat = 0
 
   var body: some View {
-    VStack(spacing: 0) {
-      // Amount Section
+    VStack(spacing: 14) {
       amountSection
         .padding(.top, 16)
 
-      // Note field (collapsible)
-      noteSection
-        .padding(.top, 16)
+      amountDivider
 
-      // Context chips
-      contextChips
-        .padding(.top, 16)
+      quickActionsRow
 
-      // Account picker
-      accountSection
-        .padding(.top, 16)
+      if showNoteField {
+        noteFieldExpanded
+      }
 
-      // Categories horizontal scroll
+      accountChipsSection
+
       categoriesSection
-        .padding(.top, 20)
 
-      // Save button
       saveButton
-        .padding(.top, 24)
-        .padding(.bottom, 20)
+        .padding(.bottom, 8)
     }
     .padding(.horizontal, 20)
     .background(Color.cardBackground)
@@ -123,164 +116,56 @@ struct AddSpendingView: View {
     }
   }
 
-  // MARK: - Note Section (Collapsible)
-  private var noteSection: some View {
-    Group {
-      if showNoteField {
-        HStack(spacing: 10) {
-          AppTextfield(
-            inputText: $viewModel.spendingItemTf,
-            placeHolder: "What's this for?",
-            maxLength: 40,
-            isFocused: $isNoteFocused
-          )
-          .frame(height: 46)
-
-          Button {
-            withAnimation { showNoteField = false }
-            viewModel.spendingItemTf = ""
-            isNoteFocused = false
-          } label: {
-            Image(systemName: "xmark.circle.fill")
-              .font(.system(size: 22))
-              .foregroundStyle(Color.gray)
-          }
-        }
-      } else {
-        Button {
-          withAnimation { showNoteField = true }
-          DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            isAmountFocused = false
-            isNoteFocused = true
-          }
-        } label: {
-          HStack(spacing: 6) {
-            Image(systemName: "square.and.pencil")
-              .font(.system(size: 14))
-            Text("Add note")
-              .font(.customFont(family: .quicksand, name: .medium, size: .x14))
-          }
-          .foregroundStyle(Color.gray)
-        }
-      }
-    }
+  // MARK: - Amount Divider
+  private var amountDivider: some View {
+    Rectangle()
+      .fill(Color.white.opacity(0.06))
+      .frame(height: 1)
   }
 
-  // MARK: - Account Section
-  private var accountSection: some View {
-    Group {
-      if viewModel.accounts.isEmpty {
-        HStack {
-          VStack(alignment: .leading, spacing: 2) {
-            Text("Unlinked")
-              .font(.customFont(family: .quicksand, name: .bold, size: .x14))
-              .foregroundStyle(Color.white)
-            Text("No accounts added")
-              .font(.caption2)
-              .foregroundStyle(Color.gray)
-          }
-          Spacer()
-          Image(systemName: "creditcard.fill")
-            .foregroundStyle(Color.gray)
-        }
-        .padding(.horizontal)
-        .frame(height: 46)
-        .background(Color.white.opacity(0.05))
-        .cornerRadius(12)
-      } else {
-        accountPickerMenu
-          .frame(height: 46)
-      }
-    }
-  }
-
-  private var accountPickerMenu: some View {
-    let assets      = viewModel.accounts.filter { !$0.type.isLiability }
-    let liabilities = viewModel.accounts.filter {  $0.type.isLiability }
-    let selected    = viewModel.selectedAccount
-
-    return Menu {
-      Button {
-        viewModel.selectedAccountName = ""
-      } label: {
-        Label("None", systemImage: "xmark.circle")
-      }
-
-      if !assets.isEmpty {
-        Divider()
-        ForEach(assets, id: \.id) { acc in
-          Button {
-            viewModel.selectedAccountName = acc.name
-          } label: {
-            Label("\(acc.name)  ·  \(acc.type.displayName)", systemImage: acc.type.icon)
-          }
-        }
-      }
-
-      if !liabilities.isEmpty {
-        Divider()
-        ForEach(liabilities, id: \.id) { acc in
-          Button {
-            viewModel.selectedAccountName = acc.name
-          } label: {
-            Label("\(acc.name)  ·  \(acc.type.displayName)", systemImage: acc.type.icon)
-          }
-        }
-      }
-    } label: {
-      ZStack {
-        RoundedRectangle(cornerRadius: 12)
-          .fill(Color.white.opacity(0.08))
-        HStack {
-          if let acc = selected {
-            Image(systemName: acc.type.icon)
-              .font(.system(size: 13))
-              .foregroundStyle(acc.type.isLiability ? Color.red.opacity(0.8) : Color.appPrimaryColor)
-            Text(acc.name)
-              .font(.customFont(name: .medium, size: .x14))
-              .foregroundStyle(Color.white)
-            if acc.type.isLiability {
-              Text(acc.type.displayName.uppercased())
-                .font(.system(size: 9, weight: .bold))
-                .tracking(0.5)
-                .foregroundStyle(Color.red.opacity(0.7))
-                .padding(.horizontal, 5)
-                .padding(.vertical, 2)
-                .background(Color.red.opacity(0.12))
-                .clipShape(Capsule())
-            }
-          } else {
-            Text("Select Account")
-              .font(.customFont(name: .medium, size: .x14))
-              .foregroundStyle(Color.white.opacity(0.3))
-          }
-          Spacer()
-          Image(systemName: "chevron.down")
-            .font(.system(size: 12, weight: .bold))
-            .foregroundStyle(Color.appPrimaryColor)
-        }
-        .padding(.horizontal, 15)
-      }
-    }
-  }
-
-  // MARK: - Context Chips
-  private var contextChips: some View {
+  // MARK: - Quick Actions Row (note toggle + date + project)
+  private var quickActionsRow: some View {
     let month = viewModel.currentMonthInDateFormat ?? Date()
     return ScrollView(.horizontal, showsIndicators: false) {
-      HStack(spacing: 10) {
+      HStack(spacing: 8) {
+
+        // Note toggle chip
+        Button {
+          withAnimation(.easeInOut(duration: 0.2)) { showNoteField.toggle() }
+          if showNoteField {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+              isAmountFocused = false
+              isNoteFocused = true
+            }
+          } else {
+            viewModel.spendingItemTf = ""
+            isNoteFocused = false
+          }
+        } label: {
+          HStack(spacing: 5) {
+            Image(systemName: "square.and.pencil")
+              .font(.system(size: 12))
+            Text(showNoteField ? "Note added" : "Add note")
+              .font(.customFont(family: .quicksand, name: .medium, size: .x12))
+          }
+          .foregroundStyle(showNoteField ? Color.appPrimaryColor : Color.gray)
+          .padding(.horizontal, 12)
+          .padding(.vertical, 7)
+          .background(Capsule().fill(showNoteField ? Color.appPrimaryColor.opacity(0.15) : Color.white.opacity(0.07)))
+        }
+
         // Date chip
-        HStack(spacing: 6) {
+        HStack(spacing: 5) {
           Image(systemName: "calendar")
-            .font(.system(size: 14))
+            .font(.system(size: 12))
             .foregroundStyle(Color.appPrimaryColor)
           Text(viewModel.dateTf.isEmpty ? "Today" : viewModel.dateTf)
-            .font(.customFont(family: .quicksand, name: .medium, size: .x14))
+            .font(.customFont(family: .quicksand, name: .medium, size: .x13))
             .foregroundStyle(.white)
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(Capsule().fill(Color.white.opacity(0.1)))
+        .padding(.vertical, 7)
+        .background(Capsule().fill(Color.white.opacity(0.07)))
         .overlay {
           DatePicker(
             selection: $date,
@@ -291,9 +176,7 @@ struct AddSpendingView: View {
             .contentShape(Rectangle())
             .opacity(0.011)
             .id(calendarId)
-            .onTapGesture(count: 99, perform: {
-              // overrides tap gesture to fix ios 17.1 bug
-            })
+            .onTapGesture(count: 99, perform: {})
         }
 
         // Project chip
@@ -307,25 +190,103 @@ struct AddSpendingView: View {
             }
           }
         } label: {
-          HStack(spacing: 6) {
+          HStack(spacing: 5) {
             Image(systemName: viewModel.selectedProject?.icon ?? "folder.fill")
-              .font(.system(size: 14))
-              .foregroundStyle(Color.appPrimaryColor)
+              .font(.system(size: 12))
+              .foregroundStyle(viewModel.selectedProject == nil ? Color.gray : Color.appPrimaryColor)
             Text(viewModel.selectedProject?.name ?? "Project")
-              .font(.customFont(family: .quicksand, name: .medium, size: .x14))
-              .foregroundStyle(viewModel.selectedProject == nil ? .gray : .white)
+              .font(.customFont(family: .quicksand, name: .medium, size: .x13))
+              .foregroundStyle(viewModel.selectedProject == nil ? Color.gray : Color.white)
           }
           .padding(.horizontal, 12)
-          .padding(.vertical, 8)
+          .padding(.vertical, 7)
           .background(
             Capsule().fill(
               viewModel.selectedProject == nil
-              ? Color.white.opacity(0.05)
-              : Color.appPrimaryColor.opacity(0.2)
+              ? Color.white.opacity(0.07)
+              : Color.appPrimaryColor.opacity(0.15)
             )
           )
         }
       }
+    }
+  }
+
+  // MARK: - Note Field (expanded state)
+  private var noteFieldExpanded: some View {
+    HStack(spacing: 10) {
+      AppTextfield(
+        inputText: $viewModel.spendingItemTf,
+        placeHolder: "What's this for?",
+        maxLength: 40,
+        isFocused: $isNoteFocused
+      )
+      .frame(height: 44)
+
+      Button {
+        withAnimation(.easeInOut(duration: 0.2)) { showNoteField = false }
+        viewModel.spendingItemTf = ""
+        isNoteFocused = false
+      } label: {
+        Image(systemName: "xmark.circle.fill")
+          .font(.system(size: 20))
+          .foregroundStyle(Color.gray)
+      }
+    }
+  }
+
+  // MARK: - Account Chips
+  private var accountChipsSection: some View {
+    VStack(alignment: .leading, spacing: 6) {
+      if viewModel.selectedAccount == nil && !viewModel.accounts.isEmpty {
+        Text("Charge to")
+          .font(.customFont(family: .quicksand, name: .medium, size: .x12))
+          .foregroundStyle(Color.white.opacity(0.35))
+          .padding(.horizontal, 2)
+      }
+      ScrollView(.horizontal, showsIndicators: false) {
+        HStack(spacing: 8) {
+          ForEach(viewModel.accounts, id: \.id) { acc in
+            accountChip(acc, isSelected: viewModel.selectedAccount?.id == acc.id)
+          }
+        }
+      }
+    }
+  }
+
+  private func accountChip(_ acc: AccountDto, isSelected: Bool) -> some View {
+    let isLiability = acc.type.isLiability
+    let chipFill: Color = isSelected
+      ? (isLiability ? Color.red.opacity(0.75) : Color.appPrimaryColor)
+      : (isLiability ? Color.red.opacity(0.08) : Color.white.opacity(0.07))
+    let chipForeground: Color = isSelected
+      ? (isLiability ? .white : .black)
+      : (isLiability ? Color.red.opacity(0.8) : .white)
+    let badgeFill: Color = isSelected ? Color.white.opacity(0.25) : Color.red.opacity(0.15)
+    let borderColor: Color = isLiability && !isSelected ? Color.red.opacity(0.25) : .clear
+
+    return Button {
+      viewModel.selectedAccountName = isSelected ? "" : acc.name
+    } label: {
+      HStack(spacing: 5) {
+        Image(systemName: acc.type.icon)
+          .font(.system(size: 11))
+        Text(acc.name)
+          .font(.customFont(family: .quicksand, name: .medium, size: .x13))
+        if isLiability {
+          Text(acc.type == .creditCard ? "CC" : "LOAN")
+            .font(.system(size: 8, weight: .bold))
+            .padding(.horizontal, 4)
+            .padding(.vertical, 2)
+            .background(badgeFill)
+            .clipShape(Capsule())
+        }
+      }
+      .foregroundStyle(chipForeground)
+      .padding(.horizontal, 12)
+      .padding(.vertical, 7)
+      .background(Capsule().fill(chipFill))
+      .overlay(Capsule().stroke(borderColor, lineWidth: 1))
     }
   }
 
@@ -339,6 +300,17 @@ struct AddSpendingView: View {
       }
       .padding(.vertical, 4)
     }
+    .mask(
+      HStack(spacing: 0) {
+        Rectangle()
+        LinearGradient(
+          colors: [Color.black, Color.clear],
+          startPoint: .leading,
+          endPoint: .trailing
+        )
+        .frame(width: 20)
+      }
+    )
   }
 
   private func categoryItem(_ category: SpendingType) -> some View {
@@ -415,7 +387,7 @@ struct AddSpendingView: View {
             .foregroundColor(.black)
         }
       }
-      .frame(height: 55)
+      .frame(height: 48)
     }
     .disabled(viewModel.isDataUploading)
   }

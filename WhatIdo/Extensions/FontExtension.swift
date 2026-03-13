@@ -28,6 +28,7 @@ enum FontSize {
     case x8
     case x10
     case x12
+    case x13
     case x14
     case x16
     case x18
@@ -52,6 +53,8 @@ enum FontSize {
             isNarrow ? 9.0 : 10.0
         case .x12:
             isNarrow ? 10.0 : 12.0
+        case .x13:
+            isNarrow ? 11.0 : 13.0
         case .x14:
             isNarrow ? 12.0 : 14.0
         case .x16:
