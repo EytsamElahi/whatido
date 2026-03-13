@@ -14,18 +14,49 @@ struct AddTransferSheet: View {
   @State private var includeFee: Bool = false
   @State private var feeString: String = ""
   @State private var note: String = ""
+  @State private var showMoreOptions: Bool = false
 
   private var assetAccounts: [AccountDto] {
     viewModel.accounts.filter { !$0.type.isLiability }
   }
 
   private var toAccounts: [AccountDto] {
-    assetAccounts.filter { $0.id != fromAccountId }
+    viewModel.accounts.filter { $0.id != fromAccountId }
+  }
+
+  private var toAccount: AccountDto? {
+    viewModel.accounts.first(where: { $0.id == toAccountId })
+  }
+
+  private var toAccountIsLiability: Bool {
+    toAccount?.type.isLiability ?? false
+  }
+
+  private var maxPayableAmount: Double? {
+    guard toAccountIsLiability else { return nil }
+    return toAccount?.currentBalance
+  }
+
+  private var sheetHeight: CGFloat {
+    var height: CGFloat = 410
+    if showMoreOptions {
+      height += includeFee ? 120 : 70
+    }
+    return height
   }
 
   private var isValid: Bool {
     guard let amount = Double(amountString), amount > 0 else { return false }
-    return !fromAccountId.isEmpty && !toAccountId.isEmpty && fromAccountId != toAccountId
+    guard !fromAccountId.isEmpty && !toAccountId.isEmpty && fromAccountId != toAccountId else { return false }
+    if let max = maxPayableAmount { return amount <= max }
+    return true
+  }
+
+  private var overpaymentWarning: String? {
+    guard toAccountIsLiability, let amount = Double(amountString), let max = maxPayableAmount else { return nil }
+    guard amount > max else { return nil }
+    let currency = AppData.prefCurrency?.code ?? ""
+    return "Max payable: \(currency) \(String(format: "%.0f", max))"
   }
 
   var body: some View {
@@ -44,8 +75,11 @@ struct AddTransferSheet: View {
         fromPicker
         toPicker
         amountField
-        feeSection
-        noteField
+        moreOptionsToggle
+        if showMoreOptions {
+          feeSection
+          noteField
+        }
         confirmButton
       }
       .padding(.horizontal)
@@ -55,7 +89,7 @@ struct AddTransferSheet: View {
     .onChange(of: fromAccountId) { _ in
       if toAccountId == fromAccountId { toAccountId = "" }
     }
-    .presentationDetents([.height(includeFee ? 530 : 480)])
+    .presentationDetents([.height(sheetHeight)])
     .presentationDragIndicator(.hidden)
     .hideKeyboardOnTapAround()
   }
@@ -81,7 +115,7 @@ struct AddTransferSheet: View {
 
   private var toPicker: some View {
     VStack(alignment: .leading, spacing: 6) {
-      Text("To Account")
+      Text(toAccountIsLiability ? "Pay Debt To" : "To Account")
         .font(.customFont(family: .quicksand, name: .bold, size: .x14))
         .foregroundStyle(Color.white)
       ScrollView(.horizontal, showsIndicators: false) {
@@ -100,12 +134,36 @@ struct AddTransferSheet: View {
 
   private var amountField: some View {
     VStack(alignment: .leading, spacing: 6) {
-      Text("Amount")
-        .font(.customFont(family: .quicksand, name: .bold, size: .x14))
-        .foregroundStyle(Color.white)
+      HStack {
+        Text("Amount")
+          .font(.customFont(family: .quicksand, name: .bold, size: .x14))
+          .foregroundStyle(Color.white)
+        if let warning = overpaymentWarning {
+          Spacer()
+          Text(warning)
+            .font(.customFont(family: .quicksand, name: .medium, size: .x12))
+            .foregroundStyle(Color.red)
+        }
+      }
       AppTextfield(inputText: $amountString, placeHolder: "0.00", keyboardType: .decimalPad)
         .frame(height: 48)
     }
+  }
+
+  private var moreOptionsToggle: some View {
+    Button {
+      withAnimation(.easeInOut(duration: 0.2)) { showMoreOptions.toggle() }
+    } label: {
+      HStack(spacing: 4) {
+        Text(showMoreOptions ? "Less options" : "More options")
+          .font(.customFont(family: .quicksand, name: .medium, size: .x12))
+          .foregroundStyle(Color.gray)
+        Image(systemName: showMoreOptions ? "chevron.up" : "chevron.down")
+          .font(.caption)
+          .foregroundStyle(Color.gray)
+      }
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
   }
 
   private var feeSection: some View {

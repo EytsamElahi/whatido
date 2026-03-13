@@ -231,9 +231,11 @@ final class AccountService: FirebaseService, AccountServiceProtocol {
       "lastTransactionAt": FieldValue.serverTimestamp()
     ], forDocument: fromRef)
 
+    // Paying to a liability (e.g. credit card) reduces the debt; receiving to an asset increases it
+    let toBalanceDelta = transfer.toAccountIsLiability ? -transfer.amount : transfer.amount
     let toRef = db.collection("accounts").document(transfer.toAccountId)
     batch.updateData([
-      "currentBalance": FieldValue.increment(transfer.amount),
+      "currentBalance": FieldValue.increment(toBalanceDelta),
       "lastTransactionAt": FieldValue.serverTimestamp()
     ], forDocument: toRef)
 

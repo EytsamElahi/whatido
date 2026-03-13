@@ -149,13 +149,16 @@ class AccountsViewModel: ObservableObject {
       guard let self = self else { return }
       self.isLoading = true
       defer { self.isLoading = false }
-      let fromName = accounts.first(where: { $0.id == fromAccountId })?.name ?? ""
-      let toName   = accounts.first(where: { $0.id == toAccountId })?.name ?? ""
+      let fromName         = accounts.first(where: { $0.id == fromAccountId })?.name ?? ""
+      let toAccount        = accounts.first(where: { $0.id == toAccountId })
+      let toName           = toAccount?.name ?? ""
+      let toIsLiability    = toAccount?.type.isLiability ?? false
       let transfer = AccountTransfer(
         fromAccountId: fromAccountId,
         fromAccountName: fromName,
         toAccountId: toAccountId,
         toAccountName: toName,
+        toAccountIsLiability: toIsLiability,
         amount: amount,
         fee: fee,
         currency: currency,
@@ -369,6 +372,10 @@ extension AccountsViewModel {
   }
 
   func markAsDefault(account: AccountDto) {
+    guard !account.type.isLiability else {
+      overlayManager.showToast(message: "Liability accounts cannot be set as default", style: .info)
+      return
+    }
     Task { [weak self] in
       guard let self = self else { return }
       self.overlayManager.showLoader()

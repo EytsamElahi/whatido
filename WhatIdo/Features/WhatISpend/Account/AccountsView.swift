@@ -55,20 +55,20 @@ private struct NetWorthHeaderView: View {
 
   var body: some View {
     VStack(spacing: 6) {
-      Text("Net Worth")
+      Text("What's Mine")
         .font(.subheadline)
         .foregroundColor(.gray)
       Text("\(CurrencyManager.shared.currencyCode) \(viewModel.netWorth, specifier: "%.0f")")
         .font(.system(size: 34, weight: .bold, design: .rounded))
         .foregroundColor(viewModel.netWorth < 0 ? .red : .white)
       HStack(spacing: 8) {
-        Text("Assets: \(CurrencyManager.shared.currencyCode) \(viewModel.totalAssets, specifier: "%.0f")")
+        Text("I Have: \(CurrencyManager.shared.currencyCode) \(viewModel.totalAssets, specifier: "%.0f")")
           .font(.caption)
           .foregroundColor(.green.opacity(0.8))
         Text("|")
           .font(.caption)
           .foregroundColor(.gray)
-        Text("Liabilities: \(CurrencyManager.shared.currencyCode) \(viewModel.totalLiabilities, specifier: "%.0f")")
+        Text("I Owe: \(CurrencyManager.shared.currencyCode) \(viewModel.totalLiabilities, specifier: "%.0f")")
           .font(.caption)
           .foregroundColor(.red.opacity(0.8))
       }

@@ -170,7 +170,6 @@ struct AddSpendingView: View {
   private var accountSection: some View {
     Group {
       if viewModel.accounts.isEmpty {
-        // No accounts — show unlinked placeholder
         HStack {
           VStack(alignment: .leading, spacing: 2) {
             Text("Unlinked")
@@ -189,11 +188,78 @@ struct AddSpendingView: View {
         .background(Color.white.opacity(0.05))
         .cornerRadius(12)
       } else {
-        CustomPickerView(
-          listing: viewModel.accounts.compactMap { $0.name },
-          pickedItem: $viewModel.selectedAccountName
-        )
-        .frame(height: 46)
+        accountPickerMenu
+          .frame(height: 46)
+      }
+    }
+  }
+
+  private var accountPickerMenu: some View {
+    let assets      = viewModel.accounts.filter { !$0.type.isLiability }
+    let liabilities = viewModel.accounts.filter {  $0.type.isLiability }
+    let selected    = viewModel.selectedAccount
+
+    return Menu {
+      Button {
+        viewModel.selectedAccountName = ""
+      } label: {
+        Label("None", systemImage: "xmark.circle")
+      }
+
+      if !assets.isEmpty {
+        Divider()
+        ForEach(assets, id: \.id) { acc in
+          Button {
+            viewModel.selectedAccountName = acc.name
+          } label: {
+            Label("\(acc.name)  ·  \(acc.type.displayName)", systemImage: acc.type.icon)
+          }
+        }
+      }
+
+      if !liabilities.isEmpty {
+        Divider()
+        ForEach(liabilities, id: \.id) { acc in
+          Button {
+            viewModel.selectedAccountName = acc.name
+          } label: {
+            Label("\(acc.name)  ·  \(acc.type.displayName)", systemImage: acc.type.icon)
+          }
+        }
+      }
+    } label: {
+      ZStack {
+        RoundedRectangle(cornerRadius: 12)
+          .fill(Color.white.opacity(0.08))
+        HStack {
+          if let acc = selected {
+            Image(systemName: acc.type.icon)
+              .font(.system(size: 13))
+              .foregroundStyle(acc.type.isLiability ? Color.red.opacity(0.8) : Color.appPrimaryColor)
+            Text(acc.name)
+              .font(.customFont(name: .medium, size: .x14))
+              .foregroundStyle(Color.white)
+            if acc.type.isLiability {
+              Text(acc.type.displayName.uppercased())
+                .font(.system(size: 9, weight: .bold))
+                .tracking(0.5)
+                .foregroundStyle(Color.red.opacity(0.7))
+                .padding(.horizontal, 5)
+                .padding(.vertical, 2)
+                .background(Color.red.opacity(0.12))
+                .clipShape(Capsule())
+            }
+          } else {
+            Text("Select Account")
+              .font(.customFont(name: .medium, size: .x14))
+              .foregroundStyle(Color.white.opacity(0.3))
+          }
+          Spacer()
+          Image(systemName: "chevron.down")
+            .font(.system(size: 12, weight: .bold))
+            .foregroundStyle(Color.appPrimaryColor)
+        }
+        .padding(.horizontal, 15)
       }
     }
   }

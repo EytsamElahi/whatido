@@ -62,7 +62,7 @@ class Spending: FirestoreIdentifiable {
   func convertToDto() -> SpendingDto {
     var spending = SpendingDto(id: self.id, name: self.name, amount: self.amount, date: self.date, type: self.spendingType?.name ?? "", created: self.created ?? Date(), spendingTypeId: spendingType?.id ?? -1, spendingCategoryId: spendingType?.catId ?? -1, isArchived: self.isArchived, project: SpendingProjectDto(id: projectInfo?.id, projectName: projectInfo?.name, projectIcon: projectInfo?.icon), account: nil, currencyCode: self.currencyCode)
     if let account = self.accountType {
-      let acc = SpendingAccountDto(id: account.accountId ?? "", name: account.name ?? "")
+      let acc = SpendingAccountDto(id: account.accountId ?? "", name: account.name ?? "", isLiability: account.isLiability)
       spending.account = acc
     }
     return spending
@@ -98,16 +98,19 @@ class DSpendingType: FirestoreIdentifiable {
 class DAccountType: Codable {
   let accountId: String?
   let name: String?
+  let isLiability: Bool
 
   required init(from decoder: any Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     self.name = try container.decodeIfPresent(String.self, forKey: .name)
     self.accountId = try container.decodeIfPresent(String.self, forKey: .accountId)
+    self.isLiability = try container.decodeIfPresent(Bool.self, forKey: .isLiability) ?? false
   }
 
-  init(name: String? = nil, accountId: String? = nil) {
+  init(name: String? = nil, accountId: String? = nil, isLiability: Bool = false) {
     self.name = name
     self.accountId = accountId
+    self.isLiability = isLiability
   }
 
 }

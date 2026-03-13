@@ -62,9 +62,10 @@ final class SpendingsService: FirebaseService, SpendingsServiceProtocol {
         return .error(FirestoreServiceError.documentNotFound.localizedDescription)
       }
 
-      // 2. Define the "Side Effect" (Amount minus karna)
+      // 2. Define the "Side Effect" — liability accounts increase on spend, assets decrease
+      let delta = spending.accountType?.isLiability == true ? spending.amount : -spending.amount
       let sideEffects: [DocumentReference: [String: Any]] = [
-        ref: ["currentBalance": FieldValue.increment(-spending.amount)]
+        ref: ["currentBalance": FieldValue.increment(delta)]
       ]
 
       // 3. Call the generic function
@@ -100,13 +101,13 @@ final class SpendingsService: FirebaseService, SpendingsServiceProtocol {
         endpoint: spendingEndpoint,
         params: [FirestoreQueryParam(key: "isArchived", value: true)]
       ))
-      // 2. REFUND ACCOUNT (Balance Logic)
-      if let accountId = spending.account?.id {
-        let accountEndpoint = FirestoreEndpoints.createAccount(id: accountId)
-
+      // 2. REFUND ACCOUNT (Balance Logic) — reverse the direction used during addSpending
+      if let account = spending.account {
+        let accountEndpoint = FirestoreEndpoints.createAccount(id: account.id)
+        let refund = account.isLiability ? -spending.amount : spending.amount
         instructions.append((
           endpoint: accountEndpoint,
-          params: [FirestoreQueryParam(key: "currentBalance", value: FieldValue.increment(spending.amount))]
+          params: [FirestoreQueryParam(key: "currentBalance", value: FieldValue.increment(refund))]
         ))
       }
 
@@ -159,20 +160,22 @@ final class SpendingsService: FirebaseService, SpendingsServiceProtocol {
       instructions.append((endpoint: spendingEndpoint, params: spendingParams))
 
       // MARK: - 2. Account Balance Logic (Revert & Apply)
-      if let oldAccId = oldSpending.account?.id {
-        let oldAccEndpoint = FirestoreEndpoints.createAccount(id: oldAccId)
+      if let oldAcc = oldSpending.account {
+        let oldAccEndpoint = FirestoreEndpoints.createAccount(id: oldAcc.id)
+        let revert = oldAcc.isLiability ? -oldSpending.amount : oldSpending.amount
         instructions.append((
           endpoint: oldAccEndpoint,
-          params: [FirestoreQueryParam(key: "currentBalance", value: FieldValue.increment(oldSpending.amount))]
+          params: [FirestoreQueryParam(key: "currentBalance", value: FieldValue.increment(revert))]
         ))
       }
 
-      // Step B: Deduct from New Account
+      // Step B: Apply to New Account
       if let newAccId = newSpending.accountType?.accountId {
         let newAccEndpoint = FirestoreEndpoints.createAccount(id: newAccId)
+        let apply = newSpending.accountType?.isLiability == true ? newSpending.amount : -newSpending.amount
         instructions.append((
           endpoint: newAccEndpoint,
-          params: [FirestoreQueryParam(key: "currentBalance", value: FieldValue.increment(-newSpending.amount))]
+          params: [FirestoreQueryParam(key: "currentBalance", value: FieldValue.increment(apply))]
         ))
       }
 

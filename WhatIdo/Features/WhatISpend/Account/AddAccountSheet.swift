@@ -31,11 +31,19 @@ struct AddAccountSheet: View {
     }
 
     private var sheetHeight: CGFloat {
-        let hasSources = !viewModel.incomeSources.isEmpty
+        let showSources = !viewModel.incomeSources.isEmpty && !selectedType.isLiability
         if editing {
-            return hasSources ? 300 : 240
+            return showSources ? 300 : 240
         } else {
-            return hasSources ? 360 : 300
+            return showSources ? 360 : 300
+        }
+    }
+
+    private var balancePlaceholder: String {
+        switch selectedType {
+        case .creditCard: return "Current Debt"
+        case .loan:       return "Loan Amount"
+        default:          return "Initial Amount"
         }
     }
 
@@ -52,7 +60,7 @@ struct AddAccountSheet: View {
                             .padding(.leading, 10)
                         ZStack(alignment: .leading) {
                             if balance == nil {
-                                Text("Initial Amount")
+                                Text(balancePlaceholder)
                                     .font(.customFont(name: .regular, size: .x16))
                                     .foregroundColor(Color.white.opacity(0.3))
                                     .padding(.leading, 15)
@@ -105,7 +113,7 @@ struct AddAccountSheet: View {
                     }
                 }
 
-                if !viewModel.incomeSources.isEmpty {
+                if !viewModel.incomeSources.isEmpty && !selectedType.isLiability {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Source")
                             .font(.customFont(family: .quicksand, name: .bold, size: .x14))
@@ -157,8 +165,11 @@ struct AddAccountSheet: View {
 
     private func actionButton() {
         if !editing {
-            if let balance = balance, balance > 0 {
-                viewModel.createAccount(name: name, type: selectedType, balance: balance, sourceId: sourceId)
+            if let balance = balance {
+                let isValid = selectedType.isLiability ? balance >= 0 : balance > 0
+                if isValid {
+                    viewModel.createAccount(name: name, type: selectedType, balance: balance, sourceId: sourceId)
+                }
             }
         } else {
             viewModel.updateAccount(name: name, type: selectedType, sourceId: sourceId)

@@ -32,6 +32,7 @@ struct SpendingProjectDto: Hashable, AppDataType {
 struct SpendingAccountDto: Hashable, Codable {
   let id: String
   let name: String
+  var isLiability: Bool = false
 }
 
 extension SpendingDto {

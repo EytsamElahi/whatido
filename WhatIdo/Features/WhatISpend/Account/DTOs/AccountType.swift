@@ -14,13 +14,12 @@ enum AccountType: String, Codable, CaseIterable, Identifiable {
   // Liabilities
   case creditCard    = "creditCard"
   case loan          = "loan"
-  case mortgage      = "mortgage"
 
   var id: String { rawValue }
 
   var isLiability: Bool {
     switch self {
-    case .creditCard, .loan, .mortgage: return true
+    case .creditCard, .loan: return true
     default: return false
     }
   }
@@ -34,7 +33,6 @@ enum AccountType: String, Codable, CaseIterable, Identifiable {
     case .savings:       return "Savings"
     case .creditCard:    return "Credit Card"
     case .loan:          return "Loan"
-    case .mortgage:      return "Mortgage"
     }
   }
 
@@ -47,7 +45,6 @@ enum AccountType: String, Codable, CaseIterable, Identifiable {
     case .savings:       return "piggybank"
     case .creditCard:    return "creditcard"
     case .loan:          return "doc.text"
-    case .mortgage:      return "house"
     }
   }
 

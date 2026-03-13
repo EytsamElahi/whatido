@@ -112,7 +112,7 @@ class AddSpendingViewModel: ObservableObject {
     let date = dateTf.toTimeStamp(format: "MM/dd/yyyy") ?? Date()
     let accountTypeInfo: DAccountType
     if let account = selectedAccount {
-      accountTypeInfo = DAccountType(name: account.name, accountId: account.id)
+      accountTypeInfo = DAccountType(name: account.name, accountId: account.id, isLiability: account.type.isLiability)
     } else {
       accountTypeInfo = DAccountType(name: "Unlinked", accountId: nil)
     }

@@ -17,10 +17,12 @@ struct AccountCardView: View {
 
     var body: some View {
         ZStack(alignment: .topLeading) {
+            let isLiability = account.type.isLiability
+            let gradientBase = isLiability ? Color(hex: "#3a1a1a") : Color(hex: "#2c2c2e")
             RoundedRectangle(cornerRadius: 24)
                 .fill(
                     LinearGradient(
-                        colors: [Color(hex: "#2c2c2e"), Color.black],
+                        colors: [gradientBase, Color.black],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
@@ -28,11 +30,11 @@ struct AccountCardView: View {
                 .overlay(
                     // Subtle Border
                     RoundedRectangle(cornerRadius: 24)
-                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                        .stroke(isLiability ? Color.red.opacity(0.25) : Color.white.opacity(0.1), lineWidth: 1)
                 )
             GeometryReader { proxy in
                 Circle()
-                    .fill(brandColor.opacity(0.1))
+                    .fill(isLiability ? Color.red.opacity(0.08) : brandColor.opacity(0.1))
                     .frame(width: 150, height: 150)
                     .offset(x: proxy.size.width - 80, y: -60)
                     .blur(radius: 30)
@@ -55,11 +57,11 @@ struct AccountCardView: View {
                             }
                         }
 
-                        // Type Badge (Bank/Cash)
-                        Text(account.type.rawValue.uppercased())
+                        // Type Badge
+                        Text(account.type.displayName.uppercased())
                             .font(.system(size: 10, weight: .bold))
                             .tracking(1)
-                            .foregroundColor(brandColor) // Teal Color Text
+                            .foregroundColor(isLiability ? .red.opacity(0.8) : brandColor)
                     }
 
                     Spacer()
@@ -76,15 +78,22 @@ struct AccountCardView: View {
                 HStack(alignment: .bottom) {
 
                     // Balance (Hero)
-                    HStack(alignment: .firstTextBaseline, spacing: 2) {
-                        Text(CurrencyManager.shared.symbol)
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(.gray)
-                            .padding(.bottom, 2) // Thora alignment fix
+                    VStack(alignment: .leading, spacing: 2) {
+                        if isLiability {
+                            Text("You owe")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.red.opacity(0.7))
+                        }
+                        HStack(alignment: .firstTextBaseline, spacing: 2) {
+                            Text(CurrencyManager.shared.symbol)
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(isLiability ? .red.opacity(0.7) : .gray)
+                                .padding(.bottom, 2)
 
-                        Text("\(account.currentBalance, specifier: "%.0f")")
-                            .font(.system(size: 28, weight: .bold, design: .rounded))
-                            .foregroundColor(.white)
+                            Text("\(account.currentBalance, specifier: "%.0f")")
+                                .font(.system(size: 28, weight: .bold, design: .rounded))
+                                .foregroundColor(isLiability ? .red : .white)
+                        }
                     }
 
                     Spacer()
@@ -120,7 +129,7 @@ struct AccountCardView: View {
             } label: {
                 Label("Adjust Balance", systemImage: "plus.forwardslash.minus")
             }
-            if !account.isDefault {
+            if !account.isDefault && !account.type.isLiability {
                 Button {
                     onMarkAsDefault()
                 } label: {
