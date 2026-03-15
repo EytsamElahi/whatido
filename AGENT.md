@@ -65,3 +65,49 @@ To build and maintain a robust, scalable iOS application that tracks user goals,
 - When generating code, prioritize readability and modern Swift concurrency (`async`/`await`) over closures.
 - If you encounter ambiguous requirements, ask for clarification regarding the specific data model or user flow before implementing.
 - **ALWAYS implement analytics tracking** when adding new features or user actions. No feature is complete without proper analytics.
+
+---
+
+## 6. Task Completion Protocol
+
+You are not done when the code compiles. You are done when the code is reviewed.
+
+After completing ANY coding task — whether a single function, a full feature, or a sprint item — you MUST run this protocol before responding with "done" or "complete":
+
+### Step 1: List modified files
+State every file you created or changed in this task.
+
+### Step 2: Self-review each file
+For each file, check against these non-negotiables:
+- [ ] No force unwraps introduced
+- [ ] No retain cycles in closures (weak self in Tasks)
+- [ ] Analytics added if new user action exists
+- [ ] No business logic in Views
+- [ ] Functions under 50 lines
+- [ ] No print() statements
+
+### Step 3: Output your verdict
+Use this exact format:
+```
+── Task Review ──────────────────────
+Modified: AuthViewModel.swift, LoginView.swift
+
+✅ AuthViewModel.swift — passed all checks
+⚠️  LoginView.swift — [WARNING] business logic on line 47, move to ViewModel
+
+Verdict: NEEDS FIX before complete
+────────────────────────────────────
+```
+
+Verdicts:
+- READY TO PUSH — all files passed
+- NEEDS FIX — list issues, fix them, re-run protocol
+- NEEDS DISCUSSION — architectural question, ask user before proceeding
+
+### Step 4: Deep review on request
+If user says "deep review", "architecture review", or "full review" — also check:
+- SOLID principles adherence
+- Testability (is this mockable via protocol?)
+- Firestore read/write efficiency
+- SwiftUI performance (unnecessary re-renders, heavy view bodies)
+- Missing edge cases from the happy path

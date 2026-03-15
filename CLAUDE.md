@@ -147,3 +147,28 @@
 - [ ] Verify no force unwraps or print statements
 - [ ] Keep functions under 50 lines, Views under 300 lines
 - [ ] **Add analytics tracking for new features/actions**
+
+---
+
+## Pre-Push Code Review (Self-Review Protocol)
+
+Before marking any task complete, silently verify every file you modified:
+
+### Silent checks (no output needed if passing)
+- No force unwraps (`!`) introduced
+- No `print()` statements added
+- No retain cycles — `[weak self]` used in all Task closures
+- Functions remain under 50 lines
+- Views remain under 300 lines
+- No business logic added to Views
+- New user actions have analytics tracking
+
+### Output a review block only if issues found
+Format:
+```
+⚠️ Review findings:
+[WARNING] FileName.swift — issue — suggested fix
+[CRITICAL] FileName.swift — issue — suggested fix
+```
+Do not mark the task complete until all CRITICAL issues are resolved.
+SUGGESTION and NITPICK level findings can be noted and left for the user to decide.
