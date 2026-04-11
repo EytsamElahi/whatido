@@ -32,7 +32,7 @@ struct AddAccountSheet: View {
 
     private var sheetHeight: CGFloat {
         let showSources = !viewModel.incomeSources.isEmpty && !selectedType.isLiability
-        if editing {
+        if editing || selectedType == .cash {
             return showSources ? 300 : 240
         } else {
             return showSources ? 360 : 300
@@ -102,8 +102,10 @@ struct AddAccountSheet: View {
 
                 VStack(spacing: 10) {
                     HStack {
-                        AppTextfield(inputText: $name, placeHolder: "Account Name", maxLength: 40)
-                            .frame(height: 48)
+                        if selectedType != .cash {
+                            AppTextfield(inputText: $name, placeHolder: "Account Name", maxLength: 40)
+                                .frame(height: 48)
+                        }
                         CustomPickerView(listing: AccountType.allCases.map { $0.displayName },
                                          pickedItem: $selectedAccountTypeString)
                         .frame(height: 48)
@@ -144,8 +146,13 @@ struct AddAccountSheet: View {
                 .disabled(viewModel.isLoading)
             }.padding(.horizontal).padding(.bottom, 8)
         }.onChange(of: selectedAccountTypeString) { new in
-            let type = AccountType.allCases.first(where: { $0.displayName == new })
-            self.selectedType = type ?? .bank
+            let type = AccountType.allCases.first(where: { $0.displayName == new }) ?? .bank
+            self.selectedType = type
+            if type == .cash {
+                self.name = "Cash"
+            } else if self.name == "Cash" {
+                self.name = ""
+            }
         }
         .onAppear {
             if let account = viewModel.selectedAccount {

@@ -190,7 +190,8 @@ class AddSpendingViewModel: ObservableObject {
       let result = await accountService.getAllAccounts()
       switch result {
       case .data(let data):
-        self.accounts = data.filter { !$0.isArchived }
+        let filtered = data.filter { !$0.isArchived }
+        self.accounts = filtered.sorted { $0.isDefault == true && $1.isDefault != true }
         if let editId = self.pendingEditAccountId {
           self.selectAccount(id: editId)
         } else if let account = accounts.first(where: { $0.isDefault == true }) {

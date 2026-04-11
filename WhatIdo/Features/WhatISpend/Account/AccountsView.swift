@@ -368,7 +368,7 @@ private struct AccountFabView: View {
       HStack {
         Spacer()
         HStack(spacing: 12) {
-          if viewModel.selectedTab == .accounts || viewModel.selectedTab == .transfers {
+          if !viewModel.accounts.isEmpty && (viewModel.selectedTab == .accounts || viewModel.selectedTab == .transfers) {
             Button {
               viewModel.showTransferSheet = true
             } label: {
@@ -380,15 +380,17 @@ private struct AccountFabView: View {
                 .clipShape(Circle())
             }
           }
-          Button {
-            viewModel.openSheet(tab: viewModel.selectedTab)
-          } label: {
-            Image(systemName: "plus")
-              .font(.title2.bold())
-              .foregroundColor(.black)
-              .frame(width: 56, height: 56)
-              .background(Color.appPrimaryColor)
-              .clipShape(Circle())
+          if viewModel.selectedTab != .transfers {
+            Button {
+              viewModel.openSheet(tab: viewModel.selectedTab)
+            } label: {
+              Image(systemName: "plus")
+                .font(.title2.bold())
+                .foregroundColor(.black)
+                .frame(width: 56, height: 56)
+                .background(Color.appPrimaryColor)
+                .clipShape(Circle())
+            }
           }
         }
         .padding()

@@ -15,6 +15,7 @@ struct AddTransferSheet: View {
   @State private var feeString: String = ""
   @State private var note: String = ""
   @State private var showMoreOptions: Bool = false
+  @State private var showConfirmAlert: Bool = false
 
   private var assetAccounts: [AccountDto] {
     viewModel.accounts.filter { !$0.type.isLiability }
@@ -88,6 +89,14 @@ struct AddTransferSheet: View {
     .onAppear { setupDefaults() }
     .onChange(of: fromAccountId) { _ in
       if toAccountId == fromAccountId { toAccountId = "" }
+    }
+    .alert("Confirm Transfer", isPresented: $showConfirmAlert) {
+      Button("Confirm") { performTransfer() }
+      Button("Cancel", role: .cancel) {}
+    } message: {
+      let currency = AppData.prefCurrency?.code ?? ""
+      let amount = Double(amountString) ?? 0
+      Text("Transfer \(currency) \(String(format: "%.0f", amount)) between accounts?")
     }
     .presentationDetents([.height(sheetHeight)])
     .presentationDragIndicator(.hidden)
@@ -209,25 +218,22 @@ struct AddTransferSheet: View {
   }
 
   private func confirmTransfer() {
+    guard Double(amountString) != nil else { return }
+    hideKeyboard()
+    showConfirmAlert = true
+  }
+
+  private func performTransfer() {
     guard let amount = Double(amountString), amount > 0 else { return }
     guard let currency = AppData.prefCurrency?.code else { return }
     let fee: Double? = includeFee ? Double(feeString) : nil
-
-    OverlayManager.shared.showPopup(
-      title: "Confirm Transfer",
-      message: "Transfer \(currency) \(String(format: "%.0f", amount)) between accounts?",
-      style: .info,
-      primaryAction: PopupAction(title: "Confirm", role: nil) {
-        viewModel.addTransfer(
-          fromAccountId: fromAccountId,
-          toAccountId: toAccountId,
-          amount: amount,
-          fee: fee,
-          currency: currency,
-          note: note.isEmpty ? nil : note
-        )
-      },
-      secondaryAction: PopupAction(title: "Cancel", role: .cancel) {}
+    viewModel.addTransfer(
+      fromAccountId: fromAccountId,
+      toAccountId: toAccountId,
+      amount: amount,
+      fee: fee,
+      currency: currency,
+      note: note.isEmpty ? nil : note
     )
   }
 }
