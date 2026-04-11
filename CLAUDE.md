@@ -172,3 +172,16 @@ Format:
 ```
 Do not mark the task complete until all CRITICAL issues are resolved.
 SUGGESTION and NITPICK level findings can be noted and left for the user to decide.
+
+---
+
+## Session Management
+
+### On every session START:
+- Read `HANDOFF.md` automatically
+- Summarize the last session and current status
+- Ask: "Ready to continue. Shall we pick up where we left off?"
+
+### On every session END (when user says "bye", "done", "wrap up", or "end session"):
+- Update `HANDOFF.md` with today's date, what was done, what's in progress, next steps, and any gotchas
+- Confirm: "Handoff saved. See you next time."
