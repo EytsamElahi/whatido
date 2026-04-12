@@ -67,7 +67,7 @@ class BudgetViewModel: ObservableObject {
             case .error(let errorMessage):
                 self.overlayManager.showToast(message: errorMessage, style: .error)
             default:
-                debugPrint("")
+                break
             }
         }
     }

@@ -5,6 +5,7 @@
 //  Created by eytsam elahi on 28/04/2025.
 //
 
+import OSLog
 import SwiftUI
 import FirebaseCore
 import FirebaseAppCheck
@@ -12,25 +13,27 @@ import FirebaseFirestore
 import FirebaseMessaging
 import UserNotifications
 
+private let appLogger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "", category: "AppDelegate")
+
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
         AppCheck.setAppCheckProviderFactory(AppCheckDebugProviderFactory())
         // Load Firebase plist based on environment
 #if DEBUG
-        print("🔧 App Environment: \(AppConfiguration.shared.environment.rawValue)")
+        appLogger.debug("App Environment: \(AppConfiguration.shared.environment.rawValue, privacy: .public)")
 #endif
-        
+
         if let filePath = AppConfiguration.shared.firebasePlistPath,
            let options = FirebaseOptions(contentsOfFile: filePath) {
 #if DEBUG
-            print("🔥 Firebase configured with plist: \(filePath)")
+            appLogger.debug("Firebase configured with plist: \(filePath, privacy: .public)")
 #endif
             FirebaseApp.configure(options: options)
         } else {
             // Fallback to default configuration
 #if DEBUG
-            print("⚠️ Firebase using default configuration (no custom plist found)")
+            appLogger.warning("Firebase using default configuration (no custom plist found)")
 #endif
             FirebaseApp.configure()
         }
@@ -59,7 +62,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 extension AppDelegate: UNUserNotificationCenterDelegate {
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         let token = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
-        debugPrint("Device Token: \(token)")
+        appLogger.debug("Device Token: \(token, privacy: .private)")
         FirebaseMessaging.Messaging.messaging().apnsToken = deviceToken
     }
 
@@ -75,7 +78,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
 
 extension AppDelegate: FirebaseMessaging.MessagingDelegate {
     func messaging(_ messaging: FirebaseMessaging.Messaging, didReceiveRegistrationToken fcmToken: String?) {
-        debugPrint("Firebase registration token: \(String(describing: fcmToken))")
+        appLogger.debug("Firebase registration token: \(fcmToken ?? "nil", privacy: .private)")
         AppData.fcmToken = fcmToken
     }
 }

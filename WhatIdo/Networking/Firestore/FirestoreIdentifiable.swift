@@ -7,6 +7,9 @@
 
 import Foundation
 import FirebaseFirestore
+import OSLog
+
+private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "", category: "FirestoreIdentifiable")
 
 protocol FirestoreIdentifiable: Hashable, Codable, Identifiable {
     var id: String { get set }
@@ -28,7 +31,7 @@ extension Encodable {
                 }
             }
         } catch {
-            print("Failed to encode object to dictionary: \(error)")
+            logger.error("Failed to encode object to dictionary: \(error.localizedDescription, privacy: .public)")
         }
         return [:]
     }

@@ -6,6 +6,7 @@
 //
 
 
+import OSLog
 import SwiftUI
 import Combine
 
@@ -30,6 +31,7 @@ class ProjectsViewModel: BaseViewModel {
     private let eventBus: PassthroughSubject<AppGlobalEvent, Never>
     private let overlayManager = OverlayManager.shared
     private let analytics = AnalyticsManager.shared
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "", category: "ProjectsViewModel")
 
     init(projectService: ProjectsServiceProtocol = ProjectsService(), 
          spendingService: SpendingsServiceProtocol = SpendingsService(),
@@ -96,7 +98,7 @@ class ProjectsViewModel: BaseViewModel {
             case .error(let errorMessage):
                 OverlayManager.shared.showToast(message: errorMessage, style: .error)
             default:
-                debugPrint("")
+                break
             }
         }
     }
@@ -201,7 +203,7 @@ class ProjectsViewModel: BaseViewModel {
                     self.isDataLoading = false
                 }
             } catch {
-                print("Stream error: \(error.localizedDescription)")
+                self.logger.error("Stream error: \(error.localizedDescription, privacy: .public)")
                 self.isDataLoading = false
             }
         }

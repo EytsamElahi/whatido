@@ -24,7 +24,6 @@ class AppDependencyContainer {
   private lazy var budgetsService: BudgetsServiceProtocol = BudgetsService()
   private lazy var authService: AuthServiceProtocol = FirebaseAuthService()
   private lazy var accountService: AccountServiceProtocol = AccountService()
-  private lazy var goalsService: GoalsServiceProtocol = GoalsService()
   private lazy var userRepo: UserRepositoryType = UserRepository()
 
   // THE EVENT BUS (Signal)
@@ -81,13 +80,8 @@ class AppDependencyContainer {
   }
 
   @MainActor
-  func makeGoalsViewModel() -> GoalsViewModel {
-    return GoalsViewModel(goalsService: goalsService)
-  }
-
-  @MainActor
   func makeLoginViewModel() -> AuthenticationViewModel {
-    return AuthenticationViewModel(authService: authService)
+    return AuthenticationViewModel(authService: authService, userRepo: userRepo)
   }
 
   @MainActor

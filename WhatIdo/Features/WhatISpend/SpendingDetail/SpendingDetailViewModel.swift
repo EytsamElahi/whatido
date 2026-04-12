@@ -45,7 +45,6 @@ class SpendingDetailViewModel: BaseViewModel {
                 pieChartData.append(PieChartModel(id: spending.spendingCategoryId, name: categoryName, value: spending.amount))
             }
         }
-        debugPrint(pieChartData)
         DispatchQueue.main.async {
             self.pieChartData = pieChartData
 

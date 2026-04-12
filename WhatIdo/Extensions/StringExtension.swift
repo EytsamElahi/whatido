@@ -124,7 +124,6 @@ extension String {
         // Set the locale to ensure month and day are parsed correctly
          dateFormatter.locale = .current//Locale(identifier: "en_US")
 
-        print(cleanedDateString)
         // Attempt to parse the date string into a Date object
          return dateFormatter.date(from: cleanedDateString)
     }

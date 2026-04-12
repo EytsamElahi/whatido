@@ -34,11 +34,18 @@ class SpendingsViewModel: ObservableObject {
   @Published var showAddSheet: Bool = false
   @Published var showBudgetSheet: Bool = false
   @Published var showProjectsSheet: Bool = false
+  @Published var showFilterSheet: Bool = false
+  @Published var showSearchBar: Bool = false
 
   // Delete Spending
   @Published var showDeleteConfirmationAlert: Bool = false
   var spendingToDelete: SpendingDto?
   var spendingToDeleteIndex: Int?
+
+  // MARK: - Search / Filter / Sort
+  @Published var searchText: String = ""
+  @Published var filters: SpendingFilters = SpendingFilters()
+  @Published var sortOption: SpendingSortOption = .default
 
   // Loading State
   @Published var isDataLoading: Bool = false
@@ -106,7 +113,7 @@ class SpendingsViewModel: ObservableObject {
       }
 
       // 2. Fetch Budget
-      let budgetId = "\(currentMonthDate?.components.year ?? 0)_\(currentMonth)"
+      let budgetId = "\(AppData.user?.id ?? "")_\(currentMonthDate?.components.year ?? 0)_\(currentMonth)"
       let budgetResult = await budgetService.getMonthlyBudget(id: budgetId)
       if case .data(let budget) = budgetResult {
         self.monthlyBudget = budget
@@ -144,16 +151,11 @@ class SpendingsViewModel: ObservableObject {
   }
 
   func getCurrentMonthBudget() {
-    let budgetId = "\(currentMonthDate?.components.year ?? 0)_\(currentMonth)"
+    let budgetId = "\(AppData.user?.id ?? "")_\(currentMonthDate?.components.year ?? 0)_\(currentMonth)"
     Task { @MainActor in
       let result = await budgetService.getMonthlyBudget(id: budgetId)
-      switch result {
-      case .data(let budget):
+      if case .data(let budget) = result {
         self.monthlyBudget = budget
-      case .error(let error):
-        debugPrint("Error in fetching budget \(error)")
-      default:
-        debugPrint("Default")
       }
     }
   }
@@ -175,33 +177,104 @@ class SpendingsViewModel: ObservableObject {
 
 // MARK: - Spending Filters
 extension SpendingsViewModel {
-  // Sorting logic can remain here or move to a helper
   func updatedSorting() {
-    guard let spendings = self.currentMonthSpendings else {
-      return
-    }
-
+    guard let spendings = self.currentMonthSpendings else { return }
     let sortedSpendings = sortSpendings(spendings: spendings)
     self.currentMonthSpendings = sortedSpendings
   }
 
   private func sortSpendings(spendings: [SpendingDto]) -> [SpendingDto] {
-    guard !spendings.isEmpty else {
-      return []
-    }
+    guard !spendings.isEmpty else { return [] }
     var sortedSpendings = [SpendingDto]()
     switch selectedSortType.id {
     case 0:
-      sortedSpendings = spendings.sorted { (spending1, spending2) -> Bool in
-        return spending1.date > spending2.date
-      }
+      sortedSpendings = spendings.sorted { $0.date > $1.date }
     case 1:
-      sortedSpendings = spendings.sorted { (spending1, spending2) -> Bool in
-        return spending1.amount > spending2.amount
-      }
+      sortedSpendings = spendings.sorted { $0.amount > $1.amount }
     default:
       return []
     }
     return sortedSpendings
+  }
+
+  // MARK: - Search / Filter / Sort Computed Properties
+  var availableCategories: [String] {
+    guard let spendings = currentMonthSpendings else { return [] }
+    return Array(Set(spendings.map { $0.type })).sorted()
+  }
+
+  var filteredSpendings: [SpendingDto] {
+    guard let spendings = currentMonthSpendings else { return [] }
+    var result = applyFilters(to: spendings)
+    if !searchText.isEmpty { result = applySearch(to: result) }
+    return result.sorted(by: sortOption)
+  }
+
+  var budgetProgress: Double {
+    let budgetTotal = convertedBudgetAmount
+    guard budgetTotal > 0 else { return 0 }
+    return Double(totalSpending) / budgetTotal
+  }
+
+  private func applyFilters(to spendings: [SpendingDto]) -> [SpendingDto] {
+    var result = spendings
+
+    if filters.dateRange != .all {
+      let calendar = Calendar.current
+      let now = Date()
+      result = result.filter { spending in
+        switch filters.dateRange {
+        case .all: return true
+        case .today: return calendar.isDateInToday(spending.date)
+        case .last7Days:
+          guard let ago = calendar.date(byAdding: .day, value: -7, to: now) else { return true }
+          return spending.date >= ago
+        case .last14Days:
+          guard let ago = calendar.date(byAdding: .day, value: -14, to: now) else { return true }
+          return spending.date >= ago
+        case .thisWeek:
+          return calendar.isDate(spending.date, equalTo: now, toGranularity: .weekOfYear)
+        }
+      }
+    }
+
+    if filters.amountRange != .all {
+      result = result.filter { filters.amountRange.matches(amount: $0.amount) }
+    }
+
+    if !filters.categories.isEmpty {
+      result = result.filter { filters.categories.contains($0.type) }
+    }
+
+    if filters.hasProject != .all {
+      result = result.filter { spending in
+        let hasValidProject = spending.project?.id != nil && !(spending.project?.id?.isEmpty ?? true)
+        switch filters.hasProject {
+        case .all: return true
+        case .withProject: return hasValidProject
+        case .withoutProject: return !hasValidProject
+        }
+      }
+    }
+
+    return result
+  }
+
+  private func applySearch(to spendings: [SpendingDto]) -> [SpendingDto] {
+    let query = searchText.lowercased().trimmingCharacters(in: .whitespaces)
+    let dateFormatter = DateFormatter()
+    dateFormatter.dateStyle = .medium
+
+    return spendings.filter { spending in
+      if spending.name.lowercased().contains(query) { return true }
+      if spending.type.lowercased().contains(query) { return true }
+      if String(format: "%.2f", spending.amount).contains(query) { return true }
+      if dateFormatter.string(from: spending.date).lowercased().contains(query) { return true }
+      if let projectName = spending.project?.projectName?.lowercased(),
+         projectName.contains(query) { return true }
+      if let currency = spending.currencyCode?.lowercased(),
+         currency.contains(query) { return true }
+      return false
+    }
   }
 }

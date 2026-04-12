@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import Combine
 
 struct SpendsListingView: View {
   @EnvironmentObject var navigation: NavigationManager
@@ -17,303 +16,27 @@ struct SpendsListingView: View {
   @State private var showAddAccountSheet: Bool = false
   @State private var showNoAccountPopup = false
   @State private var addSpendingVM: AddSpendingViewModel?
-  @State private var searchText: String = ""
   @FocusState private var isSearchFocused: Bool
   @State private var keyboardHeight: CGFloat = 0
-  @State private var filters: SpendingFilters = SpendingFilters()
-  @State private var showFilterSheet: Bool = false
-  @State private var sortOption: SpendingSortOption = .default
-  @State private var showSearchBar: Bool = false
 
-  // MARK: - Available Categories (extracted from spendings)
-  private var availableCategories: [String] {
-    guard let spendings = viewModel.currentMonthSpendings else { return [] }
-    let categories = Set(spendings.map { $0.type })
-    return Array(categories).sorted()
-  }
-
-  // MARK: - Filtered & Sorted Spendings
-  private var filteredSpendings: [SpendingDto] {
-    guard let spendings = viewModel.currentMonthSpendings else { return [] }
-
-    var result = spendings
-
-    // Apply filters first
-    result = applyFilters(to: result)
-
-    // Then apply search
-    if !searchText.isEmpty {
-      result = applySearch(to: result)
-    }
-
-    // Finally apply sorting
-    result = result.sorted(by: sortOption)
-
-    return result
-  }
-
-  private func applyFilters(to spendings: [SpendingDto]) -> [SpendingDto] {
-    var result = spendings
-
-    // Date Range Filter
-    if filters.dateRange != .all {
-      let calendar = Calendar.current
-      let now = Date()
-
-      result = result.filter { spending in
-        switch filters.dateRange {
-        case .all:
-          return true
-        case .today:
-          return calendar.isDateInToday(spending.date)
-        case .last7Days:
-          guard let sevenDaysAgo = calendar.date(byAdding: .day, value: -7, to: now) else { return true }
-          return spending.date >= sevenDaysAgo
-        case .last14Days:
-          guard let fourteenDaysAgo = calendar.date(byAdding: .day, value: -14, to: now) else { return true }
-          return spending.date >= fourteenDaysAgo
-        case .thisWeek:
-          return calendar.isDate(spending.date, equalTo: now, toGranularity: .weekOfYear)
-        }
-      }
-    }
-
-    // Amount Range Filter
-    if filters.amountRange != .all {
-      result = result.filter { filters.amountRange.matches(amount: $0.amount) }
-    }
-
-    // Category Filter
-    if !filters.categories.isEmpty {
-      result = result.filter { filters.categories.contains($0.type) }
-    }
-
-    // Project Filter
-    if filters.hasProject != .all {
-      result = result.filter { spending in
-        // Check if project has a valid id (not just exists as empty object)
-        let hasValidProject = spending.project?.id != nil && !(spending.project?.id?.isEmpty ?? true)
-
-        switch filters.hasProject {
-        case .all:
-          return true
-        case .withProject:
-          return hasValidProject
-        case .withoutProject:
-          return !hasValidProject
-        }
-      }
-    }
-
-    return result
-  }
-
-  private func applySearch(to spendings: [SpendingDto]) -> [SpendingDto] {
-    let query = searchText.lowercased().trimmingCharacters(in: .whitespaces)
-    let dateFormatter = DateFormatter()
-    dateFormatter.dateStyle = .medium
-
-    return spendings.filter { spending in
-      // Search by name
-      if spending.name.lowercased().contains(query) { return true }
-
-      // Search by type/category
-      if spending.type.lowercased().contains(query) { return true }
-
-      // Search by amount
-      let amountString = String(format: "%.2f", spending.amount)
-      if amountString.contains(query) { return true }
-
-      // Search by date
-      let dateString = dateFormatter.string(from: spending.date).lowercased()
-      if dateString.contains(query) { return true }
-
-      // Search by project name
-      if let projectName = spending.project?.projectName?.lowercased(),
-         projectName.contains(query) { return true }
-
-      // Search by currency
-      if let currency = spending.currencyCode?.lowercased(),
-         currency.contains(query) { return true }
-
-      return false
-    }
-  }
-
-  var budgetProgress: Double {
-    let budgetTotal = viewModel.convertedBudgetAmount
-    guard budgetTotal > 0 else { return 0 }
-    return Double(viewModel.totalSpending) / budgetTotal
-  }
-
-  var progressBarColor: Color {
-    if budgetProgress >= 1.0 { return .red } // Budget exceeded
-    if budgetProgress >= 0.8 { return .orange } // Warning
-    return .green // Safe
+  private var progressBarColor: Color {
+    if viewModel.budgetProgress >= 1.0 { return .red }
+    if viewModel.budgetProgress >= 0.8 { return .orange }
+    return .green
   }
 
   var body: some View {
-    GeometryReader { proxy in
+    GeometryReader { _ in
       ZStack {
         Color.appBackground.ignoresSafeArea()
 
         VStack(alignment: .leading) {
-          // MARK: - 1. Custom Header (hidden when search is active)
-          if !showSearchBar {
-            AppHeaderView(
-              title: viewModel.currentMonth,
-              trailingButtonIcon: "folder.fill",
-              secondTrailingButtonIcon: "creditcard.fill",
-              backAction: {
-                navigation.push(screen: .settings)
-              },
-              trailingButtonAction: {
-                navigation.push(screen: .projectListing)
-              },
-              secondTrailingButtonAction: {
-                navigation.push(screen: .myAccounts)
-              },
-              isBackButton: false
-            )
-            .transition(.asymmetric(
-              insertion: .opacity.combined(with: .move(edge: .top)),
-              removal: .opacity
-            ))
-
-            // MARK: - 2. Smart Hero Card
-            SpendingsHeroSection(budgetProgress: budgetProgress, progressBarColor: progressBarColor) {
-              navigation.push(screen: .spendingAnalytics)
-            }
-            .environmentObject(viewModel)
-            .environmentObject(currencyManager)
-            .transition(.asymmetric(
-              insertion: .opacity.combined(with: .move(edge: .top)),
-              removal: .opacity
-            ))
-          }
-
-          AddSpendingRow(
-            filters: $filters,
-            showFilterSheet: $showFilterSheet,
-            sortOption: $sortOption,
-            showSearchBar: $showSearchBar,
-            searchText: $searchText,
-            hasTransactions: viewModel.currentMonthSpendings?.isEmpty == false
-          )
-          .environmentObject(viewModel)
-          .padding(.horizontal, 20)
-          .padding(.top, showSearchBar ? 10 : 20)
-          .padding(.bottom, 5)
-
-          // MARK: - Search Bar (On Demand)
-          if showSearchBar {
-            SearchBarView(
-              searchText: $searchText,
-              isFocused: $isSearchFocused,
-              onDismiss: {
-                withAnimation(.easeOut(duration: 0.25)) {
-                  showSearchBar = false
-                }
-              }
-            )
-            .padding(.horizontal, 20)
-            .padding(.bottom, 8)
-            .transition(.opacity.combined(with: .scale(scale: 0.95)))
-            .onAppear {
-              DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                isSearchFocused = true
-              }
-            }
-          }
-
-          if viewModel.isDataLoading {
-            ProgressView().tint(Color.appPrimaryColor)
-              .frame(maxWidth: .infinity, maxHeight: .infinity)
-          } else if let spendings = viewModel.currentMonthSpendings, spendings.isEmpty {
-            EmptyStateView(
-              icon: "dollarsign.circle",
-              title: "No Expenses Yet",
-              subtitle: "Tap '+' above to record\nyour first expense"
-            )
-          } else {
-            if filteredSpendings.isEmpty && (!searchText.isEmpty || filters.isActive) {
-              // No results from search or filters
-              VStack(spacing: 12) {
-                Spacer()
-                Image(systemName: filters.isActive ? "line.3.horizontal.decrease.circle" : "magnifyingglass")
-                  .font(.system(size: 40))
-                  .foregroundStyle(Color.gray.opacity(0.5))
-
-                if !searchText.isEmpty {
-                  Text("No results for \"\(searchText)\"")
-                    .font(.customFont(family: .quicksand, name: .medium, size: .x16))
-                    .foregroundStyle(Color.textPrimary)
-                } else {
-                  Text("No matching transactions")
-                    .font(.customFont(family: .quicksand, name: .medium, size: .x16))
-                    .foregroundStyle(Color.textPrimary)
-                }
-
-                if filters.isActive {
-                  Text("Try adjusting your filters")
-                    .font(.customFont(family: .quicksand, name: .regular, size: .x14))
-                    .foregroundStyle(Color.textPrimary.opacity(0.7))
-
-                  Button {
-                    withAnimation {
-                      filters.reset()
-                    }
-                  } label: {
-                    Text("Clear Filters")
-                      .font(.customFont(family: .quicksand, name: .semiBold, size: .x14))
-                      .foregroundStyle(Color.appPrimaryColor)
-                      .padding(.horizontal, 20)
-                      .padding(.vertical, 10)
-                      .background(Color.appPrimaryColor.opacity(0.15))
-                      .cornerRadius(20)
-                  }
-                  .padding(.top, 8)
-                } else {
-                  Text("Try searching by name, category, amount, or date")
-                    .font(.customFont(family: .quicksand, name: .regular, size: .x14))
-                    .foregroundStyle(Color.textPrimary.opacity(0.7))
-                    .multilineTextAlignment(.center)
-                }
-
-                Spacer()
-              }
-              .frame(maxWidth: .infinity)
-              .padding(.horizontal, 20)
-            } else if !filteredSpendings.isEmpty {
-              List {
-                ForEach(filteredSpendings, id: \.id) { spending in
-                  UpdatedSpendingRow(spending: spending)
-                    .environmentObject(currencyManager)
-                    .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(Color.clear)
-                    .onTapGesture {
-                      viewModel.prepareEdit(spending: spending)
-                    }
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                      Button(role: .destructive) {
-                        viewModel.spendingToDelete = spending
-                        viewModel.showDeleteConfirmationAlert = true
-                      } label: {
-                        Image(systemName: "trash")
-                      }
-                      .tint(.red)
-                    }
-                }
-              }
-              .listStyle(.plain)
-              .scrollContentBackground(.hidden)
-            }
-            Spacer()
-          }
+          headerSection
+          transactionToolbar
+          searchBarSection
+          contentSection
         }
 
-        // No Account Popup
         if showNoAccountPopup {
           NoAccountPopupView(
             onAddAccount: {
@@ -333,8 +56,7 @@ struct SpendsListingView: View {
           .zIndex(100)
         }
       }
-      .animation(.easeInOut(duration: 0.3), value: showSearchBar)
-      // MARK: - Modifiers & Lifecycle
+      .animation(.easeInOut(duration: 0.3), value: viewModel.showSearchBar)
       .onReceive(Publishers.keyboardHeight) { height in
         withAnimation(.easeOut(duration: 0.25)) {
           keyboardHeight = height
@@ -344,7 +66,7 @@ struct SpendsListingView: View {
         guard viewModel.currentMonthSpendings == nil else { return }
         viewModel.fetchDashboardData()
       }
-      .navigationBarHidden(true) // Using Custom Header
+      .navigationBarHidden(true)
       .onChange(of: viewModel.showAddSheet) { showSheet in
         if showSheet {
           addSpendingVM = container.makeTransactionFormViewModel(
@@ -352,7 +74,6 @@ struct SpendsListingView: View {
             selectedProject: nil
           )
         } else {
-          // Clean up viewModel when sheet is dismissed (drag/tap outside)
           addSpendingVM = nil
         }
       }
@@ -381,21 +102,133 @@ struct SpendsListingView: View {
       .sheet(isPresented: $showAddAccountSheet) {
         AddAccountSheet(viewModel: container.makeAccountsViewModel())
       }
-      .sheet(isPresented: $showFilterSheet) {
+      .sheet(isPresented: $viewModel.showFilterSheet) {
         SpendingFilterView(
-          filters: $filters,
-          isPresented: $showFilterSheet,
-          availableCategories: availableCategories,
+          filters: $viewModel.filters,
+          isPresented: $viewModel.showFilterSheet,
+          availableCategories: viewModel.availableCategories,
           onApply: { }
         )
       }
-      .alert("Confirm Deletion", isPresented: $viewModel.showDeleteConfirmationAlert, presenting: viewModel.spendingToDelete) { spending in
+      .alert("Confirm Deletion", isPresented: $viewModel.showDeleteConfirmationAlert, presenting: viewModel.spendingToDelete) { _ in
         Button("Delete", role: .destructive) { viewModel.deleteSpending() }
         Button("Cancel", role: .cancel) { viewModel.spendingToDelete = nil }
       } message: { _ in
         Text("Are you sure you want to delete this spending?")
       }
     }
+  }
+
+  // MARK: - Sub-sections
+
+  @ViewBuilder
+  private var headerSection: some View {
+    if !viewModel.showSearchBar {
+      AppHeaderView(
+        title: viewModel.currentMonth,
+        trailingButtonIcon: "folder.fill",
+        secondTrailingButtonIcon: "creditcard.fill",
+        backAction: { navigation.push(screen: .settings) },
+        trailingButtonAction: { navigation.push(screen: .projectListing) },
+        secondTrailingButtonAction: { navigation.push(screen: .myAccounts) },
+        isBackButton: false
+      )
+      .transition(.asymmetric(
+        insertion: .opacity.combined(with: .move(edge: .top)),
+        removal: .opacity
+      ))
+
+      SpendingsHeroSection(budgetProgress: viewModel.budgetProgress, progressBarColor: progressBarColor) {
+        navigation.push(screen: .spendingAnalytics)
+      }
+      .environmentObject(viewModel)
+      .environmentObject(currencyManager)
+      .transition(.asymmetric(
+        insertion: .opacity.combined(with: .move(edge: .top)),
+        removal: .opacity
+      ))
+    }
+  }
+
+  @ViewBuilder
+  private var transactionToolbar: some View {
+    AddSpendingRow()
+      .environmentObject(viewModel)
+      .padding(.horizontal, 20)
+      .padding(.top, viewModel.showSearchBar ? 10 : 20)
+      .padding(.bottom, 5)
+  }
+
+  @ViewBuilder
+  private var searchBarSection: some View {
+    if viewModel.showSearchBar {
+      SearchBarView(
+        searchText: $viewModel.searchText,
+        isFocused: $isSearchFocused,
+        onDismiss: {
+          withAnimation(.easeOut(duration: 0.25)) {
+            viewModel.showSearchBar = false
+          }
+        }
+      )
+      .padding(.horizontal, 20)
+      .padding(.bottom, 8)
+      .transition(.opacity.combined(with: .scale(scale: 0.95)))
+      .onAppear {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+          isSearchFocused = true
+        }
+      }
+    }
+  }
+
+  @ViewBuilder
+  private var contentSection: some View {
+    if viewModel.isDataLoading {
+      ProgressView().tint(Color.appPrimaryColor)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    } else if let spendings = viewModel.currentMonthSpendings, spendings.isEmpty {
+      EmptyStateView(
+        icon: "dollarsign.circle",
+        title: "No Expenses Yet",
+        subtitle: "Tap '+' above to record\nyour first expense"
+      )
+    } else {
+      let filtered = viewModel.filteredSpendings
+      if filtered.isEmpty && (!viewModel.searchText.isEmpty || viewModel.filters.isActive) {
+        SpendingNoResultsView(searchText: viewModel.searchText, filters: viewModel.filters) {
+          withAnimation { viewModel.filters.reset() }
+        }
+      } else if !filtered.isEmpty {
+        spendingsList(filtered)
+      }
+      Spacer()
+    }
+  }
+
+  @ViewBuilder
+  private func spendingsList(_ spendings: [SpendingDto]) -> some View {
+    List {
+      ForEach(spendings, id: \.id) { spending in
+        UpdatedSpendingRow(spending: spending)
+          .environmentObject(currencyManager)
+          .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
+          .listRowSeparator(.hidden)
+          .listRowBackground(Color.clear)
+          .onTapGesture { viewModel.prepareEdit(spending: spending) }
+          .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            Button(role: .destructive) {
+              viewModel.spendingToDelete = spending
+              viewModel.showDeleteConfirmationAlert = true
+            } label: {
+              Image(systemName: "trash")
+            }
+            .tint(.red)
+          }
+      }
+    }
+    .listStyle(.plain)
+    .scrollContentBackground(.hidden)
   }
 
   func didTapAddButton() {
@@ -413,190 +246,53 @@ struct SpendsListingView: View {
   // SpendsListingView(viewModel: SpendingsViewModel(spendingService: WhatISpendServiceStub()))
 }
 
-struct AddSpendingRow: View {
-  @EnvironmentObject var viewModel: SpendingsViewModel
-  @Binding var filters: SpendingFilters
-  @Binding var showFilterSheet: Bool
-  @Binding var sortOption: SpendingSortOption
-  @Binding var showSearchBar: Bool
-  @Binding var searchText: String
-  var hasTransactions: Bool
-
-  private var isNotDefaultSort: Bool {
-    sortOption.field != .date || sortOption.direction != .descending
-  }
-
-  private var isSearchActive: Bool {
-    !searchText.isEmpty
-  }
-
-  // Check if any tool is active (for badge)
-  private var activeToolsCount: Int {
-    var count = 0
-    if isSearchActive { count += 1 }
-    if filters.isActive { count += filters.activeFilterCount }
-    if isNotDefaultSort { count += 1 }
-    return count
-  }
+// MARK: - No Results Sub-View
+private struct SpendingNoResultsView: View {
+  let searchText: String
+  let filters: SpendingFilters
+  let onClearFilters: () -> Void
 
   var body: some View {
     VStack(spacing: 12) {
-      HStack {
-        Text("Transactions")
-          .font(.customFont(family: .quicksand, name: .bold, size: .x20))
+      Spacer()
+      Image(systemName: filters.isActive ? "line.3.horizontal.decrease.circle" : "magnifyingglass")
+        .font(.system(size: 40))
+        .foregroundStyle(Color.gray.opacity(0.5))
+
+      if !searchText.isEmpty {
+        Text("No results for \"\(searchText)\"")
+          .font(.customFont(family: .quicksand, name: .medium, size: .x16))
           .foregroundStyle(Color.textPrimary)
-
-        Spacer()
-
-        // Add Button (Primary Action - Prominent)
-        Button {
-          viewModel.spendingToEdit = nil
-          viewModel.showAddSheet.toggle()
-        } label: {
-          Image(systemName: "plus.circle.fill")
-            .font(.system(size: 32))
-            .foregroundStyle(Color.appPrimaryColor)
-        }
-
-        // Tools Menu (Search, Filter, Sort)
-        if hasTransactions {
-          Menu {
-            // Search Option
-            Button {
-              withAnimation(.easeOut(duration: 0.25)) {
-                showSearchBar.toggle()
-                if !showSearchBar {
-                  searchText = ""
-                }
-              }
-            } label: {
-              Label(
-                showSearchBar ? "Hide Search" : (isSearchActive ? "Search (active)" : "Search"),
-                systemImage: "magnifyingglass"
-              )
-            }
-
-            // Filter Option
-            Button {
-              showFilterSheet = true
-            } label: {
-              Label(
-                filters.isActive ? "Filter (\(filters.activeFilterCount))" : "Filter",
-                systemImage: "line.3.horizontal.decrease"
-              )
-            }
-
-            Divider()
-
-            // Sort Options
-            Menu {
-              ForEach(SortField.allCases) { field in
-                Button {
-                  withAnimation {
-                    if sortOption.field == field {
-                      sortOption.direction.toggle()
-                    } else {
-                      sortOption = SpendingSortOption(field: field, direction: .descending)
-                    }
-                  }
-                } label: {
-                  HStack {
-                    Text(field.rawValue)
-                    if sortOption.field == field {
-                      Image(systemName: sortOption.direction == .ascending ? "chevron.up" : "chevron.down")
-                    }
-                  }
-                }
-              }
-            } label: {
-              Label(
-                isNotDefaultSort ? "Sort: \(sortOption.field.rawValue)" : "Sort",
-                systemImage: "arrow.up.arrow.down"
-              )
-            }
-
-            // Reset All (if any tool is active)
-            if activeToolsCount > 0 {
-              Divider()
-              Button(role: .destructive) {
-                withAnimation(.easeOut(duration: 0.2)) {
-                  filters.reset()
-                  sortOption = .default
-                  searchText = ""
-                  showSearchBar = false
-                }
-              } label: {
-                Label("Reset All", systemImage: "xmark.circle")
-              }
-            }
-          } label: {
-            ZStack(alignment: .topTrailing) {
-              Image(systemName: "ellipsis.circle")
-                .font(.system(size: 26))
-                .foregroundStyle(activeToolsCount > 0 ? Color.appPrimaryColor : Color.gray)
-
-              // Badge showing active tools count
-              if activeToolsCount > 0 {
-                Text("\(activeToolsCount)")
-                  .font(.system(size: 10, weight: .bold))
-                  .foregroundStyle(Color.white)
-                  .frame(width: 16, height: 16)
-                  .background(Color.appPrimaryColor)
-                  .clipShape(Circle())
-                  .offset(x: 4, y: -4)
-              }
-            }
-          }
-        }
+      } else {
+        Text("No matching transactions")
+          .font(.customFont(family: .quicksand, name: .medium, size: .x16))
+          .foregroundStyle(Color.textPrimary)
       }
 
-      // Active Filters/Sort Info Row
-      if filters.isActive || isNotDefaultSort {
-        HStack {
-          // Show current sort if not default
-          if isNotDefaultSort {
-            HStack(spacing: 4) {
-              Image(systemName: sortOption.field.icon)
-                .font(.system(size: 10))
-              Text(sortOption.displayName)
-                .font(.customFont(family: .quicksand, name: .medium, size: .x12))
-            }
+      if filters.isActive {
+        Text("Try adjusting your filters")
+          .font(.customFont(family: .quicksand, name: .regular, size: .x14))
+          .foregroundStyle(Color.textPrimary.opacity(0.7))
+
+        Button(action: onClearFilters) {
+          Text("Clear Filters")
+            .font(.customFont(family: .quicksand, name: .semiBold, size: .x14))
             .foregroundStyle(Color.appPrimaryColor)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 10)
             .background(Color.appPrimaryColor.opacity(0.15))
-            .cornerRadius(12)
-          }
-
-          // Show filter count
-          if filters.isActive {
-            Text("\(filters.activeFilterCount) filter\(filters.activeFilterCount > 1 ? "s" : "")")
-              .font(.customFont(family: .quicksand, name: .medium, size: .x12))
-              .foregroundStyle(Color.gray)
-          }
-
-          Spacer()
-
-          // Reset All Button
-          Button {
-            withAnimation(.easeOut(duration: 0.2)) {
-              filters.reset()
-              sortOption = .default
-            }
-          } label: {
-            HStack(spacing: 4) {
-              Image(systemName: "xmark.circle.fill")
-                .font(.system(size: 12))
-              Text("Reset All")
-                .font(.customFont(family: .quicksand, name: .semiBold, size: .x12))
-            }
-            .foregroundStyle(Color.red)
-          }
+            .cornerRadius(20)
         }
-        .transition(.opacity.combined(with: .move(edge: .top)))
+        .padding(.top, 8)
+      } else {
+        Text("Try searching by name, category, amount, or date")
+          .font(.customFont(family: .quicksand, name: .regular, size: .x14))
+          .foregroundStyle(Color.textPrimary.opacity(0.7))
+          .multilineTextAlignment(.center)
       }
+      Spacer()
     }
-    .animation(.easeOut(duration: 0.2), value: filters.isActive)
-    .animation(.easeOut(duration: 0.2), value: sortOption)
+    .frame(maxWidth: .infinity)
+    .padding(.horizontal, 20)
   }
 }

@@ -16,6 +16,5 @@ enum Route: Hashable {
   case settings
   case analyticsTest
   case login
-  case goals
   case myAccounts
 }

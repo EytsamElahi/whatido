@@ -118,6 +118,21 @@ class AddSpendingViewModel: ObservableObject {
       showErrorAlert = true
       return
     }
+    let spending = buildSpending()
+    savingTask = Task { [weak self] in
+      guard let self else { return }
+      self.isDataUploading = true
+      defer { self.isDataUploading = false }
+      if let id = spendingIdToEdit, var oldSpending = spendingToEdit {
+        guard await persistEdit(spending: spending, id: id, oldSpending: &oldSpending) else { return }
+      } else {
+        guard await persistNew(spending: spending) else { return }
+      }
+      self.dismissSheet = true
+    }
+  }
+
+  private func buildSpending() -> Spending {
     let date = dateTf.toTimeStamp(format: "MM/dd/yyyy") ?? Date()
     let accountTypeInfo: DAccountType
     if let account = selectedAccount {
@@ -125,12 +140,8 @@ class AddSpendingViewModel: ObservableObject {
     } else {
       accountTypeInfo = DAccountType(name: "Unlinked", accountId: nil)
     }
-
-    // Use category name if description is empty
     let name = spendingItemTf.isEmpty ? (selectedType?.name ?? "") : spendingItemTf
-
-    // Create Object
-    let spending = Spending(
+    return Spending(
       name: name,
       amount: amountTf,
       date: date,
@@ -140,47 +151,41 @@ class AddSpendingViewModel: ObservableObject {
       accountType: accountTypeInfo,
       currencyCode: CurrencyManager.shared.currencyCode
     )
-    savingTask = Task { [weak self] in
-      guard let self else { return }
-      self.isDataUploading = true
-      defer {
-        self.isDataUploading = false
-      }
-      if let id = spendingIdToEdit, var oldSpending = spendingToEdit {
-        // Correct isLiability from live accounts list — old Firestore docs may lack this field
-        if let accountId = oldSpending.account?.id,
-           let currentAcc = accounts.first(where: { $0.id == accountId }) {
-          oldSpending.account?.isLiability = currentAcc.type.isLiability
-        }
-        spending.id = id
-        let apiResult = await service.editSpending(oldSpending: oldSpending, newSpending: spending, spendingId: id)
-        if case .error(let error) = apiResult {
-          self.overlayManager.showToast(message: error, style: .error)
-          return
-        }
-        self.analytics.logExpenseEdited()
-        self.overlayManager.showToast(message: PopupMessages.dataUpdatedMessage("Spending"), style: .success)
-        eventBus.send(.reloadDashboard)
-        self.spending = spending.convertToDto()
-      } else {
-        let apiResult = await service.addSpending(spending)
-        switch apiResult {
-        case .data(let newSpending):
-          self.spending = newSpending
-          self.analytics.logExpenseAdded(
-            category: selectedType?.name ?? "Unknown",
-            amount: amountTf
-          )
-          eventBus.send(.reloadDashboard)
-          self.overlayManager.showToast(message: PopupMessages.dataAddedMessage("Spending"), style: .success)
-        case .error(let error):
-          self.overlayManager.showToast(message: error, style: .error)
-          return
-        default:
-          break
-        }
-      }
-      self.dismissSheet = true
+  }
+
+  private func persistEdit(spending: Spending, id: String, oldSpending: inout SpendingDto) async -> Bool {
+    // Correct isLiability from live accounts list — old Firestore docs may lack this field
+    if let accountId = oldSpending.account?.id,
+       let currentAcc = accounts.first(where: { $0.id == accountId }) {
+      oldSpending.account?.isLiability = currentAcc.type.isLiability
+    }
+    spending.id = id
+    let apiResult = await service.editSpending(oldSpending: oldSpending, newSpending: spending, spendingId: id)
+    if case .error(let error) = apiResult {
+      overlayManager.showToast(message: error, style: .error)
+      return false
+    }
+    analytics.logExpenseEdited()
+    overlayManager.showToast(message: PopupMessages.dataUpdatedMessage("Spending"), style: .success)
+    eventBus.send(.reloadDashboard)
+    self.spending = spending.convertToDto()
+    return true
+  }
+
+  private func persistNew(spending: Spending) async -> Bool {
+    let apiResult = await service.addSpending(spending)
+    switch apiResult {
+    case .data(let newSpending):
+      self.spending = newSpending
+      analytics.logExpenseAdded(category: selectedType?.name ?? "Unknown", amount: amountTf)
+      eventBus.send(.reloadDashboard)
+      overlayManager.showToast(message: PopupMessages.dataAddedMessage("Spending"), style: .success)
+      return true
+    case .error(let error):
+      overlayManager.showToast(message: error, style: .error)
+      return false
+    default:
+      return true
     }
   }
 

@@ -37,54 +37,44 @@ class AuthenticationViewModel: ObservableObject {
         self.isAuthenticating = true
         let user = try await authService.signIn(with: provider)
         self.user = user
-
-        // Show loader after auth sheet dismisses
         self.overlayManager.showLoader()
-
-        // 1. Check if user already exists in Firestore
         let result = await userRepo.getUser(id: user.userId)
-
         if case .data(let dUser) = result {
-          // User already exists!
-          self.user?.name = dUser.name
-          self.user?.currency = dUser.currency
-
-          // Populate AppData and CurrencyManager (use DUser to preserve enableNotification)
-          AppData.user = dUser.toUserDto()
-
-          // Update FCM token for existing user
-          let _ = await userRepo.updateFCMToken(userId: user.userId, token: AppData.fcmToken)
-
-          // Hide loader before navigating
-          self.overlayManager.hideLoader()
-
-          if let currencyCode = dUser.currency {
-            CurrencyManager.shared.setCurrencyBySymbol(currencyCode)
-            self.overlayManager.showToast(message: "Welcome back!", style: .success)
-            self.navigateToDashboard = true
-          } else {
-            // User exists but no currency preference saved
-            self.overlayManager.showToast(message: "Please select your preferred currency", style: .success)
-            self.navigateToCurrency = true
-          }
+          await handleExistingUser(dUser, userId: user.userId)
         } else {
-          // New User - Log signup event
-          self.analytics.logUserSignup(provider: provider.rawValue)
-
-          // Hide loader before showing username sheet or creating profile
-          self.overlayManager.hideLoader()
-
-          if user.name == nil {
-            self.showUsernameSheet = true
-          } else {
-            createUserProfile()
-          }
+          handleNewUser(user, provider: provider)
         }
       } catch {
         self.isAuthenticating = false
         self.overlayManager.hideLoader()
         self.overlayManager.showToast(message: error.localizedDescription, style: .error)
       }
+    }
+  }
+
+  private func handleExistingUser(_ dUser: DUser, userId: String) async {
+    user?.name = dUser.name
+    user?.currency = dUser.currency
+    AppData.user = dUser.toUserDto()
+    let _ = await userRepo.updateFCMToken(userId: userId, token: AppData.fcmToken)
+    overlayManager.hideLoader()
+    if let currencyCode = dUser.currency {
+      CurrencyManager.shared.setCurrencyBySymbol(currencyCode)
+      overlayManager.showToast(message: "Welcome back!", style: .success)
+      navigateToDashboard = true
+    } else {
+      overlayManager.showToast(message: "Please select your preferred currency", style: .success)
+      navigateToCurrency = true
+    }
+  }
+
+  private func handleNewUser(_ user: AuthModel, provider: AuthSocialProvider) {
+    analytics.logUserSignup(provider: provider.rawValue)
+    overlayManager.hideLoader()
+    if user.name == nil {
+      showUsernameSheet = true
+    } else {
+      createUserProfile()
     }
   }
 

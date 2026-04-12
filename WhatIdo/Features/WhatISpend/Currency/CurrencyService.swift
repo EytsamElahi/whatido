@@ -8,13 +8,15 @@
 import Foundation
 import FirebaseFirestore
 import FirebaseAuth
+import OSLog
 
 class CurrencyService: ObservableObject {
     static let shared = CurrencyService()
-    
+
     @Published var rates: [String: Double] = [:]
     private var lastUpdate: TimeInterval = 0
     private let db = Firestore.firestore()
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "", category: "CurrencyService")
     
     private init() {
         // Load some initial rates to avoid zeros before firestore loads
@@ -26,12 +28,12 @@ class CurrencyService: ObservableObject {
             guard let self = self else { return }
             
             if let error = error {
-                print("Error fetching exchange rates from Firestore: \(error.localizedDescription)")
+                self.logger.error("Error fetching exchange rates from Firestore: \(error.localizedDescription, privacy: .public)")
                 return
             }
-            
+
             guard let snapshot = snapshot, snapshot.exists else {
-                print("Exchange rates document does not exist. Seeding initial data...")
+                self.logger.warning("Exchange rates document does not exist. Seeding initial data...")
                 self.fetchFromAPIAndUpdateFirestore()
                 return
             }
@@ -42,9 +44,9 @@ class CurrencyService: ObservableObject {
                     let model = try JSONDecoder().decode(ExchangeRatesModel.self, from: jsonData)
                     self.rates = model.conversion_rates
                     self.lastUpdate = model.time_last_update_unix
-                    print("Rates loaded successfully from Firestore. Count: \(self.rates.count)")
+                    self.logger.info("Rates loaded successfully from Firestore. Count: \(self.rates.count, privacy: .public)")
                 } catch {
-                    print("Error decoding exchange rates: \(error.localizedDescription)")
+                    self.logger.error("Error decoding exchange rates: \(error.localizedDescription, privacy: .public)")
                 }
             }
         }
@@ -57,7 +59,7 @@ class CurrencyService: ObservableObject {
         
         let now = Date().timeIntervalSince1970
         if (now - lastUpdate) > 86400 { // 24 hours
-            print("Admin detected and rates expired. Fetching from API...")
+            logger.info("Admin detected and rates expired. Fetching from API...")
             fetchFromAPIAndUpdateFirestore()
         }
     }
@@ -67,17 +69,17 @@ class CurrencyService: ObservableObject {
         
         URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
             if let error = error {
-                print("Error fetching from API: \(error.localizedDescription)")
+                self?.logger.error("Error fetching from API: \(error.localizedDescription, privacy: .public)")
                 return
             }
-            
+
             guard let data = data else { return }
-            
+
             do {
                 let model = try JSONDecoder().decode(ExchangeRatesModel.self, from: data)
                 self?.updateFirestore(with: model)
             } catch {
-                print("Error decoding API response: \(error.localizedDescription)")
+                self?.logger.error("Error decoding API response: \(error.localizedDescription, privacy: .public)")
             }
         }.resume()
     }
@@ -88,17 +90,17 @@ class CurrencyService: ObservableObject {
             if let dict = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] {
                 db.collection("config").document("exchange_rates").setData(dict) { error in
                     if let error = error {
-                        print("Error updating Firestore: \(error.localizedDescription)")
+                        self.logger.error("Error updating Firestore: \(error.localizedDescription, privacy: .public)")
                     } else {
-                        print("Rates updated successfully in Firestore.")
+                        self.logger.info("Rates updated successfully in Firestore.")
                     }
                 }
             }
         } catch {
-            print("Error preparing data for Firestore: \(error.localizedDescription)")
+            logger.error("Error preparing data for Firestore: \(error.localizedDescription, privacy: .public)")
         }
     }
-    
+
     private func seedInitialData() {
         let jsonPayload = """
         {
@@ -114,7 +116,7 @@ class CurrencyService: ObservableObject {
             let model = try JSONDecoder().decode(ExchangeRatesModel.self, from: data)
             updateFirestore(with: model)
         } catch {
-            print("Error seeding initial data: \(error.localizedDescription)")
+            logger.error("Error seeding initial data: \(error.localizedDescription, privacy: .public)")
         }
     }
 }

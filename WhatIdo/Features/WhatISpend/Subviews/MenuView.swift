@@ -58,7 +58,6 @@ struct MenuView: View {
                 }
             }.tint(.primary)
         }.onChange(of: pickedItem) { newVal in
-            debugPrint("New filter", newVal)
             action(newVal)
         }
     }

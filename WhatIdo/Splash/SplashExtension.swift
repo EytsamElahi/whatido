@@ -35,8 +35,6 @@ extension SplashView {
       SettingsView(viewModel: container.makeSettingsViewModel())
     case .analyticsTest:
       AnalyticsTestView()
-    case .goals:
-      GoalsView(viewModel: container.makeGoalsViewModel())
     }
   }
 }

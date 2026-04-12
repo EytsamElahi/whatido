@@ -40,9 +40,6 @@ enum FirestoreEndpoints: FirestoreEndpoint {
   case createAccount(id: String)
   case getAllIncomeSources
   case createIncomeSource(id: String)
-  case getAllGoals
-  case addGoal(id: String)
-  case editGoal(id: String)
   case createFeedback
   case createAccountTransaction(id: String)
   case createIncomeTransaction(id: String)
@@ -91,12 +88,6 @@ enum FirestoreEndpoints: FirestoreEndpoint {
       return firestore.collection("income_sources")
     case .createIncomeSource(let id):
       return firestore.collection("income_sources").document(id)
-    case .getAllGoals:
-      return firestore.collection("goals")
-    case .addGoal(let documentId):
-      return firestore.collection("goals").document(documentId)
-    case .editGoal(let documentId):
-      return firestore.collection("goals").document(documentId)
     case .createFeedback:
       return firestore.collection("user_feedback").document()
     case .createAccountTransaction(let id):

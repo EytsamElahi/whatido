@@ -10,6 +10,9 @@ import FirebaseAuth
 import CryptoKit
 import AuthenticationServices
 import Firebase
+import OSLog
+
+private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "", category: "AppleSocialAuthentication")
 
 class AppleSocialAuthentication: NSObject, ObservableObject, ASAuthorizationControllerDelegate {
     @Published var signedIn: Bool = false
@@ -23,10 +26,10 @@ class AppleSocialAuthentication: NSObject, ObservableObject, ASAuthorizationCont
         Auth.auth().addStateDidChangeListener { auth, user in
             if user != nil {
                 self.signedIn = true
-                print("Auth state changed, is signed in")
+                logger.info("Auth state changed, is signed in")
             } else {
                 self.signedIn = false
-                print("Auth state changed, is signed out")
+                logger.info("Auth state changed, is signed out")
             }
         }
     }
@@ -108,12 +111,12 @@ class AppleSocialAuthentication: NSObject, ObservableObject, ASAuthorizationCont
                 fatalError("Invalid state: A login callback was received, but no login request was sent.")
             }
             guard let appleIDToken = appleIDCredential.identityToken else {
-                print("Unable to fetch identity token")
+                logger.error("Unable to fetch identity token")
                 self.signInCompletion?(.failure(SignInError.unableToFetchIdentityToken))
                 return
             }
             guard let idTokenString = String(data: appleIDToken, encoding: .utf8) else {
-                print("Unable to serialize token string from data: \(appleIDToken.debugDescription)")
+                logger.error("Unable to serialize token string from data")
                 self.signInCompletion?(.failure(SignInError.unableToSerializeToken))
                 return
             }
@@ -127,7 +130,7 @@ class AppleSocialAuthentication: NSObject, ObservableObject, ASAuthorizationCont
 
     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
         // Handle error.
-        print("Sign in with Apple errored: \(error)")
+        logger.error("Sign in with Apple errored: \(error.localizedDescription, privacy: .public)")
 //        if !error.localizedDescription.contains("1001") {
 //            self.signInCompletion?(.failure(error))
 //        }

@@ -6,6 +6,9 @@
 //
 
 import Foundation
+import OSLog
+
+private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "", category: "AppConfiguration")
 
 /// Centralized configuration manager for environment-based settings
 final class AppConfiguration {
@@ -79,29 +82,29 @@ final class AppConfiguration {
         // Try with directory first (for folder references)
         if let path = Bundle.main.path(forResource: plistName, ofType: "plist", inDirectory: directory) {
             #if DEBUG
-            print("✅ Firebase plist loaded from: \(path)")
+            logger.debug("Firebase plist loaded from: \(path, privacy: .public)")
             #endif
             return path
         }
-        
+
         // Fallback: try without directory (for flat bundle structure)
         if let path = Bundle.main.path(forResource: plistName, ofType: "plist") {
             #if DEBUG
-            print("✅ Firebase plist loaded from root: \(path)")
+            logger.debug("Firebase plist loaded from root: \(path, privacy: .public)")
             #endif
             return path
         }
-        
+
         // Fallback: try default GoogleService-Info.plist
         if let path = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") {
             #if DEBUG
-            print("⚠️ Fallback to default GoogleService-Info.plist: \(path)")
+            logger.warning("Fallback to default GoogleService-Info.plist: \(path, privacy: .public)")
             #endif
             return path
         }
-        
+
         #if DEBUG
-        print("❌ No Firebase plist found! Environment: \(environment.rawValue)")
+        logger.error("No Firebase plist found! Environment: \(self.environment.rawValue, privacy: .public)")
         #endif
         return nil
     }

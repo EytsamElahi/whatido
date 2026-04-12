@@ -189,19 +189,13 @@ class DashboardViewModel: ObservableObject {
   }
 
   func getCurrentMonthBudget() {
-    let budgetId = "\(currentMonthDate?.components.year ?? 0)_\(currentMonth)"
+    let budgetId = "\(AppData.user?.id ?? "")_\(currentMonthDate?.components.year ?? 0)_\(currentMonth)"
     Task { [weak self] in
       guard let self = self else { return }
       let result = await budgetService.getMonthlyBudget(id: budgetId)
-      switch result {
-      case .data(let budget):
+      if case .data(let budget) = result {
         self.monthlyBudget = budget
-      case .error(let error):
-        debugPrint("Error in fetching budget \(error)")
-      case .success:
-        debugPrint("No budget found")
       }
-
     }
   }
 

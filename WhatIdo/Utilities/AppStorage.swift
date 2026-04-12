@@ -7,6 +7,9 @@
 
 import Foundation
 import Combine
+import OSLog
+
+private let storageLogger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "", category: "AppStorage")
 
 @propertyWrapper
 struct AppStorage<Value> {
@@ -58,7 +61,7 @@ struct AppStorageObject<T: Codable> {
                 let value = try JSONDecoder().decode(T.self, from: data)
                 return value ?? defaultValue
             } catch {
-                debugPrint("Error in decoding \(error)")
+                storageLogger.error("Error in decoding: \(error.localizedDescription, privacy: .public)")
             }
             return defaultValue
         }
@@ -69,7 +72,7 @@ struct AppStorageObject<T: Codable> {
                 let data = try JSONEncoder().encode(newValue)
                 UserDefaults.standard.set(data, forKey: key)
             } catch {
-                debugPrint("Error in Encoding \(error)")
+                storageLogger.error("Error in encoding: \(error.localizedDescription, privacy: .public)")
             }
             // Set value to UserDefaults
 

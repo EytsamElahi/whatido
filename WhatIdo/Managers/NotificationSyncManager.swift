@@ -8,6 +8,7 @@
 import Foundation
 import FirebaseMessaging
 import FirebaseFirestore
+import OSLog
 import UserNotifications
 import FirebaseAuth
 
@@ -16,6 +17,7 @@ class NotificationSyncManager {
   static let shared = NotificationSyncManager()
   private let userRepo: UserRepositoryType
   private var syncTask: Task<Void, Never>?
+  private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "", category: "NotificationSyncManager")
 
   init(userRepo: UserRepositoryType = UserRepository()) {
     self.userRepo = userRepo
@@ -33,9 +35,9 @@ class NotificationSyncManager {
       let result = await userRepo.updateFCMToken(userId: userId, token: token)
       switch result {
       case .success:
-        debugPrint("✅ FCM Token synced successfully")
+        self.logger.info("FCM Token synced successfully")
       case .error(let message):
-        debugPrint("❌ Failed to sync FCM Token: \(message)")
+        self.logger.error("Failed to sync FCM Token: \(message, privacy: .public)")
       case .data:
         break
       }
@@ -48,7 +50,7 @@ class NotificationSyncManager {
     let result = await userRepo.updateEnableNotification(userId: userId, enable: enabled)
     if case .success = result {
       AppData.user?.enableNotification = enabled
-      debugPrint("✅ Notification preference updated to \(enabled)")
+      self.logger.info("Notification preference updated to \(enabled, privacy: .public)")
     }
   }
   

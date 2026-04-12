@@ -139,7 +139,7 @@ class SettingsViewModel: ObservableObject {
                 try await authService.delete()
                 self.accountDeleted = true
             } catch {
-                debugPrint("Error in deleting")
+                logger.error("Error in deleting account: \(error.localizedDescription, privacy: .public)")
                 overlayManager.showToast(message: error.localizedDescription, style: .error)
             }
         }

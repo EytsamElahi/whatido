@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import OSLog
 
 protocol AppDataType {}
 enum AppResult<T> {
@@ -34,6 +35,7 @@ protocol WhatISpendServiceType {
 }
 
 final class WhatISpendService: WhatISpendServiceType, FirebaseService {
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "", category: "WhatISpendService")
 
     func getAllSpendings() async throws -> [SpendingDto] {
         do {
@@ -42,18 +44,18 @@ final class WhatISpendService: WhatISpendServiceType, FirebaseService {
             return spendingsData.map { $0.convertToDto() }
 
         } catch {
-            debugPrint("Error in fetching spendings", error.localizedDescription)
+            logger.error("Error in fetching spendings: \(error.localizedDescription, privacy: .public)")
             throw error
         }
     }
-    
+
     func getSpendingById(_ id: String) async throws -> SpendingDto? {
         do {
             let endpoint = FirestoreEndpoints.getSpending(id: id)
             let spendingData: Spending = try await request(endpoint: endpoint)
             return spendingData.convertToDto()
         } catch {
-            debugPrint("Error in fetching spendings", error.localizedDescription)
+            logger.error("Error in fetching spending by id: \(error.localizedDescription, privacy: .public)")
             throw error
         }
     }
@@ -66,7 +68,7 @@ final class WhatISpendService: WhatISpendServiceType, FirebaseService {
             return spendingsData.map { $0.convertToDto() }
 
         } catch {
-            debugPrint("Error in fetching spendings", error.localizedDescription)
+            logger.error("Error in fetching spendings: \(error.localizedDescription, privacy: .public)")
             throw error
         }
     }
@@ -78,7 +80,7 @@ final class WhatISpendService: WhatISpendServiceType, FirebaseService {
            return "" //try await post(data: spending, endpoint: endpoint)
         } catch {
             throw error
-            debugPrint("Error in posting data", error.localizedDescription)
+            logger.error("Error in posting data: \(error.localizedDescription, privacy: .public)")
         }
     }
     
@@ -87,7 +89,7 @@ final class WhatISpendService: WhatISpendServiceType, FirebaseService {
             let endpoint = FirestoreEndpoints.editSpending(id: id)
             try await update(data: spending, endpoint: endpoint)
         } catch {
-            debugPrint("Error in posting data", error.localizedDescription)
+            logger.error("Error in posting data: \(error.localizedDescription, privacy: .public)")
         }
     }
     
@@ -96,7 +98,7 @@ final class WhatISpendService: WhatISpendServiceType, FirebaseService {
             let endpoint = FirestoreEndpoints.deleteSpending(id: documentId)
             try await delete(endpoint: endpoint)
         } catch {
-            debugPrint("Error in deleting data", error.localizedDescription)
+            logger.error("Error in deleting data: \(error.localizedDescription, privacy: .public)")
         }
     }
 
@@ -127,7 +129,7 @@ final class WhatISpendService: WhatISpendServiceType, FirebaseService {
             let endpoint = FirestoreEndpoints.deleteBudget(id: documentId)
             try await delete(endpoint: endpoint)
         } catch {
-            debugPrint("Error in deleting data", error.localizedDescription)
+            logger.error("Error in deleting data: \(error.localizedDescription, privacy: .public)")
         }
     }
     func editMonthlyBudget(_ budget: Budget, id: String) async -> AppResult<Budget> {
